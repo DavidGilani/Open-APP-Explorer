@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,sans-serif;background:#1a1b1e;min-height:100vh;padding:24px 16px;color:#e8e8e8}
+    .wrap{max-width:760px;margin:0 auto}
+    h1{font-size:19px;font-weight:500;margin-bottom:3px;color:#f0f0f0}
+    .sub{font-size:13px;color:#888;margin-bottom:20px}
+    .search-row{display:flex;gap:8px;margin-bottom:20px}
+    .search-wrap{flex:1;position:relative}
+    input[type=text]{width:100%;padding:10px 14px;font-size:15px;border:1px solid #3a3b3e;border-radius:8px;outline:none;background:#2a2b2e;color:#e8e8e8}
+    input[type=text]:focus{border-color:#378ADD}
+    input[type=text]::placeholder{color:#666}
+    .btn{padding:10px 16px;font-size:14px;border:1px solid #3a3b3e;border-radius:8px;background:#2a2b2e;cursor:pointer;color:#e8e8e8;white-space:nowrap}
+    .btn:hover{background:#333}
+    .btn-back{display:flex;align-items:center;gap:6px;font-size:13px;color:#5ba3e0;background:none;border:none;cursor:pointer;padding:0 0 12px;font-family:Arial,sans-serif}
+    .suggestions{background:#2a2b2e;border:1px solid #3a3b3e;border-radius:8px;margin-top:2px;max-height:200px;overflow-y:auto;position:absolute;width:100%;z-index:10;display:none}
+    .sug-item{padding:10px 14px;font-size:14px;cursor:pointer;border-bottom:1px solid #333;color:#e8e8e8}
+    .sug-item:hover{background:#333}
+    .sug-item:last-child{border-bottom:none}
+    .inst-header{background:#2a2b2e;border:1px solid #3a3b3e;border-radius:12px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+    .inst-name{font-size:14px;font-weight:500;color:#f0f0f0}
+    .app-link{font-size:12px;color:#5ba3e0;text-decoration:none;display:flex;align-items:center;gap:4px;white-space:nowrap;padding:5px 10px;border:1px solid #2a4a6e;border-radius:6px;background:#1e2d3d}
+    .app-link:hover{background:#253a50}
+    .cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
+    @media(max-width:520px){.cols{grid-template-columns:1fr}}
+    .col-card{background:#2a2b2e;border:1px solid #3a3b3e;border-radius:12px;overflow:hidden}
+    .col-hd{padding:10px 12px;border-bottom:1px solid #3a3b3e;display:flex;justify-content:space-between;align-items:center}
+    .col-hd-title{font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:0.05em}
+    .col-hd-access{color:#a89df0}
+    .col-hd-success{color:#5dcaa5}
+    .col-hd-progression{color:#e08070}
+    .col-count{font-size:11px;color:#666}
+    .trow{padding:10px 12px;border-bottom:1px solid #333;cursor:pointer;transition:background .12s}
+    .trow:last-child{border-bottom:none}
+    .trow:hover{background:#313236}
+    .badges{display:flex;gap:4px;margin-bottom:4px;flex-wrap:wrap}
+    .badge{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;white-space:nowrap}
+    .stage-access{background:#2e2b4a;color:#a89df0}
+    .stage-continuation{background:#1e3a30;color:#5dcaa5}
+    .stage-completion{background:#3a2e1a;color:#d4a055}
+    .stage-attainment{background:#1e2d3d;color:#5ba3e0}
+    .stage-raising{background:#1e2d3d;color:#5ba3e0}
+    .stage-progression{background:#3a2420;color:#e08070}
+    .stage-default{background:#2e2e2e;color:#888}
+    .badge-char{background:#2e2e2e;color:#aaa}
+    .tname{font-size:12px;color:#e8e8e8;margin-bottom:2px;line-height:1.4}
+    .tdata{font-size:11px;color:#888}
+    .trow-actions{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap}
+    .find-btn{font-size:11px;color:#5ba3e0;display:flex;align-items:center;gap:3px;padding:4px 8px;border:1px solid #2a4a6e;border-radius:6px;background:#1e2d3d;cursor:pointer}
+    .find-btn:hover{background:#253a50}
+    .more-btn{font-size:11px;color:#aaa;display:flex;align-items:center;gap:3px;padding:4px 8px;border:1px solid #3a3b3e;border-radius:6px;background:#222;cursor:pointer}
+    .more-btn:hover{background:#2e2e2e}
+    .trow-detail{margin-top:8px;padding:8px 10px;background:#222;border-radius:8px;border:1px solid #3a3b3e;display:none}
+    .trow-detail.open{display:block}
+    .detail-label{font-size:10px;color:#666;margin-bottom:2px;text-transform:uppercase;letter-spacing:0.04em}
+    .detail-text{font-size:12px;color:#ccc;margin-bottom:8px;line-height:1.5}
+    .detail-text:last-child{margin-bottom:0}
+    .card{background:#2a2b2e;border:1px solid #3a3b3e;border-radius:12px;overflow:hidden;margin-bottom:14px}
+    .card-hd{padding:11px 16px;border-bottom:1px solid #3a3b3e;background:#222;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+    .card-hd-title{font-size:13px;font-weight:500;color:#f0f0f0}
+    .focus-hd{padding:11px 16px;border-bottom:1px solid #3a3b3e;background:#1e2d3d}
+    .focus-title{font-size:13px;font-weight:500;color:#f0f0f0}
+    .focus-meta{font-size:12px;color:#888;margin-top:2px}
+    .selected-target{padding:12px 16px;border-bottom:1px solid #3a3b3e;background:#222}
+    .rrow{padding:11px 14px;border-bottom:1px solid #333}
+    .rrow:last-child{border-bottom:none}
+    .rrow-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+    .rname{font-size:13px;font-weight:500;color:#f0f0f0;margin-bottom:2px}
+    .rdata{font-size:12px;color:#888;margin-bottom:2px}
+    .rrow-detail{margin-top:8px;padding:10px 12px;background:#222;border-radius:8px;border:1px solid #3a3b3e;display:none}
+    .rrow-detail.open{display:block}
+    .empty{padding:20px 16px;text-align:center;color:#666;font-size:13px}
+    .col-empty{padding:14px 12px;text-align:center;color:#555;font-size:12px}
+    #view-focus{display:none}
+    #no-results{display:none}
+    .filter-panel{border-bottom:1px solid #3a3b3e;background:#1e1f22}
+    .filter-panel-toggle{padding:10px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}
+    .filter-panel-toggle:hover{background:#252629}
+    .filter-panel-toggle-label{font-size:13px;color:#ccc;display:flex;align-items:center;gap:8px}
+    .filter-active-dot{width:7px;height:7px;border-radius:50%;background:#378ADD;display:none}
+    .filter-active-dot.on{display:inline-block}
+    .filter-panel-toggle-arrow{font-size:11px;color:#666;transition:transform .2s}
+    .filter-panel-toggle-arrow.open{transform:rotate(180deg)}
+    .filter-body{display:none;padding:0 16px 14px}
+    .filter-body.open{display:block}
+    .precision-row{display:flex;align-items:center;gap:10px;padding:12px 0 10px;border-bottom:1px solid #2e2e2e;margin-bottom:12px;flex-wrap:wrap}
+    .precision-label{font-size:12px;color:#888}
+    .precision-btns{display:flex;gap:4px}
+    .precision-btn{font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid #3a3b3e;background:#2a2b2e;color:#aaa;cursor:pointer}
+    .precision-btn.active{background:#1e2d3d;border-color:#2a4a6e;color:#5ba3e0}
+    .filter-section{margin-bottom:14px}
+    .filter-section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:#666;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+    .relevance-tag{font-size:10px;padding:1px 6px;border-radius:3px;background:#1e2d3d;color:#5ba3e0;text-transform:none;letter-spacing:0;font-weight:500}
+    .filter-section-hint{font-size:11px;color:#555;margin-bottom:8px;font-style:italic;line-height:1.4}
+    .filter-grid{display:flex;flex-wrap:wrap;gap:6px}
+    .filter-chip{display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 10px;border-radius:6px;border:1px solid #3a3b3e;background:#252629;color:#ccc;cursor:pointer;user-select:none;transition:background .1s,border-color .1s}
+    .filter-chip:hover{background:#2e2f33}
+    .filter-chip input[type=checkbox]{width:12px;height:12px;cursor:pointer;accent-color:#378ADD;flex-shrink:0}
+    .filter-chip.active{background:#1e2d3d;border-color:#2a4a6e;color:#9fc8ef}
+    .filter-chip.no-data{opacity:0.4;cursor:not-allowed}
+    .filter-chip .chip-hint{font-size:10px;color:#555;margin-left:2px}
+    .filter-chip.active .chip-hint{color:#4a7aa0}
+    .filter-precision-wrap{display:flex;gap:3px;margin-left:4px}
+    .fp-btn{font-size:10px;padding:1px 5px;border-radius:3px;border:1px solid #3a3b3e;background:#1a1b1e;color:#666;cursor:pointer}
+    .fp-btn.active{background:#1e2d3d;border-color:#2a4a6e;color:#5ba3e0}
+    .result-count{font-size:12px;color:#666;padding:8px 16px;border-bottom:1px solid #2e2e2e;background:#1e1f22}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Access &amp; participation plan explorer</h1>
+  <p class="sub">Find universities working on similar targets</p>
+
+  <div class="search-row">
+    <div class="search-wrap">
+      <input type="text" id="search-input" placeholder="Type your institution name..." autocomplete="off"/>
+      <div class="suggestions" id="suggestions"></div>
+    </div>
+    <button class="btn" onclick="searchInstitution()">Search</button>
+  </div>
+
+  <div id="view-all">
+    <div id="inst-header-block" style="display:none" class="inst-header">
+      <span class="inst-name" id="inst-title"></span>
+      <a id="inst-app-link" class="app-link" href="#" target="_blank" style="display:none">&#128196; View APP</a>
+    </div>
+    <div id="cols-block" style="display:none" class="cols">
+      <div class="col-card">
+        <div class="col-hd"><span class="col-hd-title col-hd-access">Access</span><span class="col-count" id="count-access"></span></div>
+        <div id="list-access"></div>
+      </div>
+      <div class="col-card">
+        <div class="col-hd"><span class="col-hd-title col-hd-success">Success</span><span class="col-count" id="count-success"></span></div>
+        <div id="list-success"></div>
+      </div>
+      <div class="col-card">
+        <div class="col-hd"><span class="col-hd-title col-hd-progression">Progression</span><span class="col-count" id="count-progression"></span></div>
+        <div id="list-progression"></div>
+      </div>
+    </div>
+    <div id="no-results" class="card"><div class="empty">No institution found. Try a different name.</div></div>
+  </div>
+
+  <div id="view-focus">
+    <button class="btn-back" onclick="showAllTargets()">&#8592; Back to all targets</button>
+
+    <div class="card">
+      <div class="card-hd">
+        <span class="card-hd-title" id="selected-inst-label"></span>
+        <a id="selected-app-link" class="app-link" href="#" target="_blank" style="display:none">&#128196; View APP</a>
+      </div>
+      <div class="selected-target" id="selected-target-detail"></div>
+    </div>
+
+    <div class="card">
+      <div class="focus-hd">
+        <div class="focus-title">Universities with a similar target</div>
+        <div class="focus-meta" id="similar-meta"></div>
+      </div>
+
+      <div class="filter-panel">
+        <div class="filter-panel-toggle" onclick="toggleFilterPanel()">
+          <span class="filter-panel-toggle-label">
+            <span class="filter-active-dot" id="filter-active-dot"></span>
+            Filter results
+          </span>
+          <span class="filter-panel-toggle-arrow" id="filter-arrow">&#9660;</span>
+        </div>
+        <div class="filter-body" id="filter-body">
+          <div class="precision-row">
+            <span class="precision-label">Default numeric matching:</span>
+            <div class="precision-btns">
+              <button class="precision-btn active" id="prec-5" onclick="setGlobalPrecision(5)">Strict ±5pp</button>
+              <button class="precision-btn" id="prec-10" onclick="setGlobalPrecision(10)">Loose ±10pp</button>
+            </div>
+            <span style="font-size:11px;color:#555;margin-left:4px">(individual filters can override)</span>
+          </div>
+
+          <div id="filter-relevant-section" style="display:none">
+            <div class="filter-section">
+              <div class="filter-section-title">
+                Suggested filters
+                <span class="relevance-tag">Relevant to this target</span>
+              </div>
+              <div class="filter-section-hint" id="filter-relevant-hint"></div>
+              <div class="filter-grid" id="filter-relevant-grid"></div>
+            </div>
+            <div style="height:1px;background:#2e2e2e;margin-bottom:14px"></div>
+          </div>
+
+          <div class="filter-section">
+            <div class="filter-section-title">Institution type</div>
+            <div class="filter-grid">
+              <label class="filter-chip" id="chip-mission">
+                <input type="checkbox" id="filter-mission" onchange="applyFilters()">
+                Same mission group
+                <span class="chip-hint" id="hint-mission"></span>
+              </label>
+              <label class="filter-chip" id="chip-region">
+                <input type="checkbox" id="filter-region" onchange="applyFilters()">
+                Same region
+                <span class="chip-hint" id="hint-region"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="filter-section">
+            <div class="filter-section-title">Student profile</div>
+            <div class="filter-grid" id="filter-demo-grid"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-count" id="similar-count"></div>
+      <div id="similar-list"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var allData = [];
+var institutions = [];
+var instPlanUrls = {};
+var currentInst = null;
+var currentInstUrl = '';
+var currentSuggestions = [];
+var currentInstTargets = [];
+var currentSimilarResults = [];
+var currentInstData = null;
+var globalPrecision = 5;
+var filterPanelOpen = false;
+var chipPrecision = {};
+
+var DEMO_CHIPS = [
+  { key:'mature_pct',   label:'Mature students',        group:'age' },
+  { key:'imd_q1',       label:'IMD Q1',                 group:'imd' },
+  { key:'imd_q2',       label:'IMD Q2',                 group:'imd' },
+  { key:'imd_q3',       label:'IMD Q3',                 group:'imd' },
+  { key:'imd_q4',       label:'IMD Q4',                 group:'imd' },
+  { key:'imd_q5',       label:'IMD Q5',                 group:'imd' },
+  { key:'tundra_q1',    label:'TUNDRA Q1',              group:'tundra' },
+  { key:'tundra_q2',    label:'TUNDRA Q2',              group:'tundra' },
+  { key:'tundra_q3',    label:'TUNDRA Q3',              group:'tundra' },
+  { key:'tundra_q4',    label:'TUNDRA Q4',              group:'tundra' },
+  { key:'tundra_q5',    label:'TUNDRA Q5',              group:'tundra' },
+  { key:'disability',   label:'Disability',             group:'disability' },
+  { key:'asian',        label:'Asian',                  group:'ethnicity' },
+  { key:'black',        label:'Black',                  group:'ethnicity' },
+  { key:'mixed',        label:'Mixed',                  group:'ethnicity' },
+  { key:'other_eth',    label:'Other ethnicity',        group:'ethnicity' },
+  { key:'white',        label:'White',                  group:'ethnicity' },
+  { key:'gem',          label:'Global Ethnic Majority', group:'ethnicity' },
+  { key:'fsm',          label:'Free school meals',      group:'socioeconomic' },
+  { key:'uk_pct',       label:'UK domicile',            group:'domicile' },
+  { key:'alevel',       label:'A-level entrants',       group:'entryqual' },
+  { key:'btec',         label:'BTEC entrants',          group:'entryqual' },
+  { key:'access_found', label:'Access/Foundation',      group:'entryqual' },
+  { key:'male',         label:'Male students',          group:'sex' },
+  { key:'lgb',          label:'LGB students',           group:'sexuality' }
+];
+
+var RELEVANCE_MAP = {
+  'ethnicity':     { groups:['ethnicity'], hint:'This target relates to ethnicity — ethnic group proportion filters are suggested below.' },
+  'ethnic':        { groups:['ethnicity'], hint:'This target relates to ethnicity — ethnic group proportion filters are suggested below.' },
+  'deprivation':   { groups:['imd','tundra','socioeconomic'], hint:'This target relates to deprivation — IMD, TUNDRA and free school meals filters are suggested below.' },
+  'imd':           { groups:['imd','tundra','socioeconomic'], hint:'This target relates to deprivation — IMD, TUNDRA and free school meals filters are suggested below.' },
+  'tundra':        { groups:['tundra','imd'], hint:'This target relates to rurality — TUNDRA and IMD filters are suggested below.' },
+  'disability':    { groups:['disability'], hint:'This target relates to disability — the disability proportion filter is suggested below.' },
+  'age':           { groups:['age'], hint:'This target relates to student age — the mature student proportion filter is suggested below.' },
+  'mature':        { groups:['age'], hint:'This target relates to mature students — the mature student proportion filter is suggested below.' },
+  'sex':           { groups:['sex'], hint:'This target relates to sex — the male student proportion filter is suggested below.' },
+  'gender':        { groups:['sex'], hint:'This target relates to gender — the male student proportion filter is suggested below.' },
+  'sexual':        { groups:['sexuality'], hint:'This target relates to sexual orientation — the LGB proportion filter is suggested below.' },
+  'orientation':   { groups:['sexuality'], hint:'This target relates to sexual orientation — the LGB proportion filter is suggested below.' },
+  'domicile':      { groups:['domicile'], hint:'This target relates to student domicile — the UK domicile filter is suggested below.' },
+  'entry':         { groups:['entryqual'], hint:'This target relates to entry qualifications — A-level, BTEC and Access/Foundation filters are suggested below.' },
+  'qualification': { groups:['entryqual'], hint:'This target relates to entry qualifications — A-level, BTEC and Access/Foundation filters are suggested below.' },
+  'school':        { groups:['socioeconomic','imd'], hint:'This target relates to school background — free school meals and IMD filters are suggested below.' },
+  'free school':   { groups:['socioeconomic','imd'], hint:'This target relates to free school meals — FSM and IMD filters are suggested below.' },
+  'care':          { groups:['socioeconomic','imd'], hint:'This target relates to care experience — deprivation filters may be most relevant.' },
+  'refugee':       { groups:['domicile'], hint:'This target relates to refugee/asylum background — the UK domicile filter is suggested below.' }
+};
+
+function parsePct(val) {
+  if (val === null || val === undefined || val === '') return null;
+  var n = parseFloat(val);
+  if (isNaN(n)) return null;
+  return n > 1 ? n / 100 : n;
+}
+function fmtPct(val) {
+  if (val === null) return '—';
+  return Math.round(val * 100) + '%';
+}
+function withinBand(a, b, pp) {
+  if (a === null || b === null) return false;
+  return Math.abs(a - b) <= (pp / 100);
+}
+function countInstitutions(rows) {
+  var seen = {};
+  rows.forEach(function(r) { var n = r.used_name || r.legal_name; if (n) seen[n] = true; });
+  return Object.keys(seen).length;
+}
+function stageClass(s) {
+  if (!s) return 'stage-default';
+  var l = s.toLowerCase();
+  if (l.includes('access')) return 'stage-access';
+  if (l.includes('continuation')) return 'stage-continuation';
+  if (l.includes('completion')) return 'stage-completion';
+  if (l.includes('attainment')) return 'stage-attainment';
+  if (l.includes('raising')) return 'stage-raising';
+  if (l.includes('progression')) return 'stage-progression';
+  return 'stage-default';
+}
+function getGroup(stage) {
+  if (!stage) return 'success';
+  var l = stage.toLowerCase();
+  if (l.includes('access')) return 'access';
+  if (l.includes('progression')) return 'progression';
+  return 'success';
+}
+function buildLabel(t) {
+  var bad = ['not stated','not specified (please give detail in description)','n/a',''];
+  var tg = (t.target_group || '').trim();
+  var cg = (t.comparator_group || '').trim();
+  var tgOk = bad.indexOf(tg.toLowerCase()) === -1;
+  var cgOk = bad.indexOf(cg.toLowerCase()) === -1;
+  var parts = [];
+  if (tgOk) parts.push(tg);
+  if (cgOk) parts.push('vs ' + cg);
+  var label = parts.join(' ');
+  if (!label && t.characteristic) label = t.characteristic;
+  return label || t.aim || 'Target';
+}
+function buildDataStr(t) {
+  var ds = '';
+  if (t.baseline_data && t.baseline_data !== 'Not stated') ds = 'Baseline: ' + t.baseline_data;
+  if (t.target && t.target !== 'Not stated') ds += (ds ? ' to ' : '') + 'Target: ' + t.target;
+  if (t.when && t.when !== 'Not stated') ds += ' by ' + t.when;
+  return ds;
+}
+function hasDetail(t) {
+  return (t.aim && t.aim !== 'Not stated' && t.aim.trim() !== '') ||
+    (t.description_and_commentary && t.description_and_commentary !== 'Not stated' && t.description_and_commentary.trim() !== '');
+}
+function detailHtml(t, id) {
+  return '<div class="trow-detail" id="' + id + '">' +
+    (t.aim && t.aim !== 'Not stated' && t.aim.trim() !== '' ?
+      '<div class="detail-label">Aim</div><div class="detail-text">' + t.aim + '</div>' : '') +
+    (t.description_and_commentary && t.description_and_commentary !== 'Not stated' && t.description_and_commentary.trim() !== '' ?
+      '<div class="detail-label">Description</div><div class="detail-text">' + t.description_and_commentary + '</div>' : '') +
+    '</div>';
+}
+function toggleDetail(id, btn) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var open = el.classList.toggle('open');
+  btn.innerHTML = open ? '- Less info' : '+ More info';
+}
+
+function setGlobalPrecision(pp) {
+  globalPrecision = pp;
+  document.getElementById('prec-5').classList.toggle('active', pp === 5);
+  document.getElementById('prec-10').classList.toggle('active', pp === 10);
+  applyFilters();
+}
+function setChipPrecision(key, pp, btn5, btn10) {
+  if (chipPrecision[key] === pp) {
+    delete chipPrecision[key];
+    btn5.classList.remove('active');
+    btn10.classList.remove('active');
+  } else {
+    chipPrecision[key] = pp;
+    btn5.classList.toggle('active', pp === 5);
+    btn10.classList.toggle('active', pp === 10);
+  }
+  applyFilters();
+}
+function effectivePrecision(key) {
+  return chipPrecision[key] !== undefined ? chipPrecision[key] : globalPrecision;
+}
+function toggleFilterPanel() {
+  filterPanelOpen = !filterPanelOpen;
+  document.getElementById('filter-body').classList.toggle('open', filterPanelOpen);
+  document.getElementById('filter-arrow').classList.toggle('open', filterPanelOpen);
+}
+
+function getRelevantGroups(characteristic, aim) {
+  var text = ((characteristic || '') + ' ' + (aim || '')).toLowerCase();
+  for (var key in RELEVANCE_MAP) {
+    if (text.includes(key)) return RELEVANCE_MAP[key];
+  }
+  return null;
+}
+
+function buildFilterUI(characteristic, aim) {
+  var relevance = getRelevantGroups(characteristic, aim);
+  var relevantGroups = relevance ? relevance.groups : [];
+
+  var relSection = document.getElementById('filter-relevant-section');
+  var relGrid    = document.getElementById('filter-relevant-grid');
+  var relHint    = document.getElementById('filter-relevant-hint');
+
+  if (relevantGroups.length) {
+    relSection.style.display = 'block';
+    relHint.textContent = relevance.hint;
+    relGrid.innerHTML = '';
+    DEMO_CHIPS.filter(function(c) { return relevantGroups.indexOf(c.group) !== -1; })
+      .forEach(function(c) { relGrid.appendChild(makeChip(c, 'rel_')); });
+  } else {
+    relSection.style.display = 'none';
+    relGrid.innerHTML = '';
+  }
+
+  var demoGrid = document.getElementById('filter-demo-grid');
+  demoGrid.innerHTML = '';
+  DEMO_CHIPS.forEach(function(c) { demoGrid.appendChild(makeChip(c, 'main_')); });
+
+  updateCategoricalHints();
+}
+
+function makeChip(chipDef, prefix) {
+  var key = chipDef.key;
+  var instVal = currentInstData ? parsePct(currentInstData[key]) : null;
+
+  var wrap = document.createElement('label');
+  wrap.className = 'filter-chip' + (instVal === null ? ' no-data' : '');
+  wrap.id = 'chip-' + prefix + key;
+
+  var cb = document.createElement('input');
+  cb.type = 'checkbox';
+  cb.id = 'filter-' + prefix + key;
+  cb.disabled = (instVal === null);
+  cb.addEventListener('change', function() {
+    wrap.classList.toggle('active', cb.checked);
+    syncLinkedChip(key, prefix, cb.checked);
+    applyFilters();
+  });
+
+  var labelSpan = document.createElement('span');
+  labelSpan.textContent = chipDef.label;
+
+  var hintSpan = document.createElement('span');
+  hintSpan.className = 'chip-hint';
+  hintSpan.textContent = instVal !== null ? fmtPct(instVal) : 'no data';
+
+  var precWrap = document.createElement('span');
+  precWrap.className = 'filter-precision-wrap';
+  var fp5  = document.createElement('button');
+  var fp10 = document.createElement('button');
+  fp5.className  = 'fp-btn';
+  fp10.className = 'fp-btn';
+  fp5.textContent  = '±5';
+  fp10.textContent = '±10';
+  fp5.title  = 'Strict: within 5 percentage points';
+  fp10.title = 'Loose: within 10 percentage points';
+  fp5.type  = 'button';
+  fp10.type = 'button';
+  fp5.addEventListener('click',  function(e){ e.preventDefault(); setChipPrecision(key, 5,  fp5, fp10); });
+  fp10.addEventListener('click', function(e){ e.preventDefault(); setChipPrecision(key, 10, fp5, fp10); });
+  precWrap.appendChild(fp5);
+  precWrap.appendChild(fp10);
+
+  wrap.appendChild(cb);
+  wrap.appendChild(labelSpan);
+  wrap.appendChild(hintSpan);
+  if (instVal !== null) wrap.appendChild(precWrap);
+
+  return wrap;
+}
+
+function syncLinkedChip(key, sourcePrefix, checked) {
+  var otherPrefix = sourcePrefix === 'rel_' ? 'main_' : 'rel_';
+  var otherCb   = document.getElementById('filter-' + otherPrefix + key);
+  var otherChip = document.getElementById('chip-'   + otherPrefix + key);
+  if (otherCb)   otherCb.checked = checked;
+  if (otherChip) otherChip.classList.toggle('active', checked);
+}
+
+function updateCategoricalHints() {
+  if (!currentInstData) return;
+  var mg  = (currentInstData.mission_group  || '').trim();
+  var mg2 = (currentInstData.mission_group2 || '').trim();
+  var mgLabel = [mg, mg2].filter(Boolean).join(' / ');
+  document.getElementById('hint-mission').textContent = mgLabel ? '(' + mgLabel + ')' : '(not in a group)';
+  var noMG = !mgLabel;
+  document.getElementById('filter-mission').disabled = noMG;
+  document.getElementById('chip-mission').classList.toggle('no-data', noMG);
+
+  var region = (currentInstData.region || '').trim();
+  document.getElementById('hint-region').textContent = region ? '(' + region + ')' : '(no data)';
+  document.getElementById('filter-region').disabled = !region;
+  document.getElementById('chip-region').classList.toggle('no-data', !region);
+}
+
+function resetAllFilters() {
+  document.getElementById('filter-mission').checked = false;
+  document.getElementById('filter-region').checked  = false;
+  document.getElementById('chip-mission').classList.remove('active');
+  document.getElementById('chip-region').classList.remove('active');
+  DEMO_CHIPS.forEach(function(c) {
+    ['rel_','main_'].forEach(function(p) {
+      var el   = document.getElementById('filter-' + p + c.key);
+      var chip = document.getElementById('chip-'   + p + c.key);
+      if (el)   el.checked = false;
+      if (chip) chip.classList.remove('active');
+    });
+  });
+  chipPrecision = {};
+}
+
+function renderTargetRow(t, idx) {
+  var stage = t.lifecycle_stage || '';
+  var chr   = t.characteristic  || '';
+  var sc    = stageClass(stage);
+  var label = buildLabel(t);
+  var ds    = buildDataStr(t);
+  var hd    = hasDetail(t);
+  var id    = 'tdetail-' + idx;
+  return '<div class="trow">' +
+    '<div onclick="findSimilar(' + idx + ')">' +
+    '<div class="badges">' +
+    (stage ? '<span class="badge ' + sc + '">' + stage + '</span>' : '') +
+    (chr   ? '<span class="badge badge-char">' + chr + '</span>' : '') +
+    '</div>' +
+    '<div class="tname">' + label + '</div>' +
+    (ds ? '<div class="tdata">' + ds + '</div>' : '') +
+    '</div>' +
+    '<div class="trow-actions" onclick="event.stopPropagation()">' +
+    '<button class="find-btn" onclick="findSimilar(' + idx + ')">find similar</button>' +
+    (hd ? '<button class="more-btn" onclick="toggleDetail(\'' + id + '\',this)">+ More info</button>' : '') +
+    '</div>' +
+    (hd ? detailHtml(t, id) : '') +
+    '</div>';
+}
+
+function init() {
+  fetch('./data.json')
+    .then(function(response) {
+      if (!response.ok) throw new Error('Failed to load data');
+      return response.json();
+    })
+    .then(function(data) {
+      allData = data;
+      var seen = {};
+      data.forEach(function(r) {
+        var name = r.used_name || r.legal_name;
+        if (name && !seen[name]) { seen[name] = true; institutions.push(name); }
+        if (r.plan_url && r.plan_url.length > 10) {
+          var n = r.used_name || r.legal_name;
+          if (n && !instPlanUrls[n]) instPlanUrls[n] = r.plan_url;
+        }
+      });
+      institutions.sort();
+    })
+    .catch(function(e) { console.log('Error loading data:', e); });
+}
+
+var inp  = document.getElementById('search-input');
+var sugg = document.getElementById('suggestions');
+
+inp.addEventListener('input', function() {
+  var v = this.value.toLowerCase().trim();
+  if (!v) { sugg.style.display = 'none'; return; }
+  currentSuggestions = institutions.filter(function(i) { return i.toLowerCase().includes(v); }).slice(0, 8);
+  if (!currentSuggestions.length) { sugg.style.display = 'none'; return; }
+  sugg.innerHTML = currentSuggestions.map(function(n, i) {
+    return '<div class="sug-item" onclick="selectInst(' + i + ')">' + n + '</div>';
+  }).join('');
+  sugg.style.display = 'block';
+});
+inp.addEventListener('keydown', function(e) { if (e.key === 'Enter') searchInstitution(); });
+document.addEventListener('click', function(e) { if (!e.target.closest('.search-wrap')) sugg.style.display = 'none'; });
+
+function selectInst(i) {
+  inp.value = currentSuggestions[i];
+  sugg.style.display = 'none';
+  searchInstitution();
+}
+
+function searchInstitution() {
+  sugg.style.display = 'none';
+  var v = inp.value.toLowerCase().trim();
+  document.getElementById('view-focus').style.display = 'none';
+  document.getElementById('view-all').style.display = 'block';
+  document.getElementById('no-results').style.display = 'none';
+  document.getElementById('inst-header-block').style.display = 'none';
+  document.getElementById('cols-block').style.display = 'none';
+  if (!v) return;
+
+  var matches = allData.filter(function(r) {
+    return (r.used_name || r.legal_name || '').toLowerCase().includes(v);
+  });
+  if (!matches.length) { document.getElementById('no-results').style.display = 'block'; return; }
+
+  currentInst    = matches[0].used_name || matches[0].legal_name;
+  currentInstUrl = instPlanUrls[currentInst] || '';
+  currentInstTargets = allData.filter(function(r) {
+    return (r.used_name || r.legal_name) === currentInst && r.reference_number;
+  });
+
+  // Store inst-level data for filter use
+  var instRow = allData.find(function(r) {
+    return (r.used_name || r.legal_name) === currentInst && r.ukprn;
+  });
+  currentInstData = instRow || null;
+
+  document.getElementById('inst-title').textContent = currentInst;
+  var appLink = document.getElementById('inst-app-link');
+  if (currentInstUrl) { appLink.href = currentInstUrl; appLink.style.display = 'flex'; }
+  else { appLink.style.display = 'none'; }
+  document.getElementById('inst-header-block').style.display = 'flex';
+
+  var groups = { access:[], success:[], progression:[] };
+  currentInstTargets.forEach(function(t, idx) {
+    groups[getGroup(t.lifecycle_stage || '')].push({ t:t, idx:idx });
+  });
+  ['access','success','progression'].forEach(function(g) {
+    var items = groups[g];
+    document.getElementById('count-' + g).textContent = items.length;
+    document.getElementById('list-' + g).innerHTML = items.length
+      ? items.map(function(item) { return renderTargetRow(item.t, item.idx); }).join('')
+      : '<div class="col-empty">None</div>';
+  });
+  document.getElementById('cols-block').style.display = 'grid';
+}
+
+function findSimilar(idx) {
+  var t = currentInstTargets[idx];
+  if (!t) return;
+
+  var stage = t.lifecycle_stage || '';
+  var chr   = t.characteristic  || '';
+  var sc    = stageClass(stage);
+  var label = buildLabel(t);
+  var ds    = buildDataStr(t);
+  var hd    = hasDetail(t);
+
+  document.getElementById('selected-inst-label').textContent = currentInst + ' — selected target';
+  var selLink = document.getElementById('selected-app-link');
+  if (currentInstUrl) { selLink.href = currentInstUrl; selLink.style.display = 'flex'; }
+  else { selLink.style.display = 'none'; }
+
+  document.getElementById('selected-target-detail').innerHTML =
+    '<div class="badges" style="margin-bottom:6px">' +
+    (stage ? '<span class="badge ' + sc + '">' + stage + '</span>' : '') +
+    (chr   ? '<span class="badge badge-char">' + chr + '</span>' : '') +
+    '</div>' +
+    '<div style="font-size:14px;font-weight:500;margin-bottom:3px;color:#f0f0f0">' + label + '</div>' +
+    (ds ? '<div style="font-size:13px;color:#888;margin-bottom:6px">' + ds + '</div>' : '') +
+    (hd ? '<button class="more-btn" onclick="toggleDetail(\'sel-detail\',this)" style="margin-top:4px">+ More info</button>' +
+          detailHtml(t, 'sel-detail') : '');
+
+  currentSimilarResults = allData.filter(function(r) {
+    var rn = r.used_name || r.legal_name;
+    return rn !== currentInst && r.reference_number && r.lifecycle_stage === stage && r.characteristic === chr;
+  });
+
+  document.getElementById('similar-meta').textContent =
+    'Matching on: ' + [stage, chr].filter(Boolean).join(' and ');
+
+  resetAllFilters();
+  buildFilterUI(chr, t.aim || '');
+  document.getElementById('filter-active-dot').classList.remove('on');
+
+  applyFilters();
+
+  document.getElementById('view-all').style.display = 'none';
+  document.getElementById('view-focus').style.display = 'block';
+}
+
+function applyFilters() {
+  var filterMission = document.getElementById('filter-mission').checked;
+  var filterRegion  = document.getElementById('filter-region').checked;
+
+  var activeNumeric = [];
+  DEMO_CHIPS.forEach(function(c) {
+    var el = document.getElementById('filter-main_' + c.key);
+    if (el && el.checked) activeNumeric.push(c.key);
+  });
+
+  var anyActive = filterMission || filterRegion || activeNumeric.length > 0;
+  document.getElementById('filter-active-dot').classList.toggle('on', anyActive);
+
+  var instMG  = currentInstData ? (currentInstData.mission_group  || '').trim() : '';
+  var instMG2 = currentInstData ? (currentInstData.mission_group2 || '').trim() : '';
+  var instReg = currentInstData ? (currentInstData.region || '').trim() : '';
+
+  var filtered = currentSimilarResults.filter(function(r) {
+    if (filterMission && (instMG || instMG2)) {
+      var rMG  = (r.mission_group  || '').trim();
+      var rMG2 = (r.mission_group2 || '').trim();
+      var match = false;
+      if (instMG  && (rMG === instMG  || rMG2 === instMG))  match = true;
+      if (instMG2 && (rMG === instMG2 || rMG2 === instMG2)) match = true;
+      if (!match) return false;
+    }
+    if (filterRegion && instReg) {
+      if ((r.region || '').trim() !== instReg) return false;
+    }
+    for (var i = 0; i < activeNumeric.length; i++) {
+      var key     = activeNumeric[i];
+      var pp      = effectivePrecision(key);
+      var instVal = currentInstData ? parsePct(currentInstData[key]) : null;
+      var rVal    = parsePct(r[key]);
+      if (!withinBand(instVal, rVal, pp)) return false;
+    }
+    return true;
+  });
+
+  var total      = currentSimilarResults.length;
+  var shown      = filtered.length;
+  var totalInsts = countInstitutions(currentSimilarResults);
+  var shownInsts = countInstitutions(filtered);
+  var countEl    = document.getElementById('similar-count');
+  if (anyActive) {
+    countEl.textContent = 'Showing ' + shownInsts + ' of ' + totalInsts +
+      ' institutions (' + shown + ' of ' + total + ' targets) after filters';
+  } else {
+    countEl.textContent = totalInsts + ' institutions · ' + total + ' matching targets';
+  }
+
+  if (!filtered.length) {
+    document.getElementById('similar-list').innerHTML =
+      '<div class="empty">No universities match the current filters. Try loosening your criteria.</div>';
+    return;
+  }
+
+  var grouped = {};
+  filtered.forEach(function(r) {
+    var n = r.used_name || r.legal_name;
+    if (!grouped[n]) grouped[n] = [];
+    grouped[n].push(r);
+  });
+
+  document.getElementById('similar-list').innerHTML = Object.keys(grouped).sort().map(function(name) {
+    return grouped[name].map(function(r, ri) {
+      var rLabel = buildLabel(r);
+      var rd     = buildDataStr(r);
+      var rUrl   = instPlanUrls[name] || '';
+      var rHd    = hasDetail(r);
+      var rid    = 'rdetail-' + name.replace(/\W/g, '_') + ri;
+
+      var dataTags = '';
+      if (anyActive) {
+        var parts = [];
+        if (filterMission) {
+          var mg = [(r.mission_group||'').trim(),(r.mission_group2||'').trim()].filter(Boolean).join(' / ');
+          if (mg) parts.push(mg);
+        }
+        if (filterRegion && r.region) parts.push(r.region);
+        activeNumeric.forEach(function(key) {
+          var val = parsePct(r[key]);
+          if (val !== null) {
+            var chipDef = DEMO_CHIPS.find(function(c){ return c.key === key; });
+            parts.push((chipDef ? chipDef.label : key) + ': ' + fmtPct(val));
+          }
+        });
+        if (parts.length) {
+          dataTags = '<div style="font-size:11px;color:#5a7a5a;margin-top:3px">' + parts.join(' · ') + '</div>';
+        }
+      }
+
+      return '<div class="rrow">' +
+        '<div class="rrow-top">' +
+        '<div style="flex:1;min-width:0">' +
+        '<div class="rname">' + name + '</div>' +
+        '<div class="rdata">' + rLabel + '</div>' +
+        (rd ? '<div class="rdata">' + rd + '</div>' : '') +
+        dataTags +
+        '</div>' +
+        (rUrl ? '<a href="' + rUrl + '" target="_blank" class="app-link" style="flex-shrink:0;margin-left:8px">&#128196; APP</a>' : '') +
+        '</div>' +
+        (rHd ? '<div style="margin-top:6px">' +
+          '<button class="more-btn" onclick="toggleDetail(\'' + rid + '\',this)">+ More info</button>' +
+          detailHtml(r, rid) +
+        '</div>' : '') +
+        '</div>';
+    }).join('');
+  }).join('');
+}
+
+function showAllTargets() {
+  document.getElementById('view-focus').style.display = 'none';
+  document.getElementById('view-all').style.display = 'block';
+}
+
+init();
+</script>
+</body>
+</html>
