@@ -912,11 +912,15 @@ function showAllTargets() {
 
 // ── Feedback ───────────────────────────────────────────────────────────────
 function openFeedback() {
-  document.getElementById('feedback-modal').classList.add('open');
-  document.getElementById('modal-form-content').style.display = 'block';
-  document.getElementById('modal-thanks').style.display = 'none';
-  // Pre-fill institution if one is selected
-  if (currentInst) document.getElementById('fb-inst').value = currentInst;
+  // Clear previous values
+  	document.getElementById('fb-type').value   = '';
+ 	 document.getElementById('fb-detail').value = '';
+ 	 document.getElementById('fb-email').value  = '';
+	  document.getElementById('fb-inst').value   = currentInst || '';
+  
+  	document.getElementById('modal-form-content').style.display = 'block';
+ 	 document.getElementById('modal-thanks').style.display       = 'none';
+ 	 document.getElementById('feedback-modal').classList.add('open');
 }
 function closeFeedback() {
   document.getElementById('feedback-modal').classList.remove('open');
@@ -932,10 +936,11 @@ function submitFeedback() {
   // Otherwise just show the thank-you screen (submissions are lost without an endpoint).
   if (FEEDBACK_ENDPOINT && FEEDBACK_ENDPOINT !== 'https://script.google.com/macros/s/AKfycbzAK1HAph-EDPy48ER2g76sH3nL9c-KzFF0nwF3xCXtz0z6AFVSIk3my49ZJ-UeiIHZ/exec') {
     fetch(FEEDBACK_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type:type, institution:inst, detail:detail, email:email })
-    }).catch(function(){});
+  	method: 'POST',
+  	mode: 'no-cors',
+ 	 headers: { 'Content-Type': 'text/plain' },
+ 	 body: JSON.stringify({ type:type, institution:inst, detail:detail, email:email })
+	}).catch(function(){});
   }
 
   document.getElementById('modal-form-content').style.display = 'none';
