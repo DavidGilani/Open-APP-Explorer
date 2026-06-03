@@ -930,7 +930,7 @@ function submitFeedback() {
 
   // If you've set up a Tally or Google Form endpoint, submit there.
   // Otherwise just show the thank-you screen (submissions are lost without an endpoint).
-  if (FEEDBACK_ENDPOINT && FEEDBACK_ENDPOINT !== 'YOUR_FORM_ENDPOINT_HERE') {
+  if (FEEDBACK_ENDPOINT && FEEDBACK_ENDPOINT !== 'https://script.google.com/macros/s/AKfycbzAK1HAph-EDPy48ER2g76sH3nL9c-KzFF0nwF3xCXtz0z6AFVSIk3my49ZJ-UeiIHZ/exec') {
     fetch(FEEDBACK_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
