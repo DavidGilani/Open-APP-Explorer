@@ -410,7 +410,6 @@
 // CONFIGURATION
 // Replace this URL with your own Google Form or Tally form submission endpoint
 // See instructions below the script
-const FEEDBACK_ENDPOINT = 'YOUR_FORM_ENDPOINT_HERE';
 // ═══════════════════════════════════════════════════════════════════════════
 
 var allData            = [];
@@ -932,16 +931,12 @@ function submitFeedback() {
   var email  = document.getElementById('fb-email').value.trim();
   if (!type || !detail) { alert('Please select an issue type and add some details.'); return; }
 
-  // If you've set up a Tally or Google Form endpoint, submit there.
-  // Otherwise just show the thank-you screen (submissions are lost without an endpoint).
-  if (FEEDBACK_ENDPOINT && FEEDBACK_ENDPOINT !== 'https://script.google.com/macros/s/AKfycbzAK1HAph-EDPy48ER2g76sH3nL9c-KzFF0nwF3xCXtz0z6AFVSIk3my49ZJ-UeiIHZ/exec') {
-    fetch(FEEDBACK_ENDPOINT, {
-  	method: 'POST',
-  	mode: 'no-cors',
- 	 headers: { 'Content-Type': 'text/plain' },
- 	 body: JSON.stringify({ type:type, institution:inst, detail:detail, email:email })
-	}).catch(function(){});
-  }
+  fetch('https://script.google.com/macros/s/AKfycbzAK1HAph-EDPy48ER2g76sH3nL9c-KzFF0nwF3xCXtz0z6AFVSIk3my49ZJ-UeiIHZ/exec', {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ type:type, institution:inst, detail:detail, email:email })
+  }).catch(function(){});
 
   document.getElementById('modal-form-content').style.display = 'none';
   document.getElementById('modal-thanks').style.display = 'block';
