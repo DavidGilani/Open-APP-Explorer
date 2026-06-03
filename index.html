@@ -12,8 +12,6 @@
       --border:    #2e2f34;
       --border2:   #3a3b40;
       --text:      #f2f3f6;
-      --text2:     #f2f3f6;
-      --text3:     #f2f3f6;
       --muted:     #9a9fac;
       --accent:    #5ba3e0;
       --accent2:   #1e2d3d;
@@ -31,96 +29,50 @@
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:Arial,sans-serif;background:var(--bg);min-height:100vh;color:var(--text)}
 
-    /* ── Page wrap ── */
     .page-wrap{max-width:680px;margin:0 auto;padding:0 16px 60px;transition:max-width .3s ease}
     body.searched .page-wrap{max-width:780px}
 
-    /* ── Hero: vertically centred before search ── */
-    .hero-screen{
-      min-height:100vh;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      padding:0 16px 40px;
-      max-width:680px;
-      margin:0 auto;
-    }
+    /* Hero */
+    .hero-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 16px 40px;max-width:680px;margin:0 auto}
     body.searched .hero-screen{display:none}
-
     .hero-title{font-size:26px;font-weight:700;color:#f2f3f6;letter-spacing:-0.4px;margin-bottom:6px;text-align:center}
     .hero-sub{font-size:14px;color:#f2f3f6;margin-bottom:32px;text-align:center}
-
-    .step-guide{
-      width:100%;
-      max-width:500px;
-      background:var(--bg2);
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:14px 18px;
-      text-align:center;
-      margin-bottom:20px;
-    }
+    .step-guide{width:100%;max-width:500px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 18px;text-align:center;margin-bottom:20px}
     .step-guide-num{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
     .step-guide-text{font-size:13px;color:#f2f3f6;line-height:1.5}
-
-    /* Search (hero state) */
     .hero-search{width:100%;max-width:500px}
+
+    /* Search */
     .search-row{display:flex;gap:8px}
     .search-wrap{flex:1;position:relative}
-    input[type=text]{
-      width:100%;padding:11px 14px;font-size:15px;
-      border:1px solid var(--border2);border-radius:9px;
-      outline:none;background:var(--bg3);color:var(--text);transition:border-color .15s
-    }
+    input[type=text]{width:100%;padding:11px 14px;font-size:15px;border:1px solid var(--border2);border-radius:9px;outline:none;background:var(--bg3);color:var(--text);transition:border-color .15s}
     input[type=text]:focus{border-color:var(--accent)}
     input[type=text]::placeholder{color:#9a9fac}
     .btn{padding:11px 18px;font-size:14px;border:1px solid var(--border2);border-radius:9px;background:var(--bg3);cursor:pointer;color:var(--text);white-space:nowrap;transition:background .12s}
     .btn:hover{background:#2e2f34}
-    .suggestions{
-      background:var(--bg3);border:1px solid var(--border2);border-radius:9px;
-      margin-top:3px;max-height:220px;overflow-y:auto;position:absolute;
-      width:100%;z-index:50;display:none;box-shadow:0 4px 16px rgba(0,0,0,.4)
-    }
+    .suggestions{background:var(--bg3);border:1px solid var(--border2);border-radius:9px;margin-top:3px;max-height:220px;overflow-y:auto;position:absolute;width:100%;z-index:50;display:none;box-shadow:0 4px 16px rgba(0,0,0,.4)}
     .sug-item{padding:10px 14px;font-size:14px;cursor:pointer;border-bottom:1px solid var(--border);color:var(--text)}
     .sug-item:hover{background:#2e2f34}
     .sug-item:last-child{border-bottom:none}
 
-    /* ── Post-search layout ── */
-    .post-search{display:none;padding:20px 16px 60px;max-width:780px;margin:0 auto}
+    /* Post-search */
+    .post-search{display:none;padding:20px 16px 80px;max-width:780px;margin:0 auto}
     body.searched .post-search{display:block}
-
-    /* Slim title bar after search */
     .slim-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
     .slim-title{font-size:16px;font-weight:700;color:#f2f3f6}
     .slim-sub{font-size:12px;color:#f2f3f6}
 
     /* Institution box */
-    .inst-header{
-      background:var(--bg2);border:1px solid var(--border2);border-radius:12px;
-      padding:12px 16px;margin-bottom:14px;display:flex;
-      justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px
-    }
+    .inst-header{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
     .inst-header-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
     .inst-name{font-size:14px;font-weight:600;color:#f2f3f6}
-    .app-link{
-      font-size:12px;color:var(--accent);text-decoration:none;display:flex;
-      align-items:center;gap:4px;white-space:nowrap;padding:5px 10px;
-      border:1px solid var(--accent3);border-radius:6px;background:var(--accent2);transition:background .12s
-    }
+    .app-link{font-size:12px;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:4px;white-space:nowrap;padding:5px 10px;border:1px solid var(--accent3);border-radius:6px;background:var(--accent2);transition:background .12s}
     .app-link:hover{background:#253a50}
-    .close-inst{
-      background:none;border:none;color:#9a9fac;font-size:18px;cursor:pointer;
-      padding:2px 6px;border-radius:4px;line-height:1;flex-shrink:0;transition:color .12s
-    }
+    .close-inst{background:none;border:none;color:#9a9fac;font-size:18px;cursor:pointer;padding:2px 6px;border-radius:4px;line-height:1;flex-shrink:0;transition:color .12s}
     .close-inst:hover{color:#f2f3f6}
 
     /* Step 2 guide */
-    .step2-guide{
-      display:flex;align-items:center;gap:10px;
-      background:var(--bg2);border:1px solid var(--border);border-radius:10px;
-      padding:10px 14px;margin-bottom:14px
-    }
+    .step2-guide{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:14px}
     .step2-num{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.07em;white-space:nowrap}
     .step2-text{font-size:12px;color:#f2f3f6;line-height:1.4}
 
@@ -132,15 +84,15 @@
     .col-card.col-success{  background:var(--success-bg); border-color:var(--success-border)}
     .col-card.col-progression{background:var(--progress-bg);border-color:var(--progress-border)}
     .col-hd{padding:10px 12px;border-bottom:1px solid;display:flex;justify-content:space-between;align-items:center}
-    .col-card.col-access    .col-hd{border-color:var(--access-border)}
-    .col-card.col-success   .col-hd{border-color:var(--success-border)}
+    .col-card.col-access     .col-hd{border-color:var(--access-border)}
+    .col-card.col-success    .col-hd{border-color:var(--success-border)}
     .col-card.col-progression .col-hd{border-color:var(--progress-border)}
     .col-hd-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em}
     .col-hd-access{color:var(--access-hd)}
     .col-hd-success{color:var(--success-hd)}
     .col-hd-progression{color:var(--progress-hd)}
-    .col-count{font-size:11px;color:#9a9fac}
-    .col-empty{padding:14px 12px;text-align:center;color:#9a9fac;font-size:12px}
+    .col-count{font-size:11px;color:var(--muted)}
+    .col-empty{padding:14px 12px;text-align:center;color:var(--muted);font-size:12px}
 
     /* Target rows */
     .trow{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;transition:background .1s}
@@ -159,13 +111,11 @@
     .trow-headline{font-size:13px;font-weight:600;color:#f2f3f6;margin-bottom:3px;line-height:1.4}
     .trow-data{font-size:11px;color:#f2f3f6}
     .trow-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
-    .find-btn{font-size:11px;color:var(--accent);display:flex;align-items:center;gap:3px;padding:4px 9px;border:1px solid var(--accent3);border-radius:6px;background:var(--accent2);cursor:pointer;transition:background .1s}
-    .find-btn:hover{background:#253a50}
     .more-btn{font-size:11px;color:#f2f3f6;display:flex;align-items:center;gap:3px;padding:4px 9px;border:1px solid var(--border2);border-radius:6px;background:rgba(255,255,255,.04);cursor:pointer;transition:background .1s}
     .more-btn:hover{background:rgba(255,255,255,.08)}
     .trow-detail{margin-top:8px;padding:10px 12px;background:rgba(0,0,0,.25);border-radius:8px;border:1px solid var(--border);display:none}
     .trow-detail.open{display:block}
-    .detail-label{font-size:10px;color:#9a9fac;margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em}
+    .detail-label{font-size:10px;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em}
     .detail-text{font-size:12px;color:#f2f3f6;margin-bottom:10px;line-height:1.6}
     .detail-text:last-child{margin-bottom:0}
 
@@ -181,8 +131,6 @@
     .sel-headline{font-size:15px;font-weight:600;color:#f2f3f6;margin-bottom:3px;line-height:1.4}
     .sel-sub{font-size:12px;color:#f2f3f6;margin-bottom:5px}
     .sel-data{font-size:12px;color:#f2f3f6}
-
-    /* Result rows */
     .rrow{padding:12px 16px;border-bottom:1px solid var(--border)}
     .rrow:last-child{border-bottom:none}
     .rrow-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
@@ -192,66 +140,65 @@
     .rtags{font-size:11px;color:#5a9060;margin-top:4px}
 
     /* Filter panel */
-    .filter-panel-wrapper{
-      border:1px solid var(--accent3);
-      border-radius:10px;
-      overflow:hidden;
-      margin-bottom:0;
-      background:rgba(26,45,80,.2)
-    }
-    .filter-toggle-bar{
-      padding:12px 16px;display:flex;justify-content:space-between;align-items:center;
-      cursor:pointer;user-select:none;background:rgba(26,45,80,.3)
-    }
+    .filter-panel-wrapper{border:1px solid var(--accent3);border-radius:10px;overflow:hidden;background:rgba(26,45,80,.2)}
+    .filter-toggle-bar{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;background:rgba(26,45,80,.3)}
     .filter-toggle-bar:hover{background:rgba(26,45,80,.45)}
     .filter-toggle-left{display:flex;align-items:center;gap:8px}
     .filter-step-label{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.07em;white-space:nowrap}
     .filter-step-text{font-size:13px;color:#f2f3f6;font-weight:500}
     .filter-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);display:none;margin-left:4px}
     .filter-dot.on{display:inline-block}
-    .filter-arrow{font-size:11px;color:#9a9fac;transition:transform .2s;flex-shrink:0}
+    .filter-arrow{font-size:11px;color:var(--muted);transition:transform .2s;flex-shrink:0}
     .filter-arrow.open{transform:rotate(180deg)}
     .filter-body{display:none;padding:12px 16px 16px;border-top:1px solid var(--accent3)}
     .filter-body.open{display:block}
-
     .precision-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
     .precision-label{font-size:12px;color:#f2f3f6}
     .precision-btns{display:flex;border:1px solid var(--border2);border-radius:6px;overflow:hidden}
-    .precision-btn{font-size:12px;padding:4px 14px;background:var(--bg3);color:#9a9fac;cursor:pointer;border:none;border-right:1px solid var(--border2)}
+    .precision-btn{font-size:12px;padding:4px 14px;background:var(--bg3);color:var(--muted);cursor:pointer;border:none;border-right:1px solid var(--border2)}
     .precision-btn:last-child{border-right:none}
     .precision-btn.active{background:var(--accent2);color:#6db8f0}
-
     .filter-section{margin-bottom:12px}
-    .filter-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9a9fac;margin-bottom:8px}
+    .filter-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px}
     .filter-chips-row{display:flex;gap:6px;flex-wrap:wrap}
     .fchip{display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:#f2f3f6;cursor:pointer;user-select:none;transition:background .1s,border-color .1s}
     .fchip:hover{background:#2e2f34}
     .fchip input[type=checkbox]{width:12px;height:12px;cursor:pointer;accent-color:var(--accent);flex-shrink:0}
     .fchip.active{background:var(--accent2);border-color:var(--accent3);color:#9fc8ef}
     .fchip.no-data{opacity:.35;cursor:not-allowed}
-    .fchip .chip-val{font-size:10px;color:#9a9fac;margin-left:1px}
+    .fchip .chip-val{font-size:10px;color:var(--muted);margin-left:1px}
     .fchip.active .chip-val{color:#4a7aa0}
-
     .filter-group{margin-bottom:7px;border:1px solid var(--border);border-radius:8px;overflow:hidden}
     .filter-group-hd{padding:8px 12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;background:rgba(0,0,0,.2);user-select:none}
     .filter-group-hd:hover{background:rgba(255,255,255,.03)}
     .filter-group-name{font-size:12px;color:#f2f3f6;display:flex;align-items:center;gap:8px}
     .filter-group-active-count{font-size:10px;background:var(--accent2);color:#6db8f0;border-radius:10px;padding:1px 6px}
-    .filter-group-arrow{font-size:10px;color:#9a9fac;transition:transform .2s}
+    .filter-group-arrow{font-size:10px;color:var(--muted);transition:transform .2s}
     .filter-group-arrow.open{transform:rotate(180deg)}
     .filter-group-body{display:none;padding:10px 12px;background:rgba(0,0,0,.1)}
     .filter-group-body.open{display:flex;flex-wrap:wrap;gap:6px}
-
     .suggested-section{background:rgba(26,45,80,.35);border:1px solid var(--accent3);border-radius:8px;padding:10px 12px;margin-bottom:12px}
     .suggested-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);margin-bottom:4px}
     .suggested-hint{font-size:11px;color:#9ac0e0;margin-bottom:8px;line-height:1.4}
-
     .result-count{font-size:12px;color:#f2f3f6;padding:8px 16px;border-bottom:1px solid var(--border);background:rgba(0,0,0,.1)}
-    .empty{padding:20px 16px;text-align:center;color:#9a9fac;font-size:13px}
+    .empty{padding:20px 16px;text-align:center;color:var(--muted);font-size:13px}
     #no-results{display:none}
     #view-focus{display:none}
 
-    /* Feedback */
+    /* Footer note */
+    .site-footer{
+      text-align:center;
+      padding:16px;
+      font-size:11px;
+      color:var(--muted);
+      line-height:1.6;
+      border-top:1px solid var(--border);
+      margin-top:20px;
+    }
+    .site-footer a{color:var(--accent);text-decoration:none;cursor:pointer}
+    .site-footer a:hover{text-decoration:underline}
+
+    /* Feedback button */
     .feedback-btn{position:fixed;bottom:20px;right:20px;background:var(--accent2);border:1px solid var(--accent3);color:#6db8f0;font-size:12px;padding:8px 14px;border-radius:20px;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 12px rgba(0,0,0,.5);z-index:100;font-family:Arial,sans-serif;transition:background .12s}
     .feedback-btn:hover{background:#253a50}
     .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;align-items:center;justify-content:center}
@@ -259,7 +206,7 @@
     .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:24px;max-width:440px;width:calc(100% - 32px)}
     .modal h2{font-size:16px;font-weight:600;color:#f2f3f6;margin-bottom:6px}
     .modal p{font-size:13px;color:#f2f3f6;margin-bottom:16px;line-height:1.5}
-    .modal label{display:block;font-size:12px;color:#9a9fac;margin-bottom:4px;margin-top:12px}
+    .modal label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;margin-top:12px}
     .modal select,.modal textarea,.modal input[type=text]{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:7px;color:#f2f3f6;font-size:13px;padding:8px 10px;font-family:Arial,sans-serif}
     .modal select{appearance:none}
     .modal textarea{resize:vertical;min-height:80px}
@@ -275,16 +222,14 @@
 </head>
 <body>
 
-<!-- ── HERO (before search) ── -->
+<!-- Hero -->
 <div class="hero-screen">
   <div class="hero-title">Open APP Explorer</div>
-  <div class="hero-sub">Compare Access &amp; Participation Plan targets across UK universities</div>
-
+  <div class="hero-sub">Compare Access &amp; Participation Plans across UK universities</div>
   <div class="step-guide">
     <div class="step-guide-num">Step 1</div>
     <div class="step-guide-text">Search for your institution below to see all its APP targets, grouped by Access, Success and Progression.</div>
   </div>
-
   <div class="hero-search">
     <div class="search-row">
       <div class="search-wrap">
@@ -294,20 +239,21 @@
       <button class="btn" onclick="searchInstitution()">Search</button>
     </div>
   </div>
+  <div class="site-footer" style="margin-top:40px;border-top:none">
+    This site is currently under development. Any questions or suggestions, please contact David Gilani via the
+    <a onclick="openFeedback()">feedback form</a>.
+  </div>
 </div>
 
-<!-- ── POST-SEARCH ── -->
+<!-- Post-search -->
 <div class="post-search">
-
-  <!-- Slim header -->
   <div class="slim-header">
     <div>
       <div class="slim-title">Open APP Explorer</div>
-      <div class="slim-sub">Access &amp; Participation Plan target finder</div>
+      <div class="slim-sub">Compare Access &amp; Participation Plans across UK universities</div>
     </div>
   </div>
 
-  <!-- All-targets view -->
   <div id="view-all">
     <div id="inst-header-block" style="display:none" class="inst-header">
       <div class="inst-header-left">
@@ -319,7 +265,7 @@
 
     <div class="step2-guide">
       <div class="step2-num">Step 2</div>
-      <div class="step2-text">Select a target below to find other universities working on something similar. Click <strong>Find similar ›</strong> on any target to continue.</div>
+      <div class="step2-text">Click on any target below to find other universities working on something similar.</div>
     </div>
 
     <div id="cols-block" style="display:none" class="cols">
@@ -339,7 +285,6 @@
     <div id="no-results" class="card"><div class="empty">No institution found. Try a different name.</div></div>
   </div>
 
-  <!-- Focus view -->
   <div id="view-focus">
     <button class="btn-back" onclick="showAllTargets()">&#8592; Back to all targets</button>
 
@@ -357,7 +302,6 @@
         <div class="focus-meta" id="similar-meta"></div>
       </div>
 
-      <!-- Filter panel — styled as step 3 -->
       <div style="padding:12px 16px;border-bottom:1px solid var(--border)">
         <div class="filter-panel-wrapper">
           <div class="filter-toggle-bar" onclick="toggleFilterPanel()">
@@ -369,7 +313,6 @@
             <span class="filter-arrow" id="filter-arrow">&#9660;</span>
           </div>
           <div class="filter-body" id="filter-body">
-
             <div class="precision-row">
               <span class="precision-label">Numeric matching:</span>
               <div class="precision-btns">
@@ -377,89 +320,35 @@
                 <button class="precision-btn active" id="prec-10" onclick="setGlobalPrecision(10)">Loose ±10pp</button>
               </div>
             </div>
-
             <div id="suggested-section" style="display:none" class="suggested-section">
               <div class="suggested-label">&#9733; Suggested for this target</div>
               <div class="suggested-hint" id="suggested-hint"></div>
               <div class="filter-chips-row" id="suggested-chips"></div>
             </div>
-
             <div class="filter-section">
               <div class="filter-section-title">Institution type</div>
               <div class="filter-chips-row">
-                <label class="fchip" id="chip-mission">
-                  <input type="checkbox" id="filter-mission" onchange="applyFilters()">
-                  Same mission group
-                  <span class="chip-val" id="val-mission"></span>
-                </label>
-                <label class="fchip" id="chip-region">
-                  <input type="checkbox" id="filter-region" onchange="applyFilters()">
-                  Same region
-                  <span class="chip-val" id="val-region"></span>
-                </label>
+                <label class="fchip" id="chip-mission"><input type="checkbox" id="filter-mission" onchange="applyFilters()">Same mission group<span class="chip-val" id="val-mission"></span></label>
+                <label class="fchip" id="chip-region"><input type="checkbox" id="filter-region" onchange="applyFilters()">Same region<span class="chip-val" id="val-region"></span></label>
               </div>
             </div>
-
             <div class="filter-section">
               <div class="filter-section-title">Student profile</div>
-              <div class="filter-group">
-                <div class="filter-group-hd" onclick="toggleGroup('grp-mature')">
-                  <span class="filter-group-name">Age &amp; Maturity <span class="filter-group-active-count" id="cnt-mature" style="display:none"></span></span>
-                  <span class="filter-group-arrow" id="arr-grp-mature">&#9660;</span>
-                </div>
-                <div class="filter-group-body" id="grp-mature"></div>
-              </div>
-              <div class="filter-group">
-                <div class="filter-group-hd" onclick="toggleGroup('grp-imd')">
-                  <span class="filter-group-name">Deprivation (IMD) <span class="filter-group-active-count" id="cnt-imd" style="display:none"></span></span>
-                  <span class="filter-group-arrow" id="arr-grp-imd">&#9660;</span>
-                </div>
-                <div class="filter-group-body" id="grp-imd"></div>
-              </div>
-              <div class="filter-group">
-                <div class="filter-group-hd" onclick="toggleGroup('grp-tundra')">
-                  <span class="filter-group-name">Rurality (TUNDRA) <span class="filter-group-active-count" id="cnt-tundra" style="display:none"></span></span>
-                  <span class="filter-group-arrow" id="arr-grp-tundra">&#9660;</span>
-                </div>
-                <div class="filter-group-body" id="grp-tundra"></div>
-              </div>
-              <div class="filter-group">
-                <div class="filter-group-hd" onclick="toggleGroup('grp-ethnicity')">
-                  <span class="filter-group-name">Ethnicity <span class="filter-group-active-count" id="cnt-ethnicity" style="display:none"></span></span>
-                  <span class="filter-group-arrow" id="arr-grp-ethnicity">&#9660;</span>
-                </div>
-                <div class="filter-group-body" id="grp-ethnicity"></div>
-              </div>
-              <div class="filter-group">
-                <div class="filter-group-hd" onclick="toggleGroup('grp-background')">
-                  <span class="filter-group-name">Student background <span class="filter-group-active-count" id="cnt-background" style="display:none"></span></span>
-                  <span class="filter-group-arrow" id="arr-grp-background">&#9660;</span>
-                </div>
-                <div class="filter-group-body" id="grp-background"></div>
-              </div>
-              <div class="filter-group">
-                <div class="filter-group-hd" onclick="toggleGroup('grp-entryqual')">
-                  <span class="filter-group-name">Entry qualifications <span class="filter-group-active-count" id="cnt-entryqual" style="display:none"></span></span>
-                  <span class="filter-group-arrow" id="arr-grp-entryqual">&#9660;</span>
-                </div>
-                <div class="filter-group-body" id="grp-entryqual"></div>
-              </div>
-              <div class="filter-group">
-                <div class="filter-group-hd" onclick="toggleGroup('grp-other')">
-                  <span class="filter-group-name">Sex &amp; sexuality <span class="filter-group-active-count" id="cnt-other" style="display:none"></span></span>
-                  <span class="filter-group-arrow" id="arr-grp-other">&#9660;</span>
-                </div>
-                <div class="filter-group-body" id="grp-other"></div>
-              </div>
+              <div class="filter-group"><div class="filter-group-hd" onclick="toggleGroup('grp-mature')"><span class="filter-group-name">Age &amp; Maturity <span class="filter-group-active-count" id="cnt-mature" style="display:none"></span></span><span class="filter-group-arrow" id="arr-grp-mature">&#9660;</span></div><div class="filter-group-body" id="grp-mature"></div></div>
+              <div class="filter-group"><div class="filter-group-hd" onclick="toggleGroup('grp-imd')"><span class="filter-group-name">Deprivation (IMD) <span class="filter-group-active-count" id="cnt-imd" style="display:none"></span></span><span class="filter-group-arrow" id="arr-grp-imd">&#9660;</span></div><div class="filter-group-body" id="grp-imd"></div></div>
+              <div class="filter-group"><div class="filter-group-hd" onclick="toggleGroup('grp-tundra')"><span class="filter-group-name">Rurality (TUNDRA) <span class="filter-group-active-count" id="cnt-tundra" style="display:none"></span></span><span class="filter-group-arrow" id="arr-grp-tundra">&#9660;</span></div><div class="filter-group-body" id="grp-tundra"></div></div>
+              <div class="filter-group"><div class="filter-group-hd" onclick="toggleGroup('grp-ethnicity')"><span class="filter-group-name">Ethnicity <span class="filter-group-active-count" id="cnt-ethnicity" style="display:none"></span></span><span class="filter-group-arrow" id="arr-grp-ethnicity">&#9660;</span></div><div class="filter-group-body" id="grp-ethnicity"></div></div>
+              <div class="filter-group"><div class="filter-group-hd" onclick="toggleGroup('grp-background')"><span class="filter-group-name">Student background <span class="filter-group-active-count" id="cnt-background" style="display:none"></span></span><span class="filter-group-arrow" id="arr-grp-background">&#9660;</span></div><div class="filter-group-body" id="grp-background"></div></div>
+              <div class="filter-group"><div class="filter-group-hd" onclick="toggleGroup('grp-entryqual')"><span class="filter-group-name">Entry qualifications <span class="filter-group-active-count" id="cnt-entryqual" style="display:none"></span></span><span class="filter-group-arrow" id="arr-grp-entryqual">&#9660;</span></div><div class="filter-group-body" id="grp-entryqual"></div></div>
+              <div class="filter-group"><div class="filter-group-hd" onclick="toggleGroup('grp-other')"><span class="filter-group-name">Sex &amp; sexuality <span class="filter-group-active-count" id="cnt-other" style="display:none"></span></span><span class="filter-group-arrow" id="arr-grp-other">&#9660;</span></div><div class="filter-group-body" id="grp-other"></div></div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Step 4 note -->
       <div style="padding:10px 16px;border-bottom:1px solid var(--border);background:rgba(0,0,0,.1);display:flex;align-items:center;gap:8px">
         <span style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.07em;white-space:nowrap">Step 4</span>
-        <span style="font-size:12px;color:#f2f3f6">Click the <strong>APP</strong> button next to any institution below to read how they address this target.</span>
+        <span style="font-size:12px;color:#f2f3f6">Click the <strong>APP</strong> button next to any institution below to read how they are addressing this target.</span>
       </div>
 
       <div class="result-count" id="similar-count"></div>
@@ -467,28 +356,34 @@
     </div>
   </div>
 
-</div><!-- /post-search -->
+  <div class="site-footer">
+    This site is currently under development. Any questions or suggestions, please contact David Gilani via the
+    <a onclick="openFeedback()">feedback form</a>.
+  </div>
+</div>
 
-<!-- Feedback -->
-<button class="feedback-btn" onclick="openFeedback()">&#9888; Report a data issue</button>
+<!-- Feedback button -->
+<button class="feedback-btn" onclick="openFeedback()">&#128172; Feedback</button>
 
+<!-- Feedback modal -->
 <div class="modal-overlay" id="feedback-modal">
   <div class="modal">
     <div id="modal-form-content">
-      <h2>Report a data issue</h2>
-      <p>Spotted an incorrect target or wrong demographic data? Let us know and we'll look into it.</p>
-      <label>Type of issue</label>
+      <h2>Feedback</h2>
+      <p>Provide feedback on the site, report an incorrect target, or flag any other issues - we'd love to hear from you.</p>
+      <label>Type of feedback</label>
       <select id="fb-type">
         <option value="">Select...</option>
+        <option value="general">General feedback on the site</option>
         <option value="wrong-target">Target data incorrect for my institution</option>
         <option value="missing-target">Target missing from my institution</option>
         <option value="wrong-demographic">Demographic / institutional data incorrect</option>
         <option value="other">Other</option>
       </select>
-      <label>Institution name</label>
+      <label>Institution name (if relevant)</label>
       <input type="text" id="fb-inst" placeholder="e.g. University of Exeter">
-      <label>Details of the issue</label>
-      <textarea id="fb-detail" placeholder="Please describe what's wrong and what the correct information should be..."></textarea>
+      <label>Your feedback or details</label>
+      <textarea id="fb-detail" placeholder="Please share your thoughts, or describe what's wrong and what the correct information should be..."></textarea>
       <label>Your email (optional - so we can follow up)</label>
       <input type="text" id="fb-email" placeholder="you@example.com">
       <div class="modal-btns">
@@ -497,7 +392,7 @@
       </div>
     </div>
     <div class="modal-thanks" id="modal-thanks">
-      <p>&#10003; Thank you - your report has been submitted.</p>
+      <p>&#10003; Thank you - your feedback has been submitted.</p>
       <div class="modal-btns" style="justify-content:center;margin-top:16px">
         <button class="modal-cancel" onclick="closeFeedback()">Close</button>
       </div>
@@ -520,7 +415,7 @@ var filterPanelOpen    = false;
 var activeNumericKeys  = new Set();
 
 var CHIP_GROUPS = {
-  'grp-mature':    [{ key:'mature_pct',   label:'Mature students' }],
+  'grp-mature':    [{ key:'mature_pct', label:'Mature students' }],
   'grp-imd':       [{ key:'imd_q1', label:'IMD Q1' },{ key:'imd_q2', label:'IMD Q2' },{ key:'imd_q3', label:'IMD Q3' },{ key:'imd_q4', label:'IMD Q4' },{ key:'imd_q5', label:'IMD Q5' }],
   'grp-tundra':    [{ key:'tundra_q1', label:'TUNDRA Q1' },{ key:'tundra_q2', label:'TUNDRA Q2' },{ key:'tundra_q3', label:'TUNDRA Q3' },{ key:'tundra_q4', label:'TUNDRA Q4' },{ key:'tundra_q5', label:'TUNDRA Q5' }],
   'grp-ethnicity': [{ key:'asian', label:'Asian' },{ key:'black', label:'Black' },{ key:'mixed', label:'Mixed' },{ key:'other_eth', label:'Other eth.' },{ key:'white', label:'White' },{ key:'gem', label:'GEM' }],
@@ -537,35 +432,25 @@ var GROUP_COUNTERS = {
 
 var RELEVANCE_MAP = [
   { keys:['ethnicity','ethnic','race','racial','bame','abmo','gem','black','asian','mixed'],
-    groups:['grp-ethnicity'],
-    hint:'This target relates to ethnicity - ethnicity filters are suggested below.' },
-  { keys:['deprivation','imd','socioeconomic','low income','deprived'],
-    groups:['grp-imd','grp-background'],
-    hint:'This target relates to deprivation - IMD and FSM filters are suggested below.' },
+    groups:['grp-ethnicity'], hint:'This target relates to ethnicity - ethnicity filters are suggested below.' },
   { keys:['free school meal','fsm'],
-    groups:['grp-background','grp-imd','grp-tundra'],
-    hint:'This target relates to free school meals - FSM, IMD and TUNDRA filters are suggested below.' },
+    groups:['grp-background','grp-imd','grp-tundra'], hint:'This target relates to free school meals - FSM, IMD and TUNDRA filters are suggested below.' },
+  { keys:['deprivation','imd','socioeconomic','low income','deprived'],
+    groups:['grp-imd','grp-background'], hint:'This target relates to deprivation - IMD and FSM filters are suggested below.' },
   { keys:['tundra','rural','participation area','low participation'],
-    groups:['grp-tundra'],
-    hint:'This target relates to geographic participation - TUNDRA filters are suggested below.' },
+    groups:['grp-tundra'], hint:'This target relates to geographic participation - TUNDRA filters are suggested below.' },
   { keys:['disability','disabled','mental health','neurodiverg','learning difficult'],
-    groups:['grp-background'],
-    hint:'This target relates to disability - the disability filter is suggested below.' },
+    groups:['grp-background'], hint:'This target relates to disability - the disability filter is suggested below.' },
   { keys:['age','mature','adult learner'],
-    groups:['grp-mature'],
-    hint:'This target relates to student age - the mature student filter is suggested below.' },
+    groups:['grp-mature'], hint:'This target relates to student age - the mature student filter is suggested below.' },
   { keys:['sex','gender','male','female'],
-    groups:['grp-other'],
-    hint:'This target relates to sex/gender - the male student filter is suggested below.' },
+    groups:['grp-other'], hint:'This target relates to sex/gender - the male student filter is suggested below.' },
   { keys:['sexual orientation','lgb','lesbian','gay','bisexual'],
-    groups:['grp-other'],
-    hint:'This target relates to sexual orientation - the LGB filter is suggested below.' },
+    groups:['grp-other'], hint:'This target relates to sexual orientation - the LGB filter is suggested below.' },
   { keys:['btec','vocational','entry qualification'],
-    groups:['grp-entryqual'],
-    hint:'This target relates to entry qualifications - qualification filters are suggested below.' },
+    groups:['grp-entryqual'], hint:'This target relates to entry qualifications - qualification filters are suggested below.' },
   { keys:['domicile','international','uk student'],
-    groups:['grp-background'],
-    hint:'This target relates to student domicile - the UK domicile filter is suggested below.' },
+    groups:['grp-background'], hint:'This target relates to student domicile - the UK domicile filter is suggested below.' },
 ];
 
 function parsePct(val) {
@@ -643,19 +528,14 @@ function renderTargetRow(t, idx) {
   var ds    = buildDataStr(t);
   var hd    = hasDetail(t);
   var id    = 'tdetail-' + idx;
-  return '<div class="trow">' +
-    '<div onclick="findSimilar(' + idx + ')">' +
+  return '<div class="trow" onclick="findSimilar(' + idx + ')">' +
     '<div class="trow-badges">' +
     (stage ? '<span class="badge ' + sc + '">' + stage + '</span>' : '') +
     (chr   ? '<span class="badge badge-char">' + chr + '</span>'   : '') +
     '</div>' +
     '<div class="trow-headline">' + label + '</div>' +
     (ds ? '<div class="trow-data">' + ds + '</div>' : '') +
-    '</div>' +
-    '<div class="trow-actions" onclick="event.stopPropagation()">' +
-    '<button class="find-btn" onclick="findSimilar(' + idx + ')">Find similar &#8250;</button>' +
-    (hd ? '<button class="more-btn" onclick="toggleDetail(\'' + id + '\',this)">+ More info</button>' : '') +
-    '</div>' +
+    (hd ? '<div class="trow-actions" onclick="event.stopPropagation()"><button class="more-btn" onclick="toggleDetail(\'' + id + '\',this)">+ More info</button></div>' : '') +
     (hd ? detailHtml(t, id) : '') +
     '</div>';
 }
@@ -693,37 +573,29 @@ inp.addEventListener('input', function() {
 });
 inp.addEventListener('keydown', function(e){ if(e.key==='Enter') searchInstitution(); });
 document.addEventListener('click', function(e){ if(!e.target.closest('.search-wrap')) sugg.style.display='none'; });
-
 function selectInst(i) { inp.value = currentSuggestions[i]; sugg.style.display='none'; searchInstitution(); }
 
 function searchInstitution() {
   sugg.style.display = 'none';
   var v = inp.value.toLowerCase().trim();
   if (!v) return;
-
   document.body.classList.add('searched');
   document.getElementById('view-focus').style.display  = 'none';
   document.getElementById('view-all').style.display    = 'block';
   document.getElementById('no-results').style.display  = 'none';
   document.getElementById('inst-header-block').style.display = 'none';
   document.getElementById('cols-block').style.display  = 'none';
-
   var matches = allData.filter(function(r){ return (r.used_name||r.legal_name||'').toLowerCase().includes(v); });
   if (!matches.length) { document.getElementById('no-results').style.display='block'; return; }
-
   currentInst    = matches[0].used_name || matches[0].legal_name;
   currentInstUrl = instPlanUrls[currentInst] || '';
-  currentInstTargets = allData.filter(function(r){
-    return (r.used_name||r.legal_name)===currentInst && r.reference_number;
-  });
+  currentInstTargets = allData.filter(function(r){ return (r.used_name||r.legal_name)===currentInst && r.reference_number; });
   var instRow = allData.find(function(r){ return (r.used_name||r.legal_name)===currentInst && r.ukprn; });
   currentInstData = instRow || null;
-
   document.getElementById('inst-title').textContent = currentInst;
   var appLink = document.getElementById('inst-app-link');
   if (currentInstUrl) { appLink.href = currentInstUrl; appLink.style.display='flex'; } else { appLink.style.display='none'; }
   document.getElementById('inst-header-block').style.display = 'flex';
-
   var groups = { access:[], success:[], progression:[] };
   currentInstTargets.forEach(function(t,idx){ groups[getGroup(t.lifecycle_stage||'')].push({t:t,idx:idx}); });
   ['access','success','progression'].forEach(function(g){
@@ -739,10 +611,7 @@ function searchInstitution() {
 function clearInstitution() {
   document.body.classList.remove('searched');
   inp.value = '';
-  currentInst = null;
-  currentInstUrl = '';
-  currentInstData = null;
-  currentInstTargets = [];
+  currentInst = null; currentInstUrl = ''; currentInstData = null; currentInstTargets = [];
   document.getElementById('view-focus').style.display = 'none';
   document.getElementById('view-all').style.display   = 'block';
   document.getElementById('inst-header-block').style.display = 'none';
@@ -759,12 +628,9 @@ function findSimilar(idx) {
   var label = buildLabel(t);
   var ds    = buildDataStr(t);
   var hd    = hasDetail(t);
-
-  // Use hyphen not em dash
   document.getElementById('selected-inst-label').textContent = currentInst + ' - selected target';
   var selLink = document.getElementById('selected-app-link');
   if (currentInstUrl) { selLink.href = currentInstUrl; selLink.style.display='flex'; } else { selLink.style.display='none'; }
-
   document.getElementById('selected-target-detail').innerHTML =
     '<div class="trow-badges" style="margin-bottom:6px">' +
     (stage ? '<span class="badge ' + sc + '">' + stage + '</span>' : '') +
@@ -774,18 +640,14 @@ function findSimilar(idx) {
     (chr ? '<div class="sel-sub">' + chr + '</div>' : '') +
     (ds  ? '<div class="sel-data">' + ds + '</div>' : '') +
     (hd  ? '<button class="more-btn" onclick="toggleDetail(\'sel-det\',this)" style="margin-top:8px">+ More info</button>' + detailHtml(t,'sel-det') : '');
-
   currentSimilarResults = allData.filter(function(r){
     var rn = r.used_name || r.legal_name;
     return rn !== currentInst && r.reference_number && r.lifecycle_stage === stage && r.characteristic === chr;
   });
-
   document.getElementById('similar-meta').textContent = 'Matching on: ' + [stage, chr].filter(Boolean).join(' and ');
-
   buildFilterUI(chr, t.aim || '', t.description_and_commentary || '');
   resetFilters();
   applyFilters();
-
   document.getElementById('view-all').style.display  = 'none';
   document.getElementById('view-focus').style.display = 'block';
 }
@@ -807,7 +669,6 @@ function setGlobalPrecision(pp) {
   document.getElementById('prec-10').classList.toggle('active', pp===10);
   applyFilters();
 }
-
 function getRelevance(chr, aim, desc) {
   var text = ((chr||'') + ' ' + (aim||'') + ' ' + (desc||'')).toLowerCase();
   for (var i = 0; i < RELEVANCE_MAP.length; i++) {
@@ -818,7 +679,6 @@ function getRelevance(chr, aim, desc) {
   }
   return null;
 }
-
 function buildFilterUI(chr, aim, desc) {
   for (var grpId in CHIP_GROUPS) {
     var body = document.getElementById(grpId);
@@ -826,86 +686,61 @@ function buildFilterUI(chr, aim, desc) {
     body.innerHTML = '';
     CHIP_GROUPS[grpId].forEach(function(chip){ body.appendChild(makeChip(chip.key, chip.label, false)); });
   }
-
   var relevance  = getRelevance(chr, aim, desc);
   var sugSection = document.getElementById('suggested-section');
   var sugChips   = document.getElementById('suggested-chips');
-  var sugHint    = document.getElementById('suggested-hint');
   sugChips.innerHTML = '';
-
   if (relevance) {
     sugSection.style.display = 'block';
-    sugHint.textContent = relevance.hint;
+    document.getElementById('suggested-hint').textContent = relevance.hint;
     relevance.groups.forEach(function(grpId) {
-      (CHIP_GROUPS[grpId] || []).forEach(function(chip){ sugChips.appendChild(makeChip(chip.key, chip.label, true)); });
+      (CHIP_GROUPS[grpId]||[]).forEach(function(chip){ sugChips.appendChild(makeChip(chip.key, chip.label, true)); });
     });
     relevance.groups.forEach(function(grpId) {
-      var b = document.getElementById(grpId);
-      var a = document.getElementById('arr-' + grpId);
-      if (b) b.classList.add('open');
-      if (a) a.classList.add('open');
+      var b = document.getElementById(grpId); var a = document.getElementById('arr-' + grpId);
+      if (b) b.classList.add('open'); if (a) a.classList.add('open');
     });
-  } else {
-    sugSection.style.display = 'none';
-  }
-
+  } else { sugSection.style.display = 'none'; }
   var mg  = currentInstData ? (currentInstData.mission_group||'').trim()  : '';
   var mg2 = currentInstData ? (currentInstData.mission_group2||'').trim() : '';
   var mgLabel = [mg,mg2].filter(Boolean).join(' / ');
   document.getElementById('val-mission').textContent = mgLabel ? '(' + mgLabel + ')' : '(none)';
   document.getElementById('filter-mission').disabled = !mgLabel;
   document.getElementById('chip-mission').classList.toggle('no-data', !mgLabel);
-
   var reg = currentInstData ? (currentInstData.region||'').trim() : '';
   document.getElementById('val-region').textContent = reg ? '(' + reg + ')' : '(no data)';
   document.getElementById('filter-region').disabled = !reg;
   document.getElementById('chip-region').classList.toggle('no-data', !reg);
 }
-
 function makeChip(key, label, isSuggested) {
   var instVal = currentInstData ? parsePct(currentInstData[key]) : null;
   var wrap = document.createElement('label');
   wrap.className = 'fchip' + (instVal === null ? ' no-data' : '');
   wrap.id = 'chip-' + (isSuggested ? 'sug-' : '') + key;
-
   var cb = document.createElement('input');
-  cb.type = 'checkbox';
-  cb.id   = 'filter-' + (isSuggested ? 'sug-' : '') + key;
-  cb.disabled = (instVal === null);
+  cb.type = 'checkbox'; cb.id = 'filter-' + (isSuggested ? 'sug-' : '') + key; cb.disabled = (instVal === null);
   cb.addEventListener('change', function() {
     if (cb.checked) { activeNumericKeys.add(key); } else { activeNumericKeys.delete(key); }
-    var pairedId   = 'filter-' + (isSuggested ? '' : 'sug-') + key;
-    var pairedChId = 'chip-'   + (isSuggested ? '' : 'sug-') + key;
-    var paired     = document.getElementById(pairedId);
-    var pairedCh   = document.getElementById(pairedChId);
-    if (paired)   paired.checked = cb.checked;
+    var pairedId = 'filter-' + (isSuggested ? '' : 'sug-') + key;
+    var pairedChId = 'chip-' + (isSuggested ? '' : 'sug-') + key;
+    var paired = document.getElementById(pairedId); var pairedCh = document.getElementById(pairedChId);
+    if (paired) paired.checked = cb.checked;
     if (pairedCh) pairedCh.classList.toggle('active', cb.checked);
     wrap.classList.toggle('active', cb.checked);
-    updateGroupCounters();
-    applyFilters();
+    updateGroupCounters(); applyFilters();
   });
-
-  var lbl = document.createElement('span');
-  lbl.textContent = label;
-  var val = document.createElement('span');
-  val.className = 'chip-val';
-  val.textContent = instVal !== null ? fmtPct(instVal) : 'no data';
-
-  wrap.appendChild(cb);
-  wrap.appendChild(lbl);
-  wrap.appendChild(val);
+  var lbl = document.createElement('span'); lbl.textContent = label;
+  var val = document.createElement('span'); val.className = 'chip-val'; val.textContent = instVal !== null ? fmtPct(instVal) : 'no data';
+  wrap.appendChild(cb); wrap.appendChild(lbl); wrap.appendChild(val);
   return wrap;
 }
-
 function updateGroupCounters() {
   for (var grpId in GROUP_COUNTERS) {
-    var counterId = GROUP_COUNTERS[grpId];
     var active = (CHIP_GROUPS[grpId]||[]).filter(function(c){ return activeNumericKeys.has(c.key); }).length;
-    var el = document.getElementById(counterId);
+    var el = document.getElementById(GROUP_COUNTERS[grpId]);
     if (el) { el.textContent = active; el.style.display = active > 0 ? 'inline' : 'none'; }
   }
 }
-
 function resetFilters() {
   activeNumericKeys.clear();
   document.getElementById('filter-mission').checked = false;
@@ -917,22 +752,18 @@ function resetFilters() {
   updateGroupCounters();
   document.getElementById('filter-dot').classList.remove('on');
 }
-
 function applyFilters() {
   var filterMission = document.getElementById('filter-mission').checked;
   var filterRegion  = document.getElementById('filter-region').checked;
   var anyActive = filterMission || filterRegion || activeNumericKeys.size > 0;
   document.getElementById('filter-dot').classList.toggle('on', anyActive);
-
   var instMG  = currentInstData ? (currentInstData.mission_group||'').trim()  : '';
   var instMG2 = currentInstData ? (currentInstData.mission_group2||'').trim() : '';
   var instReg = currentInstData ? (currentInstData.region||'').trim()         : '';
-
   var filtered = currentSimilarResults.filter(function(r) {
     if (filterMission && (instMG || instMG2)) {
-      var rMG  = (r.mission_group||'').trim();
-      var rMG2 = (r.mission_group2||'').trim();
-      if (!((instMG && (rMG===instMG||rMG2===instMG)) || (instMG2 && (rMG===instMG2||rMG2===instMG2)))) return false;
+      var rMG=(r.mission_group||'').trim(); var rMG2=(r.mission_group2||'').trim();
+      if (!((instMG&&(rMG===instMG||rMG2===instMG))||(instMG2&&(rMG===instMG2||rMG2===instMG2)))) return false;
     }
     if (filterRegion && instReg && (r.region||'').trim() !== instReg) return false;
     for (var key of activeNumericKeys) {
@@ -940,99 +771,58 @@ function applyFilters() {
     }
     return true;
   });
-
-  var total      = currentSimilarResults.length;
-  var totalInsts = countInsts(currentSimilarResults);
-  var shownInsts = countInsts(filtered);
+  var total=currentSimilarResults.length, totalInsts=countInsts(currentSimilarResults), shownInsts=countInsts(filtered);
   document.getElementById('similar-count').textContent = anyActive
     ? 'Showing ' + shownInsts + ' of ' + totalInsts + ' institutions after filters (' + filtered.length + ' of ' + total + ' targets)'
     : totalInsts + ' institutions - ' + total + ' matching targets';
-
-  if (!filtered.length) {
-    document.getElementById('similar-list').innerHTML = '<div class="empty">No universities match the current filters. Try loosening your criteria or switching to Loose matching.</div>';
-    return;
-  }
-
+  if (!filtered.length) { document.getElementById('similar-list').innerHTML='<div class="empty">No universities match the current filters. Try loosening your criteria or switching to Loose matching.</div>'; return; }
   var grouped = {};
   filtered.forEach(function(r){ var n=r.used_name||r.legal_name; if(!grouped[n]) grouped[n]=[]; grouped[n].push(r); });
-
   document.getElementById('similar-list').innerHTML = Object.keys(grouped).sort().map(function(name) {
     return grouped[name].map(function(r, ri) {
-      var rLabel = buildLabel(r);
-      var rd     = buildDataStr(r);
-      var rUrl   = instPlanUrls[name] || '';
-      var rHd    = hasDetail(r);
-      var rid    = 'rdet-' + name.replace(/\W/g,'_') + ri;
-
-      var dataTags = '';
+      var rLabel=buildLabel(r), rd=buildDataStr(r), rUrl=instPlanUrls[name]||'', rHd=hasDetail(r);
+      var rid='rdet-'+name.replace(/\W/g,'_')+ri;
+      var dataTags='';
       if (anyActive) {
-        var parts = [];
-        if (filterMission) { var mg = [(r.mission_group||'').trim(),(r.mission_group2||'').trim()].filter(Boolean).join(' / '); if(mg) parts.push(mg); }
+        var parts=[];
+        if (filterMission) { var mg=[(r.mission_group||'').trim(),(r.mission_group2||'').trim()].filter(Boolean).join(' / '); if(mg) parts.push(mg); }
         if (filterRegion && r.region) parts.push(r.region);
         activeNumericKeys.forEach(function(key) {
-          var v = parsePct(r[key]);
-          if (v !== null) {
-            var allChips = [].concat.apply([], Object.values(CHIP_GROUPS));
-            var def = allChips.find(function(c){ return c.key===key; });
-            parts.push((def ? def.label : key) + ': ' + fmtPct(v));
-          }
+          var v=parsePct(r[key]);
+          if (v!==null) { var allChips=[].concat.apply([],Object.values(CHIP_GROUPS)); var def=allChips.find(function(c){return c.key===key;}); parts.push((def?def.label:key)+': '+fmtPct(v)); }
         });
-        if (parts.length) dataTags = '<div class="rtags">' + parts.join(' · ') + '</div>';
+        if (parts.length) dataTags='<div class="rtags">'+parts.join(' · ')+'</div>';
       }
-
-      return '<div class="rrow">' +
-        '<div class="rrow-top">' +
-        '<div style="flex:1;min-width:0">' +
-        '<div class="rname">' + name + '</div>' +
-        '<div class="rdata">' + rLabel + '</div>' +
-        (rd ? '<div class="rdata-sub">' + rd + '</div>' : '') +
-        dataTags + '</div>' +
-        (rUrl ? '<a href="' + rUrl + '" target="_blank" class="app-link" style="flex-shrink:0;margin-left:8px">&#128196; APP</a>' : '') +
-        '</div>' +
-        (rHd ? '<div style="margin-top:6px"><button class="more-btn" onclick="toggleDetail(\'' + rid + '\',this)">+ More info</button>' + detailHtml(r,rid) + '</div>' : '') +
-        '</div>';
+      return '<div class="rrow"><div class="rrow-top"><div style="flex:1;min-width:0"><div class="rname">'+name+'</div><div class="rdata">'+rLabel+'</div>'+(rd?'<div class="rdata-sub">'+rd+'</div>':'')+dataTags+'</div>'+(rUrl?'<a href="'+rUrl+'" target="_blank" class="app-link" style="flex-shrink:0;margin-left:8px">&#128196; APP</a>':'')+'</div>'+(rHd?'<div style="margin-top:6px"><button class="more-btn" onclick="toggleDetail(\''+rid+'\',this)">+ More info</button>'+detailHtml(r,rid)+'</div>':'')+'</div>';
     }).join('');
   }).join('');
 }
-
 function showAllTargets() {
   document.getElementById('view-focus').style.display = 'none';
   document.getElementById('view-all').style.display   = 'block';
 }
-
 function openFeedback() {
-  document.getElementById('fb-type').value   = '';
-  document.getElementById('fb-detail').value = '';
-  document.getElementById('fb-email').value  = '';
-  document.getElementById('fb-inst').value   = currentInst || '';
-  document.getElementById('modal-form-content').style.display = 'block';
-  document.getElementById('modal-thanks').style.display       = 'none';
+  document.getElementById('fb-type').value=''; document.getElementById('fb-detail').value='';
+  document.getElementById('fb-email').value=''; document.getElementById('fb-inst').value=currentInst||'';
+  document.getElementById('modal-form-content').style.display='block';
+  document.getElementById('modal-thanks').style.display='none';
   document.getElementById('feedback-modal').classList.add('open');
 }
-function closeFeedback() {
-  document.getElementById('feedback-modal').classList.remove('open');
-}
+function closeFeedback() { document.getElementById('feedback-modal').classList.remove('open'); }
 function submitFeedback() {
-  var type   = document.getElementById('fb-type').value;
-  var inst   = document.getElementById('fb-inst').value.trim();
-  var detail = document.getElementById('fb-detail').value.trim();
-  var email  = document.getElementById('fb-email').value.trim();
-  if (!type || !detail) { alert('Please select an issue type and add some details.'); return; }
-
-  fetch('https://script.google.com/macros/s/AKfycbzAK1HAph-EDPy48ER2g76sH3nL9c-KzFF0nwF3xCXtz0z6AFVSIk3my49ZJ-UeiIHZ/exec', {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({ type:type, institution:inst, detail:detail, email:email })
+  var type=document.getElementById('fb-type').value;
+  var inst=document.getElementById('fb-inst').value.trim();
+  var detail=document.getElementById('fb-detail').value.trim();
+  var email=document.getElementById('fb-email').value.trim();
+  if (!type||!detail) { alert('Please select a feedback type and add some details.'); return; }
+  fetch('https://script.google.com/macros/s/AKfycbzAK1HAph-EDPy48ER2g76sH3nL9c-KzFF0nwF3xCXtz0z6AFVSIk3my49ZJ-UeiIHZ/exec',{
+    method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'},
+    body:JSON.stringify({type:type,institution:inst,detail:detail,email:email})
   }).catch(function(){});
-
-  document.getElementById('modal-form-content').style.display = 'none';
-  document.getElementById('modal-thanks').style.display = 'block';
+  document.getElementById('modal-form-content').style.display='none';
+  document.getElementById('modal-thanks').style.display='block';
 }
-document.getElementById('feedback-modal').addEventListener('click', function(e){
-  if (e.target === this) closeFeedback();
-});
-
+document.getElementById('feedback-modal').addEventListener('click',function(e){ if(e.target===this) closeFeedback(); });
 init();
 </script>
 </body>
