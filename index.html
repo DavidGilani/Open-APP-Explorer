@@ -632,6 +632,7 @@ function findSimilar(idx){
   resetFilters();applyFilters();
   document.getElementById('view-all').style.display='none';
   document.getElementById('view-focus').style.display='block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function toggleFilterPanel(){filterPanelOpen=!filterPanelOpen;document.getElementById('filter-body').classList.toggle('open',filterPanelOpen);document.getElementById('filter-arrow').classList.toggle('open',filterPanelOpen);}
