@@ -351,6 +351,7 @@
                 <div class="filter-section-title" style="margin-bottom:6px">Institution size</div>
                 <div class="filter-chips-row" id="size-chips">
                   <label class="fchip active" id="size-all"><input type="radio" name="inst-size" value="all" checked onchange="applyFilters()" style="display:none">All</label>
+                  <label class="fchip" id="size-mine"><input type="radio" name="inst-size" value="mine" onchange="applyFilters()" style="display:none">Same as mine<span class="chip-val" id="val-size-mine"></span></label>
                   <label class="fchip" id="size-vs"><input type="radio" name="inst-size" value="vs" onchange="applyFilters()" style="display:none">Very small (&lt;1k)</label>
                   <label class="fchip" id="size-sm"><input type="radio" name="inst-size" value="sm" onchange="applyFilters()" style="display:none">Small (1k-5k)</label>
                   <label class="fchip" id="size-md"><input type="radio" name="inst-size" value="md" onchange="applyFilters()" style="display:none">Medium (5k-15k)</label>
@@ -678,6 +679,21 @@ function buildFilterUI(chr,aim,desc){
   document.getElementById('val-region').textContent=reg?'('+reg+')':'(no data)';
   document.getElementById('filter-region').disabled=!reg;
   document.getElementById('chip-region').classList.toggle('no-data',!reg);
+  // Populate Same as mine size chip
+  var instSize=currentInstData?parseInt(currentInstData.total_ug_students)||0:0;
+  var mineEl=document.getElementById('val-size-mine');
+  var mineChip=document.getElementById('size-mine');
+  if(instSize>0&&mineEl){
+    var mineBand=getSizeBand(instSize);
+    mineEl.textContent='('+getSizeBandLabel(mineBand)+')';
+    mineChip.classList.remove('no-data');
+  }else if(mineEl){
+    mineEl.textContent='(no data)';
+    mineChip.classList.add('no-data');
+    // disable the radio
+    var mineRadio=mineChip.querySelector('input');
+    if(mineRadio) mineRadio.disabled=true;
+  }
 }
 function makeChip(key,label,isSuggested){
   var instVal=currentInstData?parsePct(currentInstData[key]):null;
@@ -712,15 +728,30 @@ function resetFilters(){
   document.querySelectorAll('.fchip').forEach(function(c){c.classList.remove('active');});
   // Reset size to All
   document.querySelector('input[name="inst-size"][value="all"]').checked=true;
-  document.getElementById('size-all').classList.add('active');
+  ['all','mine','vs','sm','md','lg'].forEach(function(v){var el=document.getElementById('size-'+v);if(el)el.classList.toggle('active',v==='all');});
   updateGroupCounters();document.getElementById('filter-dot').classList.remove('on');
+}
+function getSizeBand(n){
+  n=parseInt(n)||0;
+  if(n<1000)  return 'vs';
+  if(n<5000)  return 'sm';
+  if(n<15000) return 'md';
+  return 'lg';
+}
+function getSizeBandLabel(band){
+  return {vs:'Very small (<1k)',sm:'Small (1k-5k)',md:'Medium (5k-15k)',lg:'Large (15k+)'}[band]||'';
 }
 function applyFilters(){
   var filterMission=document.getElementById('filter-mission').checked;
   var filterRegion=document.getElementById('filter-region').checked;
   var sizeVal=document.querySelector('input[name="inst-size"]:checked').value;
+  // Resolve 'mine' to the actual band of the current institution
+  var effectiveSizeVal=sizeVal;
+  if(sizeVal==='mine'&&currentInstData&&currentInstData.total_ug_students){
+    effectiveSizeVal=getSizeBand(currentInstData.total_ug_students);
+  }
   // Sync size chip active states
-  ['all','vs','sm','md','lg'].forEach(function(v){
+  ['all','mine','vs','sm','md','lg'].forEach(function(v){
     var el=document.getElementById('size-'+v);
     if(el) el.classList.toggle('active', sizeVal===v);
   });
@@ -732,12 +763,12 @@ function applyFilters(){
   var filtered=currentSimilarResults.filter(function(r){
     if(filterMission&&(instMG||instMG2)){var rMG=(r.mission_group||'').trim();var rMG2=(r.mission_group2||'').trim();if(!((instMG&&(rMG===instMG||rMG2===instMG))||(instMG2&&(rMG===instMG2||rMG2===instMG2))))return false;}
     if(filterRegion&&instReg&&(r.region||'').trim()!==instReg)return false;
-    if(sizeVal!=='all'){
+    if(effectiveSizeVal!=='all'){
       var n=parseInt(r.total_ug_students)||0;
-      if(sizeVal==='vs'&&n>=1000)return false;
-      if(sizeVal==='sm'&&(n<1000||n>=5000))return false;
-      if(sizeVal==='md'&&(n<5000||n>=15000))return false;
-      if(sizeVal==='lg'&&n<15000)return false;
+      if(effectiveSizeVal==='vs'&&n>=1000)return false;
+      if(effectiveSizeVal==='sm'&&(n<1000||n>=5000))return false;
+      if(effectiveSizeVal==='md'&&(n<5000||n>=15000))return false;
+      if(effectiveSizeVal==='lg'&&n<15000)return false;
     }
     for(var key of activeNumericKeys){if(!withinBand(currentInstData?parsePct(currentInstData[key]):null,parsePct(r[key]),globalPrecision))return false;}
     return true;
