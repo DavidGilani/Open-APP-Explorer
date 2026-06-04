@@ -632,7 +632,6 @@ function findSimilar(idx){
   resetFilters();applyFilters();
   document.getElementById('view-all').style.display='none';
   document.getElementById('view-focus').style.display='block';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function toggleFilterPanel(){filterPanelOpen=!filterPanelOpen;document.getElementById('filter-body').classList.toggle('open',filterPanelOpen);document.getElementById('filter-arrow').classList.toggle('open',filterPanelOpen);}
@@ -730,7 +729,8 @@ function applyFilters(){
         activeNumericKeys.forEach(function(key){var v=parsePct(r[key]);if(v!==null){var allChips=[].concat.apply([],Object.values(CHIP_GROUPS));var def=allChips.find(function(c){return c.key===key;});parts.push((def?def.label:key)+': '+fmtPct(v));}});
         if(parts.length)dataTags='<div class="rtags">'+parts.join(' · ')+'</div>';
       }
-      return '<div class="rrow"><div class="rrow-top"><div style="flex:1;min-width:0"><div class="rname">'+name+'</div><div class="rdata">'+rLabel+'</div>'+(rd?'<div class="rdata-sub">'+rd+'</div>':'')+dataTags+'</div>'+(rUrl?'<a href="'+rUrl+'" target="_blank" class="app-link" style="flex-shrink:0;margin-left:8px">&#128196; APP</a>':'')+'</div>'+(rHd?'<div style="margin-top:6px"><button class="more-btn" onclick="toggleDetail(\''+rid+'\',this)">+ More info</button>'+detailHtml(r,rid)+'</div>':'')+'</div>';
+      var studentCount = r.total_ug_students ? '<span style="font-size:11px;color:#9a9fac;font-weight:400;margin-left:8px">'+Number(r.total_ug_students).toLocaleString()+' students</span>' : '';
+      return '<div class="rrow"><div class="rrow-top"><div style="flex:1;min-width:0"><div class="rname">'+name+studentCount+'</div><div class="rdata">'+rLabel+'</div>'+(rd?'<div class="rdata-sub">'+rd+'</div>':'')+dataTags+'</div>'+(rUrl?'<a href="'+rUrl+'" target="_blank" class="app-link" style="flex-shrink:0;margin-left:8px">&#128196; APP</a>':'')+'</div>'+(rHd?'<div style="margin-top:6px"><button class="more-btn" onclick="toggleDetail(\''+rid+'\',this)">+ More info</button>'+detailHtml(r,rid)+'</div>':'')+'</div>';
     }).join('');
   }).join('');
 }

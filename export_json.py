@@ -22,12 +22,20 @@ def parse_num(val):
     except:
         return None
 
+def parse_int(val):
+    if val is None or val == '':
+        return None
+    try:
+        return int(float(str(val).strip()))
+    except:
+        return None
+
 def main():
     print("Connecting to Google Sheets...")
     gc = get_sheets_client()
     ss = gc.open_by_key(SHEET_ID)
 
-    # ── APPs tab: UKPRN → URL ─────────────────────────────────────────
+    # ── APPs tab ──────────────────────────────────────────────────────────
     print("Reading APPs tab...")
     register = ss.worksheet("APPs")
     r_rows = register.get_all_values()
@@ -38,7 +46,7 @@ def main():
         if ukprn and url.startswith('http'):
             url_by_ukprn[ukprn] = url
 
-    # ── Institutions tab: UKPRN → demographic data ────────────────────
+    # ── Institutions tab ──────────────────────────────────────────────────
     print("Reading Institutions tab...")
     inst_sheet = ss.worksheet("Institutions")
     i_rows = inst_sheet.get_all_values()
@@ -78,15 +86,20 @@ def main():
             "tundra_q3":      parse_num(g(27)),
             "tundra_q4":      parse_num(g(28)),
             "tundra_q5":      parse_num(g(29)),
+            # Student numbers (cols 30-33)
+            "total_ft_ug":          parse_int(g(30)),
+            "total_pt_ug":          parse_int(g(31)),
+            "total_apprenticeship": parse_int(g(32)),
+            "total_ug_students":    parse_int(g(33)),
         }
 
-    # ── Targets tab ───────────────────────────────────────────────────
+    # ── Targets tab ───────────────────────────────────────────────────────
     print("Reading Targets tab...")
     targets = ss.worksheet("Targets")
     t_rows = targets.get_all_values()
-    headers = [h.lower().replace(' ', '_').replace(
-        '?','').replace('/','_').replace('(','').replace(')','').strip()
-        for h in t_rows[0]]
+    headers = [h.lower().replace(' ','_').replace('?','').replace('/','_')
+                .replace('(','').replace(')','').strip()
+               for h in t_rows[0]]
 
     vague = {
         'other',
@@ -100,7 +113,6 @@ def main():
             return clean.strip()
         return original.strip()
 
-    # Find clean column indices
     def find_col(name):
         try:
             return headers.index(name)
@@ -114,7 +126,7 @@ def main():
     def safe(row, idx):
         return row[idx].strip() if idx != -1 and idx < len(row) else ''
 
-    output = []
+    output  = []
     skipped = 0
 
     for row in t_rows[1:]:
@@ -127,26 +139,14 @@ def main():
 
         ukprn = obj.get('ukprn', '').strip()
 
-        # Skip rows with no reference number (error rows, empty rows)
         if not obj.get('reference_number', '').strip():
             skipped += 1
             continue
 
-        # Apply clean values where original is vague
-        obj['characteristic']   = prefer_clean(
-            obj.get('characteristic', ''),
-            safe(row, idx_char_clean)
-        )
-        obj['target_group']     = prefer_clean(
-            obj.get('target_group', ''),
-            safe(row, idx_tg_clean)
-        )
-        obj['comparator_group'] = prefer_clean(
-            obj.get('comparator_group', ''),
-            safe(row, idx_cg_clean)
-        )
+        obj['characteristic']   = prefer_clean(obj.get('characteristic', ''),   safe(row, idx_char_clean))
+        obj['target_group']     = prefer_clean(obj.get('target_group', ''),     safe(row, idx_tg_clean))
+        obj['comparator_group'] = prefer_clean(obj.get('comparator_group', ''), safe(row, idx_cg_clean))
 
-        # Join institution data
         obj['plan_url'] = url_by_ukprn.get(ukprn, '')
         inst = inst_by_ukprn.get(ukprn, {})
         for k, v in inst.items():
