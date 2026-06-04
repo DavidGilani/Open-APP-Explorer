@@ -29,7 +29,7 @@
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:Arial,sans-serif;background:var(--bg);min-height:100vh;color:var(--text)}
 
-    .page-wrap{max-width:680px;margin:0 auto;padding:0 16px 60px;transition:max-width .3s ease}
+    .page-wrap{max-width:680px;margin:0 auto;padding:0 16px 60px}
     body.searched .page-wrap{max-width:780px}
 
     /* Hero */
@@ -41,6 +41,10 @@
     .step-guide-num{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
     .step-guide-text{font-size:13px;color:#f2f3f6;line-height:1.5}
     .hero-search{width:100%;max-width:500px}
+
+    /* Loading state */
+    .loading-msg{font-size:13px;color:var(--muted);text-align:center;margin-top:12px;display:none}
+    .loading-msg.visible{display:block}
 
     /* Search */
     .search-row{display:flex;gap:8px}
@@ -75,6 +79,13 @@
     .step2-guide{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:14px}
     .step2-num{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.07em;white-space:nowrap}
     .step2-text{font-size:12px;color:#f2f3f6;line-height:1.4}
+
+    /* No results */
+    #no-results{display:none}
+    .no-results-box{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;text-align:center}
+    .no-results-box p{font-size:13px;color:#f2f3f6;margin-bottom:14px}
+    .try-again-btn{font-size:13px;color:var(--accent);background:none;border:1px solid var(--accent3);border-radius:7px;padding:7px 16px;cursor:pointer;font-family:Arial,sans-serif;transition:background .12s}
+    .try-again-btn:hover{background:var(--accent2)}
 
     /* Columns */
     .cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
@@ -182,30 +193,26 @@
     .suggested-hint{font-size:11px;color:#9ac0e0;margin-bottom:8px;line-height:1.4}
     .result-count{font-size:12px;color:#f2f3f6;padding:8px 16px;border-bottom:1px solid var(--border);background:rgba(0,0,0,.1)}
     .empty{padding:20px 16px;text-align:center;color:var(--muted);font-size:13px}
-    #no-results{display:none}
     #view-focus{display:none}
 
-    /* Footer note */
-    .site-footer{
-      text-align:center;
-      padding:16px;
-      font-size:11px;
-      color:var(--muted);
-      line-height:1.6;
-      border-top:1px solid var(--border);
-      margin-top:20px;
-    }
+    /* Footer */
+    .site-footer{text-align:center;padding:16px;font-size:11px;color:var(--muted);line-height:1.8;border-top:1px solid var(--border);margin-top:20px}
     .site-footer a{color:var(--accent);text-decoration:none;cursor:pointer}
     .site-footer a:hover{text-decoration:underline}
 
-    /* Feedback button */
-    .feedback-btn{position:fixed;bottom:20px;right:20px;background:var(--accent2);border:1px solid var(--accent3);color:#6db8f0;font-size:12px;padding:8px 14px;border-radius:20px;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 12px rgba(0,0,0,.5);z-index:100;font-family:Arial,sans-serif;transition:background .12s}
+    /* Feedback / About button */
+    .fixed-btns{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;align-items:flex-end;z-index:100}
+    .feedback-btn{background:var(--accent2);border:1px solid var(--accent3);color:#6db8f0;font-size:12px;padding:8px 14px;border-radius:20px;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 12px rgba(0,0,0,.5);font-family:Arial,sans-serif;transition:background .12s}
     .feedback-btn:hover{background:#253a50}
+
+    /* Modals */
     .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;align-items:center;justify-content:center}
     .modal-overlay.open{display:flex}
-    .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:24px;max-width:440px;width:calc(100% - 32px)}
-    .modal h2{font-size:16px;font-weight:600;color:#f2f3f6;margin-bottom:6px}
-    .modal p{font-size:13px;color:#f2f3f6;margin-bottom:16px;line-height:1.5}
+    .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:24px;max-width:540px;width:calc(100% - 32px);max-height:90vh;overflow-y:auto}
+    .modal h2{font-size:16px;font-weight:600;color:#f2f3f6;margin-bottom:12px}
+    .modal p{font-size:13px;color:#f2f3f6;margin-bottom:12px;line-height:1.6}
+    .modal h3{font-size:13px;font-weight:700;color:#f2f3f6;margin-bottom:4px;margin-top:16px}
+    .modal h3:first-of-type{margin-top:0}
     .modal label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;margin-top:12px}
     .modal select,.modal textarea,.modal input[type=text]{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:7px;color:#f2f3f6;font-size:13px;padding:8px 10px;font-family:Arial,sans-serif}
     .modal select{appearance:none}
@@ -218,6 +225,7 @@
     .modal-submit:hover{background:#253a50}
     .modal-thanks{display:none;text-align:center;padding:10px 0}
     .modal-thanks p{color:#5dcaa5;font-size:14px;margin-top:8px}
+    .modal-divider{border:none;border-top:1px solid var(--border);margin:16px 0}
   </style>
 </head>
 <body>
@@ -238,10 +246,12 @@
       </div>
       <button class="btn" onclick="searchInstitution()">Search</button>
     </div>
+    <div class="loading-msg" id="loading-msg">Loading data, please wait...</div>
   </div>
   <div class="site-footer" style="margin-top:40px;border-top:none">
-    This site is currently under development. Any questions or suggestions, please contact David Gilani via the
-    <a onclick="openFeedback()">feedback form</a>.
+    This site is under development. Questions or suggestions?
+    <a onclick="openFeedback()">Leave feedback</a> &nbsp;|&nbsp;
+    <a onclick="openAbout()">About &amp; methodology</a>
   </div>
 </div>
 
@@ -282,12 +292,17 @@
         <div id="list-progression"></div>
       </div>
     </div>
-    <div id="no-results" class="card"><div class="empty">No institution found. Try a different name.</div></div>
+
+    <div id="no-results">
+      <div class="no-results-box">
+        <p>No institution found matching that name.</p>
+        <button class="try-again-btn" onclick="clearInstitution()">&#8592; Try another search</button>
+      </div>
+    </div>
   </div>
 
   <div id="view-focus">
     <button class="btn-back" onclick="showAllTargets()">&#8592; Back to all targets</button>
-
     <div class="card">
       <div class="card-hd">
         <span class="card-hd-title" id="selected-inst-label"></span>
@@ -357,13 +372,17 @@
   </div>
 
   <div class="site-footer">
-    This site is currently under development. Any questions or suggestions, please contact David Gilani via the
-    <a onclick="openFeedback()">feedback form</a>.
+    This site is under development. &nbsp;
+    <a onclick="openFeedback()">Leave feedback</a> &nbsp;|&nbsp;
+    <a onclick="openAbout()">About &amp; methodology</a>
   </div>
 </div>
 
-<!-- Feedback button -->
-<button class="feedback-btn" onclick="openFeedback()">&#128172; Feedback</button>
+<!-- Fixed buttons -->
+<div class="fixed-btns">
+  <button class="feedback-btn" onclick="openAbout()">&#8505; About</button>
+  <button class="feedback-btn" onclick="openFeedback()">&#128172; Feedback</button>
+</div>
 
 <!-- Feedback modal -->
 <div class="modal-overlay" id="feedback-modal">
@@ -400,6 +419,29 @@
   </div>
 </div>
 
+<!-- About modal -->
+<div class="modal-overlay" id="about-modal">
+  <div class="modal">
+    <h2>About Open APP Explorer</h2>
+    <p>Open APP Explorer is an independent tool designed to help UK higher education professionals explore and compare Access and Participation Plan (APP) targets across universities.</p>
+    <hr class="modal-divider">
+    <h3>What is an APP?</h3>
+    <p>Access and Participation Plans are agreements between universities and the Office for Students (OfS) that set out how institutions will improve equality of opportunity for underrepresented groups - covering access, student success, and progression into employment or further study.</p>
+    <h3>Where does the data come from?</h3>
+    <p>Targets are extracted from publicly available APP documents published on the OfS. Extraction is carried out using AI, which reads the target sections of each PDF and structures the data into comparable fields. This means occasional errors or gaps are possible - if you spot something incorrect for your institution, please use the feedback form.</p>
+    <p>Demographic data (IMD, ethnicity, disability, and so on) is drawn from the OfS's own published student characteristic data, matched to each institution by UKPRN. Mission group data was taken from publicly available sources, but is also prone to error.</p>
+    <h3>How current is it?</h3>
+    <p>The APP targets are taken from all 'currently active' APPs. Coverage is not complete - around 20-30% of institutions either had not yet published their APP at the time of extraction, or published it in a format that could not be read automatically.</p>
+    <h3>Who built this?</h3>
+    <p>This tool has been built by David Gilani as an independent project to support the UK higher education access and participation community, with feedback from that community constantly helping to drive it forward. This site is not affiliated with the Office for Students or any other regulatory body.</p>
+    <p>The hope is that it sparks ideas for better ways to organise public data about universities into the future to aid collaboration between providers and drive the sector towards addressing equity gaps faster than if we go alone.</p>
+    <p>If you have questions, suggestions, or spot any errors, please use the <a onclick="closeAbout();openFeedback()">feedback form</a>.</p>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeAbout()">Close</button>
+    </div>
+  </div>
+</div>
+
 <script>
 var allData            = [];
 var institutions       = [];
@@ -413,6 +455,7 @@ var currentInstData    = null;
 var globalPrecision    = 10;
 var filterPanelOpen    = false;
 var activeNumericKeys  = new Set();
+var dataLoaded         = false;
 
 var CHIP_GROUPS = {
   'grp-mature':    [{ key:'mature_pct', label:'Mature students' }],
@@ -423,406 +466,303 @@ var CHIP_GROUPS = {
   'grp-entryqual': [{ key:'alevel', label:'A-level' },{ key:'btec', label:'BTEC' },{ key:'access_found', label:'Access/Foundation' }],
   'grp-other':     [{ key:'male', label:'Male students' },{ key:'lgb', label:'LGB students' }]
 };
-
-var GROUP_COUNTERS = {
-  'grp-mature':'cnt-mature','grp-imd':'cnt-imd','grp-tundra':'cnt-tundra',
-  'grp-ethnicity':'cnt-ethnicity','grp-background':'cnt-background',
-  'grp-entryqual':'cnt-entryqual','grp-other':'cnt-other'
-};
-
+var GROUP_COUNTERS = {'grp-mature':'cnt-mature','grp-imd':'cnt-imd','grp-tundra':'cnt-tundra','grp-ethnicity':'cnt-ethnicity','grp-background':'cnt-background','grp-entryqual':'cnt-entryqual','grp-other':'cnt-other'};
 var RELEVANCE_MAP = [
-  { keys:['ethnicity','ethnic','race','racial','bame','abmo','gem','black','asian','mixed'],
-    groups:['grp-ethnicity'], hint:'This target relates to ethnicity - ethnicity filters are suggested below.' },
-  { keys:['free school meal','fsm'],
-    groups:['grp-background','grp-imd','grp-tundra'], hint:'This target relates to free school meals - FSM, IMD and TUNDRA filters are suggested below.' },
-  { keys:['deprivation','imd','socioeconomic','low income','deprived'],
-    groups:['grp-imd','grp-background'], hint:'This target relates to deprivation - IMD and FSM filters are suggested below.' },
-  { keys:['tundra','rural','participation area','low participation'],
-    groups:['grp-tundra'], hint:'This target relates to geographic participation - TUNDRA filters are suggested below.' },
-  { keys:['disability','disabled','mental health','neurodiverg','learning difficult'],
-    groups:['grp-background'], hint:'This target relates to disability - the disability filter is suggested below.' },
-  { keys:['age','mature','adult learner'],
-    groups:['grp-mature'], hint:'This target relates to student age - the mature student filter is suggested below.' },
-  { keys:['sex','gender','male','female'],
-    groups:['grp-other'], hint:'This target relates to sex/gender - the male student filter is suggested below.' },
-  { keys:['sexual orientation','lgb','lesbian','gay','bisexual'],
-    groups:['grp-other'], hint:'This target relates to sexual orientation - the LGB filter is suggested below.' },
-  { keys:['btec','vocational','entry qualification'],
-    groups:['grp-entryqual'], hint:'This target relates to entry qualifications - qualification filters are suggested below.' },
-  { keys:['domicile','international','uk student'],
-    groups:['grp-background'], hint:'This target relates to student domicile - the UK domicile filter is suggested below.' },
+  { keys:['ethnicity','ethnic','race','racial','bame','abmo','gem','black','asian','mixed'], groups:['grp-ethnicity'], hint:'This target relates to ethnicity - ethnicity filters are suggested below.' },
+  { keys:['free school meal','fsm'], groups:['grp-background','grp-imd','grp-tundra'], hint:'This target relates to free school meals - FSM, IMD and TUNDRA filters are suggested below.' },
+  { keys:['deprivation','imd','socioeconomic','low income','deprived'], groups:['grp-imd','grp-background'], hint:'This target relates to deprivation - IMD and FSM filters are suggested below.' },
+  { keys:['tundra','rural','participation area','low participation'], groups:['grp-tundra'], hint:'This target relates to geographic participation - TUNDRA filters are suggested below.' },
+  { keys:['disability','disabled','mental health','neurodiverg','learning difficult'], groups:['grp-background'], hint:'This target relates to disability - the disability filter is suggested below.' },
+  { keys:['age','mature','adult learner'], groups:['grp-mature'], hint:'This target relates to student age - the mature student filter is suggested below.' },
+  { keys:['sex','gender','male','female'], groups:['grp-other'], hint:'This target relates to sex/gender - the male student filter is suggested below.' },
+  { keys:['sexual orientation','lgb','lesbian','gay','bisexual'], groups:['grp-other'], hint:'This target relates to sexual orientation - the LGB filter is suggested below.' },
+  { keys:['btec','vocational','entry qualification'], groups:['grp-entryqual'], hint:'This target relates to entry qualifications - qualification filters are suggested below.' },
+  { keys:['domicile','international','uk student'], groups:['grp-background'], hint:'This target relates to student domicile - the UK domicile filter is suggested below.' },
 ];
 
-function parsePct(val) {
-  if (val === null || val === undefined || val === '') return null;
-  var n = parseFloat(val);
-  return isNaN(n) ? null : (n > 1 ? n / 100 : n);
-}
-function fmtPct(val) { return val === null ? '-' : Math.round(val * 100) + '%'; }
-function withinBand(a, b, pp) { return a !== null && b !== null && Math.abs(a - b) <= pp / 100; }
-function countInsts(rows) {
-  var s = {};
-  rows.forEach(function(r){ var n = r.used_name||r.legal_name; if(n) s[n]=true; });
-  return Object.keys(s).length;
-}
+function parsePct(val) { if(val===null||val===undefined||val==='') return null; var n=parseFloat(val); return isNaN(n)?null:(n>1?n/100:n); }
+function fmtPct(val) { return val===null?'-':Math.round(val*100)+'%'; }
+function withinBand(a,b,pp) { return a!==null&&b!==null&&Math.abs(a-b)<=pp/100; }
+function countInsts(rows) { var s={}; rows.forEach(function(r){var n=r.used_name||r.legal_name;if(n)s[n]=true;}); return Object.keys(s).length; }
 function stageClass(s) {
-  if (!s) return 'stage-default';
-  var l = s.toLowerCase();
-  if (l.includes('access'))       return 'stage-access';
-  if (l.includes('continuation')) return 'stage-continuation';
-  if (l.includes('completion'))   return 'stage-completion';
-  if (l.includes('attainment'))   return 'stage-attainment';
-  if (l.includes('raising'))      return 'stage-raising';
-  if (l.includes('progression'))  return 'stage-progression';
+  if(!s) return 'stage-default'; var l=s.toLowerCase();
+  if(l.includes('access'))       return 'stage-access';
+  if(l.includes('continuation')) return 'stage-continuation';
+  if(l.includes('completion'))   return 'stage-completion';
+  if(l.includes('attainment'))   return 'stage-attainment';
+  if(l.includes('raising'))      return 'stage-raising';
+  if(l.includes('progression'))  return 'stage-progression';
   return 'stage-default';
 }
-function getGroup(stage) {
-  if (!stage) return 'success';
-  var l = stage.toLowerCase();
-  if (l.includes('access'))      return 'access';
-  if (l.includes('progression')) return 'progression';
-  return 'success';
-}
+function getGroup(stage) { if(!stage) return 'success'; var l=stage.toLowerCase(); if(l.includes('access')) return 'access'; if(l.includes('progression')) return 'progression'; return 'success'; }
 function buildLabel(t) {
-  var bad = ['not stated','not specified (please give detail in description)','n/a',''];
-  var tg = (t.target_group||'').trim();
-  var cg = (t.comparator_group||'').trim();
-  var parts = [];
-  if (bad.indexOf(tg.toLowerCase()) === -1) parts.push(tg);
-  if (bad.indexOf(cg.toLowerCase()) === -1) parts.push('vs ' + cg);
-  var label = parts.join(' ');
-  if (!label && t.characteristic) label = t.characteristic;
-  return label || t.aim || 'Target';
+  var bad=['not stated','not specified (please give detail in description)','n/a',''];
+  var tg=(t.target_group||'').trim(), cg=(t.comparator_group||'').trim(), parts=[];
+  if(bad.indexOf(tg.toLowerCase())===-1) parts.push(tg);
+  if(bad.indexOf(cg.toLowerCase())===-1) parts.push('vs '+cg);
+  var label=parts.join(' ');
+  if(!label&&t.characteristic) label=t.characteristic;
+  return label||t.aim||'Target';
 }
 function buildDataStr(t) {
-  var ds = '';
-  if (t.baseline_data && t.baseline_data !== 'Not stated') ds = 'Baseline: ' + t.baseline_data;
-  if (t.target && t.target !== 'Not stated') ds += (ds ? ' to Target: ' : 'Target: ') + t.target;
-  if (t.when && t.when !== 'Not stated') ds += ' by ' + t.when;
+  var ds='';
+  if(t.baseline_data&&t.baseline_data!=='Not stated') ds='Baseline: '+t.baseline_data;
+  if(t.target&&t.target!=='Not stated') ds+=(ds?' to Target: ':'Target: ')+t.target;
+  if(t.when&&t.when!=='Not stated') ds+=' by '+t.when;
   return ds;
 }
-function hasDetail(t) {
-  return (t.aim && t.aim !== 'Not stated' && t.aim.trim() !== '') ||
-    (t.description_and_commentary && t.description_and_commentary !== 'Not stated' && t.description_and_commentary.trim() !== '');
+function hasDetail(t) { return (t.aim&&t.aim!=='Not stated'&&t.aim.trim()!=='')||(t.description_and_commentary&&t.description_and_commentary!=='Not stated'&&t.description_and_commentary.trim()!==''); }
+function detailHtml(t,id) {
+  return '<div class="trow-detail" id="'+id+'">'+(t.aim&&t.aim!=='Not stated'&&t.aim.trim()!==''?'<div class="detail-label">Aim</div><div class="detail-text">'+t.aim+'</div>':'')+(t.description_and_commentary&&t.description_and_commentary!=='Not stated'&&t.description_and_commentary.trim()!==''?'<div class="detail-label">Description</div><div class="detail-text">'+t.description_and_commentary+'</div>':'')+'</div>';
 }
-function detailHtml(t, id) {
-  return '<div class="trow-detail" id="' + id + '">' +
-    (t.aim && t.aim !== 'Not stated' && t.aim.trim() !== '' ?
-      '<div class="detail-label">Aim</div><div class="detail-text">' + t.aim + '</div>' : '') +
-    (t.description_and_commentary && t.description_and_commentary !== 'Not stated' && t.description_and_commentary.trim() !== '' ?
-      '<div class="detail-label">Description</div><div class="detail-text">' + t.description_and_commentary + '</div>' : '') +
-    '</div>';
-}
-function toggleDetail(id, btn) {
-  var el = document.getElementById(id);
-  if (!el) return;
-  var open = el.classList.toggle('open');
-  btn.textContent = open ? '- Less info' : '+ More info';
-}
+function toggleDetail(id,btn) { var el=document.getElementById(id); if(!el) return; var open=el.classList.toggle('open'); btn.textContent=open?'- Less info':'+ More info'; }
 
-function renderTargetRow(t, idx) {
-  var stage = t.lifecycle_stage || '';
-  var chr   = t.characteristic  || '';
-  var sc    = stageClass(stage);
-  var label = buildLabel(t);
-  var ds    = buildDataStr(t);
-  var hd    = hasDetail(t);
-  var id    = 'tdetail-' + idx;
-  return '<div class="trow" onclick="findSimilar(' + idx + ')">' +
-    '<div class="trow-badges">' +
-    (stage ? '<span class="badge ' + sc + '">' + stage + '</span>' : '') +
-    (chr   ? '<span class="badge badge-char">' + chr + '</span>'   : '') +
-    '</div>' +
-    '<div class="trow-headline">' + label + '</div>' +
-    (ds ? '<div class="trow-data">' + ds + '</div>' : '') +
-    (hd ? '<div class="trow-actions" onclick="event.stopPropagation()"><button class="more-btn" onclick="toggleDetail(\'' + id + '\',this)">+ More info</button></div>' : '') +
-    (hd ? detailHtml(t, id) : '') +
+function renderTargetRow(t,idx) {
+  var stage=t.lifecycle_stage||'',chr=t.characteristic||'',sc=stageClass(stage),label=buildLabel(t),ds=buildDataStr(t),hd=hasDetail(t),id='tdetail-'+idx;
+  return '<div class="trow" onclick="findSimilar('+idx+')">'+
+    '<div class="trow-badges">'+(stage?'<span class="badge '+sc+'">'+stage+'</span>':'')+(chr?'<span class="badge badge-char">'+chr+'</span>':'')+'</div>'+
+    '<div class="trow-headline">'+label+'</div>'+(ds?'<div class="trow-data">'+ds+'</div>':'')+
+    (hd?'<div class="trow-actions" onclick="event.stopPropagation()"><button class="more-btn" onclick="toggleDetail(\''+id+'\',this)">+ More info</button></div>':'')+
+    (hd?detailHtml(t,id):'')+
     '</div>';
 }
 
 function init() {
+  document.getElementById('loading-msg').classList.add('visible');
   fetch('./data.json')
     .then(function(r){ if(!r.ok) throw new Error('load failed'); return r.json(); })
     .then(function(data) {
-      allData = data;
-      var seen = {};
-      data.forEach(function(r) {
-        var name = r.used_name || r.legal_name;
-        if (name && !seen[name]) { seen[name] = true; institutions.push(name); }
-        if (r.plan_url && r.plan_url.length > 10) {
-          var n = r.used_name || r.legal_name;
-          if (n && !instPlanUrls[n]) instPlanUrls[n] = r.plan_url;
-        }
+      allData=data; var seen={};
+      data.forEach(function(r){
+        var name=r.used_name||r.legal_name;
+        if(name&&!seen[name]){seen[name]=true;institutions.push(name);}
+        if(r.plan_url&&r.plan_url.length>10){var n=r.used_name||r.legal_name;if(n&&!instPlanUrls[n])instPlanUrls[n]=r.plan_url;}
       });
       institutions.sort();
+      dataLoaded=true;
+      document.getElementById('loading-msg').classList.remove('visible');
+      document.getElementById('search-input').placeholder='Type your institution name...';
     })
-    .catch(function(e){ console.log('Error loading data:', e); });
-}
-
-var inp  = document.getElementById('search-input');
-var sugg = document.getElementById('suggestions');
-inp.addEventListener('input', function() {
-  var v = this.value.toLowerCase().trim();
-  if (!v) { sugg.style.display = 'none'; return; }
-  currentSuggestions = institutions.filter(function(i){ return i.toLowerCase().includes(v); }).slice(0,8);
-  if (!currentSuggestions.length) { sugg.style.display = 'none'; return; }
-  sugg.innerHTML = currentSuggestions.map(function(n,i){
-    return '<div class="sug-item" onclick="selectInst(' + i + ')">' + n + '</div>';
-  }).join('');
-  sugg.style.display = 'block';
-});
-inp.addEventListener('keydown', function(e){ if(e.key==='Enter') searchInstitution(); });
-document.addEventListener('click', function(e){ if(!e.target.closest('.search-wrap')) sugg.style.display='none'; });
-function selectInst(i) { inp.value = currentSuggestions[i]; sugg.style.display='none'; searchInstitution(); }
-
-function searchInstitution() {
-  sugg.style.display = 'none';
-  var v = inp.value.toLowerCase().trim();
-  if (!v) return;
-  document.body.classList.add('searched');
-  document.getElementById('view-focus').style.display  = 'none';
-  document.getElementById('view-all').style.display    = 'block';
-  document.getElementById('no-results').style.display  = 'none';
-  document.getElementById('inst-header-block').style.display = 'none';
-  document.getElementById('cols-block').style.display  = 'none';
-  var matches = allData.filter(function(r){ return (r.used_name||r.legal_name||'').toLowerCase().includes(v); });
-  if (!matches.length) { document.getElementById('no-results').style.display='block'; return; }
-  currentInst    = matches[0].used_name || matches[0].legal_name;
-  currentInstUrl = instPlanUrls[currentInst] || '';
-  currentInstTargets = allData.filter(function(r){ return (r.used_name||r.legal_name)===currentInst && r.reference_number; });
-  var instRow = allData.find(function(r){ return (r.used_name||r.legal_name)===currentInst && r.ukprn; });
-  currentInstData = instRow || null;
-  document.getElementById('inst-title').textContent = currentInst;
-  var appLink = document.getElementById('inst-app-link');
-  if (currentInstUrl) { appLink.href = currentInstUrl; appLink.style.display='flex'; } else { appLink.style.display='none'; }
-  document.getElementById('inst-header-block').style.display = 'flex';
-  var groups = { access:[], success:[], progression:[] };
-  currentInstTargets.forEach(function(t,idx){ groups[getGroup(t.lifecycle_stage||'')].push({t:t,idx:idx}); });
-  ['access','success','progression'].forEach(function(g){
-    var items = groups[g];
-    document.getElementById('count-'+g).textContent = items.length;
-    document.getElementById('list-'+g).innerHTML = items.length
-      ? items.map(function(item){ return renderTargetRow(item.t, item.idx); }).join('')
-      : '<div class="col-empty">None</div>';
-  });
-  document.getElementById('cols-block').style.display = 'grid';
-}
-
-function clearInstitution() {
-  document.body.classList.remove('searched');
-  inp.value = '';
-  currentInst = null; currentInstUrl = ''; currentInstData = null; currentInstTargets = [];
-  document.getElementById('view-focus').style.display = 'none';
-  document.getElementById('view-all').style.display   = 'block';
-  document.getElementById('inst-header-block').style.display = 'none';
-  document.getElementById('cols-block').style.display = 'none';
-  document.getElementById('no-results').style.display = 'none';
-}
-
-function findSimilar(idx) {
-  var t = currentInstTargets[idx];
-  if (!t) return;
-  var stage = t.lifecycle_stage || '';
-  var chr   = t.characteristic  || '';
-  var sc    = stageClass(stage);
-  var label = buildLabel(t);
-  var ds    = buildDataStr(t);
-  var hd    = hasDetail(t);
-  document.getElementById('selected-inst-label').textContent = currentInst + ' - selected target';
-  var selLink = document.getElementById('selected-app-link');
-  if (currentInstUrl) { selLink.href = currentInstUrl; selLink.style.display='flex'; } else { selLink.style.display='none'; }
-  document.getElementById('selected-target-detail').innerHTML =
-    '<div class="trow-badges" style="margin-bottom:6px">' +
-    (stage ? '<span class="badge ' + sc + '">' + stage + '</span>' : '') +
-    (chr   ? '<span class="badge badge-char">' + chr + '</span>'   : '') +
-    '</div>' +
-    '<div class="sel-headline">' + label + '</div>' +
-    (chr ? '<div class="sel-sub">' + chr + '</div>' : '') +
-    (ds  ? '<div class="sel-data">' + ds + '</div>' : '') +
-    (hd  ? '<button class="more-btn" onclick="toggleDetail(\'sel-det\',this)" style="margin-top:8px">+ More info</button>' + detailHtml(t,'sel-det') : '');
-  currentSimilarResults = allData.filter(function(r){
-    var rn = r.used_name || r.legal_name;
-    return rn !== currentInst && r.reference_number && r.lifecycle_stage === stage && r.characteristic === chr;
-  });
-  document.getElementById('similar-meta').textContent = 'Matching on: ' + [stage, chr].filter(Boolean).join(' and ');
-  buildFilterUI(chr, t.aim || '', t.description_and_commentary || '');
-  resetFilters();
-  applyFilters();
-  document.getElementById('view-all').style.display  = 'none';
-  document.getElementById('view-focus').style.display = 'block';
-}
-
-function toggleFilterPanel() {
-  filterPanelOpen = !filterPanelOpen;
-  document.getElementById('filter-body').classList.toggle('open', filterPanelOpen);
-  document.getElementById('filter-arrow').classList.toggle('open', filterPanelOpen);
-}
-function toggleGroup(id) {
-  var body = document.getElementById(id);
-  var arr  = document.getElementById('arr-' + id);
-  var open = body.classList.toggle('open');
-  if (arr) arr.classList.toggle('open', open);
-}
-function setGlobalPrecision(pp) {
-  globalPrecision = pp;
-  document.getElementById('prec-5').classList.toggle('active', pp===5);
-  document.getElementById('prec-10').classList.toggle('active', pp===10);
-  applyFilters();
-}
-function getRelevance(chr, aim, desc) {
-  var text = ((chr||'') + ' ' + (aim||'') + ' ' + (desc||'')).toLowerCase();
-  for (var i = 0; i < RELEVANCE_MAP.length; i++) {
-    var entry = RELEVANCE_MAP[i];
-    for (var j = 0; j < entry.keys.length; j++) {
-      if (text.includes(entry.keys[j])) return entry;
+    .catch(function(e){
+      console.log('Error loading data:',e);
+      document.getElementById('loading-msg').textContent='Error loading data. Please refresh the page.';
+    });
+  document.getElementById('search-input').placeholder='Loading data...';
+  document.getElementById('search-input').disabled=true;
+  // Re-enable once loaded
+  var checkLoaded=setInterval(function(){
+    if(dataLoaded){
+      document.getElementById('search-input').disabled=false;
+      document.getElementById('search-input').placeholder='Type your institution name...';
+      clearInterval(checkLoaded);
     }
-  }
+  },100);
+}
+
+var inp=document.getElementById('search-input');
+var sugg=document.getElementById('suggestions');
+inp.addEventListener('input',function(){
+  var v=this.value.toLowerCase().trim();
+  if(!v){sugg.style.display='none';return;}
+  currentSuggestions=institutions.filter(function(i){return i.toLowerCase().includes(v);}).slice(0,8);
+  if(!currentSuggestions.length){sugg.style.display='none';return;}
+  sugg.innerHTML=currentSuggestions.map(function(n,i){return '<div class="sug-item" onclick="selectInst('+i+')">'+n+'</div>';}).join('');
+  sugg.style.display='block';
+});
+inp.addEventListener('keydown',function(e){if(e.key==='Enter')searchInstitution();});
+document.addEventListener('click',function(e){if(!e.target.closest('.search-wrap'))sugg.style.display='none';});
+function selectInst(i){inp.value=currentSuggestions[i];sugg.style.display='none';searchInstitution();}
+
+function searchInstitution(){
+  sugg.style.display='none';
+  var v=inp.value.toLowerCase().trim();
+  if(!v)return;
+  document.body.classList.add('searched');
+  document.getElementById('view-focus').style.display='none';
+  document.getElementById('view-all').style.display='block';
+  document.getElementById('no-results').style.display='none';
+  document.getElementById('inst-header-block').style.display='none';
+  document.getElementById('cols-block').style.display='none';
+  var matches=allData.filter(function(r){return(r.used_name||r.legal_name||'').toLowerCase().includes(v);});
+  if(!matches.length){document.getElementById('no-results').style.display='block';return;}
+  currentInst=matches[0].used_name||matches[0].legal_name;
+  currentInstUrl=instPlanUrls[currentInst]||'';
+  currentInstTargets=allData.filter(function(r){return(r.used_name||r.legal_name)===currentInst&&r.reference_number;});
+  var instRow=allData.find(function(r){return(r.used_name||r.legal_name)===currentInst&&r.ukprn;});
+  currentInstData=instRow||null;
+  document.getElementById('inst-title').textContent=currentInst;
+  var appLink=document.getElementById('inst-app-link');
+  if(currentInstUrl){appLink.href=currentInstUrl;appLink.style.display='flex';}else{appLink.style.display='none';}
+  document.getElementById('inst-header-block').style.display='flex';
+  var groups={access:[],success:[],progression:[]};
+  currentInstTargets.forEach(function(t,idx){groups[getGroup(t.lifecycle_stage||'')].push({t:t,idx:idx});});
+  ['access','success','progression'].forEach(function(g){
+    var items=groups[g];
+    document.getElementById('count-'+g).textContent=items.length;
+    document.getElementById('list-'+g).innerHTML=items.length?items.map(function(item){return renderTargetRow(item.t,item.idx);}).join(''):'<div class="col-empty">None</div>';
+  });
+  document.getElementById('cols-block').style.display='grid';
+}
+
+function clearInstitution(){
+  document.body.classList.remove('searched');
+  inp.value='';currentInst=null;currentInstUrl='';currentInstData=null;currentInstTargets=[];
+  document.getElementById('view-focus').style.display='none';
+  document.getElementById('view-all').style.display='block';
+  document.getElementById('inst-header-block').style.display='none';
+  document.getElementById('cols-block').style.display='none';
+  document.getElementById('no-results').style.display='none';
+}
+
+function findSimilar(idx){
+  var t=currentInstTargets[idx]; if(!t)return;
+  var stage=t.lifecycle_stage||'',chr=t.characteristic||'',sc=stageClass(stage),label=buildLabel(t),ds=buildDataStr(t),hd=hasDetail(t);
+  document.getElementById('selected-inst-label').textContent=currentInst+' - selected target';
+  var selLink=document.getElementById('selected-app-link');
+  if(currentInstUrl){selLink.href=currentInstUrl;selLink.style.display='flex';}else{selLink.style.display='none';}
+  document.getElementById('selected-target-detail').innerHTML=
+    '<div class="trow-badges" style="margin-bottom:6px">'+(stage?'<span class="badge '+sc+'">'+stage+'</span>':'')+(chr?'<span class="badge badge-char">'+chr+'</span>':'')+'</div>'+
+    '<div class="sel-headline">'+label+'</div>'+
+    (chr?'<div class="sel-sub">'+chr+'</div>':'')+
+    (ds?'<div class="sel-data">'+ds+'</div>':'')+
+    (hd?'<button class="more-btn" onclick="toggleDetail(\'sel-det\',this)" style="margin-top:8px">+ More info</button>'+detailHtml(t,'sel-det'):'');
+  currentSimilarResults=allData.filter(function(r){var rn=r.used_name||r.legal_name;return rn!==currentInst&&r.reference_number&&r.lifecycle_stage===stage&&r.characteristic===chr;});
+  document.getElementById('similar-meta').textContent='Matching on: '+[stage,chr].filter(Boolean).join(' and ');
+  buildFilterUI(chr,t.aim||'',t.description_and_commentary||'');
+  resetFilters();applyFilters();
+  document.getElementById('view-all').style.display='none';
+  document.getElementById('view-focus').style.display='block';
+}
+
+function toggleFilterPanel(){filterPanelOpen=!filterPanelOpen;document.getElementById('filter-body').classList.toggle('open',filterPanelOpen);document.getElementById('filter-arrow').classList.toggle('open',filterPanelOpen);}
+function toggleGroup(id){var body=document.getElementById(id);var arr=document.getElementById('arr-'+id);var open=body.classList.toggle('open');if(arr)arr.classList.toggle('open',open);}
+function setGlobalPrecision(pp){globalPrecision=pp;document.getElementById('prec-5').classList.toggle('active',pp===5);document.getElementById('prec-10').classList.toggle('active',pp===10);applyFilters();}
+
+function getRelevance(chr,aim,desc){
+  var text=((chr||'')+' '+(aim||'')+' '+(desc||'')).toLowerCase();
+  for(var i=0;i<RELEVANCE_MAP.length;i++){var entry=RELEVANCE_MAP[i];for(var j=0;j<entry.keys.length;j++){if(text.includes(entry.keys[j]))return entry;}}
   return null;
 }
-function buildFilterUI(chr, aim, desc) {
-  for (var grpId in CHIP_GROUPS) {
-    var body = document.getElementById(grpId);
-    if (!body) continue;
-    body.innerHTML = '';
-    CHIP_GROUPS[grpId].forEach(function(chip){ body.appendChild(makeChip(chip.key, chip.label, false)); });
-  }
-  var relevance  = getRelevance(chr, aim, desc);
-  var sugSection = document.getElementById('suggested-section');
-  var sugChips   = document.getElementById('suggested-chips');
-  sugChips.innerHTML = '';
-  if (relevance) {
-    sugSection.style.display = 'block';
-    document.getElementById('suggested-hint').textContent = relevance.hint;
-    relevance.groups.forEach(function(grpId) {
-      (CHIP_GROUPS[grpId]||[]).forEach(function(chip){ sugChips.appendChild(makeChip(chip.key, chip.label, true)); });
-    });
-    relevance.groups.forEach(function(grpId) {
-      var b = document.getElementById(grpId); var a = document.getElementById('arr-' + grpId);
-      if (b) b.classList.add('open'); if (a) a.classList.add('open');
-    });
-  } else { sugSection.style.display = 'none'; }
-  var mg  = currentInstData ? (currentInstData.mission_group||'').trim()  : '';
-  var mg2 = currentInstData ? (currentInstData.mission_group2||'').trim() : '';
-  var mgLabel = [mg,mg2].filter(Boolean).join(' / ');
-  document.getElementById('val-mission').textContent = mgLabel ? '(' + mgLabel + ')' : '(none)';
-  document.getElementById('filter-mission').disabled = !mgLabel;
-  document.getElementById('chip-mission').classList.toggle('no-data', !mgLabel);
-  var reg = currentInstData ? (currentInstData.region||'').trim() : '';
-  document.getElementById('val-region').textContent = reg ? '(' + reg + ')' : '(no data)';
-  document.getElementById('filter-region').disabled = !reg;
-  document.getElementById('chip-region').classList.toggle('no-data', !reg);
+function buildFilterUI(chr,aim,desc){
+  for(var grpId in CHIP_GROUPS){var body=document.getElementById(grpId);if(!body)continue;body.innerHTML='';CHIP_GROUPS[grpId].forEach(function(chip){body.appendChild(makeChip(chip.key,chip.label,false));});}
+  var relevance=getRelevance(chr,aim,desc);
+  var sugSection=document.getElementById('suggested-section');
+  var sugChips=document.getElementById('suggested-chips');
+  sugChips.innerHTML='';
+  if(relevance){
+    sugSection.style.display='block';
+    document.getElementById('suggested-hint').textContent=relevance.hint;
+    relevance.groups.forEach(function(grpId){(CHIP_GROUPS[grpId]||[]).forEach(function(chip){sugChips.appendChild(makeChip(chip.key,chip.label,true));});});
+    relevance.groups.forEach(function(grpId){var b=document.getElementById(grpId);var a=document.getElementById('arr-'+grpId);if(b)b.classList.add('open');if(a)a.classList.add('open');});
+  }else{sugSection.style.display='none';}
+  var mg=currentInstData?(currentInstData.mission_group||'').trim():'';
+  var mg2=currentInstData?(currentInstData.mission_group2||'').trim():'';
+  var mgLabel=[mg,mg2].filter(Boolean).join(' / ');
+  document.getElementById('val-mission').textContent=mgLabel?'('+mgLabel+')':'(none)';
+  document.getElementById('filter-mission').disabled=!mgLabel;
+  document.getElementById('chip-mission').classList.toggle('no-data',!mgLabel);
+  var reg=currentInstData?(currentInstData.region||'').trim():'';
+  document.getElementById('val-region').textContent=reg?'('+reg+')':'(no data)';
+  document.getElementById('filter-region').disabled=!reg;
+  document.getElementById('chip-region').classList.toggle('no-data',!reg);
 }
-function makeChip(key, label, isSuggested) {
-  var instVal = currentInstData ? parsePct(currentInstData[key]) : null;
-  var wrap = document.createElement('label');
-  wrap.className = 'fchip' + (instVal === null ? ' no-data' : '');
-  wrap.id = 'chip-' + (isSuggested ? 'sug-' : '') + key;
-  var cb = document.createElement('input');
-  cb.type = 'checkbox'; cb.id = 'filter-' + (isSuggested ? 'sug-' : '') + key; cb.disabled = (instVal === null);
-  cb.addEventListener('change', function() {
-    if (cb.checked) { activeNumericKeys.add(key); } else { activeNumericKeys.delete(key); }
-    var pairedId = 'filter-' + (isSuggested ? '' : 'sug-') + key;
-    var pairedChId = 'chip-' + (isSuggested ? '' : 'sug-') + key;
-    var paired = document.getElementById(pairedId); var pairedCh = document.getElementById(pairedChId);
-    if (paired) paired.checked = cb.checked;
-    if (pairedCh) pairedCh.classList.toggle('active', cb.checked);
-    wrap.classList.toggle('active', cb.checked);
-    updateGroupCounters(); applyFilters();
+function makeChip(key,label,isSuggested){
+  var instVal=currentInstData?parsePct(currentInstData[key]):null;
+  var wrap=document.createElement('label');
+  wrap.className='fchip'+(instVal===null?' no-data':'');
+  wrap.id='chip-'+(isSuggested?'sug-':'')+key;
+  var cb=document.createElement('input');cb.type='checkbox';cb.id='filter-'+(isSuggested?'sug-':'')+key;cb.disabled=(instVal===null);
+  cb.addEventListener('change',function(){
+    if(cb.checked){activeNumericKeys.add(key);}else{activeNumericKeys.delete(key);}
+    var pairedId='filter-'+(isSuggested?'':'sug-')+key;
+    var pairedChId='chip-'+(isSuggested?'':'sug-')+key;
+    var paired=document.getElementById(pairedId);var pairedCh=document.getElementById(pairedChId);
+    if(paired)paired.checked=cb.checked;if(pairedCh)pairedCh.classList.toggle('active',cb.checked);
+    wrap.classList.toggle('active',cb.checked);updateGroupCounters();applyFilters();
   });
-  var lbl = document.createElement('span'); lbl.textContent = label;
-  var val = document.createElement('span'); val.className = 'chip-val'; val.textContent = instVal !== null ? fmtPct(instVal) : 'no data';
-  wrap.appendChild(cb); wrap.appendChild(lbl); wrap.appendChild(val);
-  return wrap;
+  var lbl=document.createElement('span');lbl.textContent=label;
+  var val=document.createElement('span');val.className='chip-val';val.textContent=instVal!==null?fmtPct(instVal):'no data';
+  wrap.appendChild(cb);wrap.appendChild(lbl);wrap.appendChild(val);return wrap;
 }
-function updateGroupCounters() {
-  for (var grpId in GROUP_COUNTERS) {
-    var active = (CHIP_GROUPS[grpId]||[]).filter(function(c){ return activeNumericKeys.has(c.key); }).length;
-    var el = document.getElementById(GROUP_COUNTERS[grpId]);
-    if (el) { el.textContent = active; el.style.display = active > 0 ? 'inline' : 'none'; }
+function updateGroupCounters(){
+  for(var grpId in GROUP_COUNTERS){
+    var active=(CHIP_GROUPS[grpId]||[]).filter(function(c){return activeNumericKeys.has(c.key);}).length;
+    var el=document.getElementById(GROUP_COUNTERS[grpId]);
+    if(el){el.textContent=active;el.style.display=active>0?'inline':'none';}
   }
 }
-function resetFilters() {
+function resetFilters(){
   activeNumericKeys.clear();
-  document.getElementById('filter-mission').checked = false;
-  document.getElementById('filter-region').checked  = false;
-  document.getElementById('chip-mission').classList.remove('active');
-  document.getElementById('chip-region').classList.remove('active');
-  document.querySelectorAll('.fchip input[type=checkbox]').forEach(function(cb){ cb.checked = false; });
-  document.querySelectorAll('.fchip').forEach(function(c){ c.classList.remove('active'); });
-  updateGroupCounters();
-  document.getElementById('filter-dot').classList.remove('on');
+  document.getElementById('filter-mission').checked=false;document.getElementById('filter-region').checked=false;
+  document.getElementById('chip-mission').classList.remove('active');document.getElementById('chip-region').classList.remove('active');
+  document.querySelectorAll('.fchip input[type=checkbox]').forEach(function(cb){cb.checked=false;});
+  document.querySelectorAll('.fchip').forEach(function(c){c.classList.remove('active');});
+  updateGroupCounters();document.getElementById('filter-dot').classList.remove('on');
 }
-function applyFilters() {
-  var filterMission = document.getElementById('filter-mission').checked;
-  var filterRegion  = document.getElementById('filter-region').checked;
-  var anyActive = filterMission || filterRegion || activeNumericKeys.size > 0;
-  document.getElementById('filter-dot').classList.toggle('on', anyActive);
-  var instMG  = currentInstData ? (currentInstData.mission_group||'').trim()  : '';
-  var instMG2 = currentInstData ? (currentInstData.mission_group2||'').trim() : '';
-  var instReg = currentInstData ? (currentInstData.region||'').trim()         : '';
-  var filtered = currentSimilarResults.filter(function(r) {
-    if (filterMission && (instMG || instMG2)) {
-      var rMG=(r.mission_group||'').trim(); var rMG2=(r.mission_group2||'').trim();
-      if (!((instMG&&(rMG===instMG||rMG2===instMG))||(instMG2&&(rMG===instMG2||rMG2===instMG2)))) return false;
-    }
-    if (filterRegion && instReg && (r.region||'').trim() !== instReg) return false;
-    for (var key of activeNumericKeys) {
-      if (!withinBand(currentInstData ? parsePct(currentInstData[key]) : null, parsePct(r[key]), globalPrecision)) return false;
-    }
+function applyFilters(){
+  var filterMission=document.getElementById('filter-mission').checked;
+  var filterRegion=document.getElementById('filter-region').checked;
+  var anyActive=filterMission||filterRegion||activeNumericKeys.size>0;
+  document.getElementById('filter-dot').classList.toggle('on',anyActive);
+  var instMG=currentInstData?(currentInstData.mission_group||'').trim():'';
+  var instMG2=currentInstData?(currentInstData.mission_group2||'').trim():'';
+  var instReg=currentInstData?(currentInstData.region||'').trim():'';
+  var filtered=currentSimilarResults.filter(function(r){
+    if(filterMission&&(instMG||instMG2)){var rMG=(r.mission_group||'').trim();var rMG2=(r.mission_group2||'').trim();if(!((instMG&&(rMG===instMG||rMG2===instMG))||(instMG2&&(rMG===instMG2||rMG2===instMG2))))return false;}
+    if(filterRegion&&instReg&&(r.region||'').trim()!==instReg)return false;
+    for(var key of activeNumericKeys){if(!withinBand(currentInstData?parsePct(currentInstData[key]):null,parsePct(r[key]),globalPrecision))return false;}
     return true;
   });
-  var total=currentSimilarResults.length, totalInsts=countInsts(currentSimilarResults), shownInsts=countInsts(filtered);
-  document.getElementById('similar-count').textContent = anyActive
-    ? 'Showing ' + shownInsts + ' of ' + totalInsts + ' institutions after filters (' + filtered.length + ' of ' + total + ' targets)'
-    : totalInsts + ' institutions - ' + total + ' matching targets';
-  if (!filtered.length) { document.getElementById('similar-list').innerHTML='<div class="empty">No universities match the current filters. Try loosening your criteria or switching to Loose matching.</div>'; return; }
-  var grouped = {};
-  filtered.forEach(function(r){ var n=r.used_name||r.legal_name; if(!grouped[n]) grouped[n]=[]; grouped[n].push(r); });
-  document.getElementById('similar-list').innerHTML = Object.keys(grouped).sort().map(function(name) {
-    return grouped[name].map(function(r, ri) {
-      var rLabel=buildLabel(r), rd=buildDataStr(r), rUrl=instPlanUrls[name]||'', rHd=hasDetail(r);
-      var rid='rdet-'+name.replace(/\W/g,'_')+ri;
+  var total=currentSimilarResults.length,totalInsts=countInsts(currentSimilarResults),shownInsts=countInsts(filtered);
+  document.getElementById('similar-count').textContent=anyActive?'Showing '+shownInsts+' of '+totalInsts+' institutions after filters ('+filtered.length+' of '+total+' targets)':totalInsts+' institutions - '+total+' matching targets';
+  if(!filtered.length){document.getElementById('similar-list').innerHTML='<div class="empty">No universities match the current filters. Try loosening your criteria or switching to Loose matching.</div>';return;}
+  var grouped={};
+  filtered.forEach(function(r){var n=r.used_name||r.legal_name;if(!grouped[n])grouped[n]=[];grouped[n].push(r);});
+  document.getElementById('similar-list').innerHTML=Object.keys(grouped).sort().map(function(name){
+    return grouped[name].map(function(r,ri){
+      var rLabel=buildLabel(r),rd=buildDataStr(r),rUrl=instPlanUrls[name]||'',rHd=hasDetail(r),rid='rdet-'+name.replace(/\W/g,'_')+ri;
       var dataTags='';
-      if (anyActive) {
+      if(anyActive){
         var parts=[];
-        if (filterMission) { var mg=[(r.mission_group||'').trim(),(r.mission_group2||'').trim()].filter(Boolean).join(' / '); if(mg) parts.push(mg); }
-        if (filterRegion && r.region) parts.push(r.region);
-        activeNumericKeys.forEach(function(key) {
-          var v=parsePct(r[key]);
-          if (v!==null) { var allChips=[].concat.apply([],Object.values(CHIP_GROUPS)); var def=allChips.find(function(c){return c.key===key;}); parts.push((def?def.label:key)+': '+fmtPct(v)); }
-        });
-        if (parts.length) dataTags='<div class="rtags">'+parts.join(' · ')+'</div>';
+        if(filterMission){var mg=[(r.mission_group||'').trim(),(r.mission_group2||'').trim()].filter(Boolean).join(' / ');if(mg)parts.push(mg);}
+        if(filterRegion&&r.region)parts.push(r.region);
+        activeNumericKeys.forEach(function(key){var v=parsePct(r[key]);if(v!==null){var allChips=[].concat.apply([],Object.values(CHIP_GROUPS));var def=allChips.find(function(c){return c.key===key;});parts.push((def?def.label:key)+': '+fmtPct(v));}});
+        if(parts.length)dataTags='<div class="rtags">'+parts.join(' · ')+'</div>';
       }
       return '<div class="rrow"><div class="rrow-top"><div style="flex:1;min-width:0"><div class="rname">'+name+'</div><div class="rdata">'+rLabel+'</div>'+(rd?'<div class="rdata-sub">'+rd+'</div>':'')+dataTags+'</div>'+(rUrl?'<a href="'+rUrl+'" target="_blank" class="app-link" style="flex-shrink:0;margin-left:8px">&#128196; APP</a>':'')+'</div>'+(rHd?'<div style="margin-top:6px"><button class="more-btn" onclick="toggleDetail(\''+rid+'\',this)">+ More info</button>'+detailHtml(r,rid)+'</div>':'')+'</div>';
     }).join('');
   }).join('');
 }
-function showAllTargets() {
-  document.getElementById('view-focus').style.display = 'none';
-  document.getElementById('view-all').style.display   = 'block';
-}
-function openFeedback() {
-  document.getElementById('fb-type').value=''; document.getElementById('fb-detail').value='';
-  document.getElementById('fb-email').value=''; document.getElementById('fb-inst').value=currentInst||'';
+
+function showAllTargets(){document.getElementById('view-focus').style.display='none';document.getElementById('view-all').style.display='block';}
+
+function openFeedback(){
+  document.getElementById('fb-type').value='';document.getElementById('fb-detail').value='';
+  document.getElementById('fb-email').value='';document.getElementById('fb-inst').value=currentInst||'';
   document.getElementById('modal-form-content').style.display='block';
   document.getElementById('modal-thanks').style.display='none';
   document.getElementById('feedback-modal').classList.add('open');
 }
-function closeFeedback() { document.getElementById('feedback-modal').classList.remove('open'); }
-function submitFeedback() {
+function closeFeedback(){document.getElementById('feedback-modal').classList.remove('open');}
+function submitFeedback(){
   var type=document.getElementById('fb-type').value;
   var inst=document.getElementById('fb-inst').value.trim();
   var detail=document.getElementById('fb-detail').value.trim();
   var email=document.getElementById('fb-email').value.trim();
-  if (!type||!detail) { alert('Please select a feedback type and add some details.'); return; }
+  if(!type||!detail){alert('Please select a feedback type and add some details.');return;}
   fetch('https://script.google.com/macros/s/AKfycbzAK1HAph-EDPy48ER2g76sH3nL9c-KzFF0nwF3xCXtz0z6AFVSIk3my49ZJ-UeiIHZ/exec',{
-    method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'},
+    method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},
     body:JSON.stringify({type:type,institution:inst,detail:detail,email:email})
   }).catch(function(){});
   document.getElementById('modal-form-content').style.display='none';
   document.getElementById('modal-thanks').style.display='block';
 }
-document.getElementById('feedback-modal').addEventListener('click',function(e){ if(e.target===this) closeFeedback(); });
+document.getElementById('feedback-modal').addEventListener('click',function(e){if(e.target===this)closeFeedback();});
+
+function openAbout(){document.getElementById('about-modal').classList.add('open');}
+function closeAbout(){document.getElementById('about-modal').classList.remove('open');}
+document.getElementById('about-modal').addEventListener('click',function(e){if(e.target===this)closeAbout();});
+
 init();
 </script>
 </body>
