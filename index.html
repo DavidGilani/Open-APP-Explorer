@@ -175,6 +175,14 @@
     .demo-trow{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.05)}
     .demo-trow:last-child{border-bottom:none}
 
+    /* Plan period filter chips */
+    .plan-filter-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+    .plan-filter-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;white-space:nowrap}
+    .plan-chip{font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:#f2f3f6;cursor:pointer;user-select:none;transition:background .1s,border-color .1s}
+    .plan-chip:hover{background:#2e2f34}
+    .plan-chip.active{background:var(--accent2);border-color:var(--accent3);color:#9fc8ef}
+    .past-badge{font-size:10px;padding:2px 7px;border-radius:10px;background:#2a2218;color:#c09060;border:1px solid #4a3828;margin-left:6px;font-weight:600;vertical-align:middle}
+
     /* Filter panel */
     .filter-panel-wrapper{border:1px solid var(--accent3);border-radius:10px;overflow:hidden;background:rgba(26,45,80,.2)}
     .filter-toggle-bar{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;background:rgba(26,45,80,.3)}
@@ -364,6 +372,13 @@
       <button class="close-inst" onclick="clearInstitution()" title="Clear institution">&#10005;</button>
     </div>
 
+    <div class="plan-filter-row">
+      <span class="plan-filter-label">Showing:</span>
+      <span class="plan-chip active" id="inst-plan-current" onclick="setInstPlanFilter('current')">Current targets only</span>
+      <span class="plan-chip" id="inst-plan-all" onclick="setInstPlanFilter('all')">All targets</span>
+      <span class="plan-chip" id="inst-plan-past" onclick="setInstPlanFilter('past')">Past targets only</span>
+    </div>
+
     <div class="step2-guide">
       <div class="step2-num">Step 2</div>
       <div class="step2-text">Click on any target below to find other universities working on something similar.</div>
@@ -482,6 +497,13 @@
         <span class="inst-name" id="demo-results-label"></span>
       </div>
       <button class="close-inst" onclick="clearDemoSearch()" title="New search">&#10005;</button>
+    </div>
+
+    <div class="plan-filter-row">
+      <span class="plan-filter-label">Showing:</span>
+      <span class="plan-chip active" id="demo-plan-current" onclick="setDemoPlanFilter('current')">Current targets only</span>
+      <span class="plan-chip" id="demo-plan-all" onclick="setDemoPlanFilter('all')">All targets</span>
+      <span class="plan-chip" id="demo-plan-past" onclick="setDemoPlanFilter('past')">Past targets only</span>
     </div>
 
     <div style="margin-bottom:14px">
@@ -775,13 +797,9 @@ function searchInstitution(){
   var appLink=document.getElementById('inst-app-link');
   if(currentInstUrl){appLink.href=currentInstUrl;appLink.style.display='flex';}else{appLink.style.display='none';}
   document.getElementById('inst-header-block').style.display='flex';
-  var groups={access:[],success:[],progression:[]};
-  currentInstTargets.forEach(function(t,idx){groups[getGroup(t.lifecycle_stage||'')].push({t:t,idx:idx});});
-  ['access','success','progression'].forEach(function(g){
-    var items=groups[g];
-    document.getElementById('count-'+g).textContent=items.length;
-    document.getElementById('list-'+g).innerHTML=items.length?items.map(function(item){return renderTargetRow(item.t,item.idx);}).join(''):'<div class="col-empty">None</div>';
-  });
+  instPlanFilter='current';
+  ['current','all','past'].forEach(function(v){var el=document.getElementById('inst-plan-'+v);if(el)el.classList.toggle('active',v==='current');});
+  renderInstTargets();
   document.getElementById('cols-block').style.display='grid';
 }
 
@@ -1038,6 +1056,7 @@ function applyDemoFilters(){
   document.getElementById('demo-filter-dot').classList.toggle('on',!!anyActive);
 
   var filtered=currentDemoResults.filter(function(r){
+    if(!isPlanMatch(r,demoPlanFilter))return false;
     if(demoMissionFilter){var mg=(r.mission_group||'').trim();var mg2=(r.mission_group2||'').trim();if(mg!==demoMissionFilter&&mg2!==demoMissionFilter)return false;}
     if(demoRegionFilter&&(r.region||'').trim()!==demoRegionFilter)return false;
     if(sizeVal!=='all'){var n=parseInt(r.total_ug_students)||0;if(sizeVal==='vs'&&n>=1000)return false;if(sizeVal==='sm'&&(n<1000||n>=5000))return false;if(sizeVal==='md'&&(n<5000||n>=15000))return false;if(sizeVal==='lg'&&n<15000)return false;}
@@ -1203,6 +1222,57 @@ function init() {
     });
   document.getElementById('search-input').placeholder='Loading data...';
   document.getElementById('search-input').disabled=true;
+}
+
+// ── Plan period filter ────────────────────────────────────────────────────
+var instPlanFilter = 'current';
+var demoPlanFilter = 'current';
+
+function setInstPlanFilter(val) {
+  instPlanFilter = val;
+  ['current','all','past'].forEach(function(v) {
+    var el = document.getElementById('inst-plan-'+v);
+    if (el) el.classList.toggle('active', v === val);
+  });
+  renderInstTargets();
+}
+
+function setDemoPlanFilter(val) {
+  demoPlanFilter = val;
+  ['current','all','past'].forEach(function(v) {
+    var el = document.getElementById('demo-plan-'+v);
+    if (el) el.classList.toggle('active', v === val);
+  });
+  applyDemoFilters();
+}
+
+function isPlanMatch(r, filter) {
+  if (filter === 'all') return true;
+  var cp = (r.current_plan || '').trim().toLowerCase();
+  if (filter === 'current') return cp === 'yes' || cp === '';
+  if (filter === 'past')    return cp === 'no';
+  return true;
+}
+
+function renderInstTargets() {
+  if (!currentInst) return;
+  var filtered = currentInstTargets.filter(function(t) { return isPlanMatch(t, instPlanFilter); });
+  var groups = { access:[], success:[], progression:[] };
+  filtered.forEach(function(t, idx) {
+    // find original index in currentInstTargets for findSimilar to work
+    var origIdx = currentInstTargets.indexOf(t);
+    groups[getGroup(t.lifecycle_stage || '')].push({ t:t, idx:origIdx });
+  });
+  ['access','success','progression'].forEach(function(g) {
+    var items = groups[g];
+    document.getElementById('count-'+g).textContent = items.length;
+    document.getElementById('list-'+g).innerHTML = items.length
+      ? items.map(function(item) { return renderTargetRow(item.t, item.idx); }).join('')
+      : '<div class="col-empty">None</div>';
+  });
+  var hasPast = currentInstTargets.some(function(t) { return (t.current_plan||'').trim().toLowerCase() === 'no'; });
+  document.getElementById('inst-plan-past').style.display = hasPast ? '' : 'none';
+  document.getElementById('inst-plan-all').style.display  = hasPast ? '' : 'none';
 }
 
 init();
