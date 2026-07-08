@@ -42,6 +42,34 @@
     .step-guide-text{font-size:13px;color:#f2f3f6;line-height:1.5}
     .hero-search{width:100%;max-width:500px}
 
+    /* Hero mode split */
+    .hero-mode-split{display:flex;gap:16px;width:100%;max-width:640px;margin-bottom:24px}
+    @media(max-width:520px){.hero-mode-split{flex-direction:column}}
+    .hero-mode-card{flex:1;background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:18px 16px;cursor:pointer;transition:border-color .15s,background .15s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+    .hero-mode-card:hover{border-color:var(--accent);background:var(--accent2)}
+    .hero-mode-card.active{border-color:var(--accent);background:var(--accent2)}
+    .hero-mode-icon{font-size:22px;line-height:1}
+    .hero-mode-title{font-size:14px;font-weight:700;color:#f2f3f6}
+    .hero-mode-desc{font-size:12px;color:var(--muted);line-height:1.4}
+    .hero-panel{width:100%;max-width:500px;display:none}
+    .hero-panel.active{display:block}
+
+    /* Demographic search selects */
+    .demo-search-wrap{display:flex;flex-direction:column;gap:10px}
+    select.demo-select{width:100%;padding:11px 14px;font-size:14px;border:1px solid var(--border2);border-radius:9px;outline:none;background:var(--bg3);color:var(--text);transition:border-color .15s;appearance:none;cursor:pointer}
+    select.demo-select:focus{border-color:var(--accent)}
+    select.demo-select:disabled{opacity:.45;cursor:not-allowed}
+
+    /* Demographic results view */
+    body.demo-searched .hero-screen{display:none}
+    body.demo-searched .post-search{display:block}
+    .demo-inst-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px}
+    .demo-inst-hd{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px}
+    .demo-inst-name{font-size:13px;font-weight:600;color:#f2f3f6}
+    .demo-inst-targets{padding:0}
+    .demo-trow{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.05);cursor:default}
+    .demo-trow:last-child{border-bottom:none}
+
     /* Loading state */
     .loading-msg{font-size:13px;color:var(--muted);text-align:center;margin-top:12px;display:none}
     .loading-msg.visible{display:block}
@@ -235,20 +263,55 @@
 <div class="hero-screen">
   <div class="hero-title">Open APP Explorer</div>
   <div class="hero-sub">Compare Access &amp; Participation Plans across UK universities</div>
-  <div class="step-guide">
-    <div class="step-guide-num">Step 1</div>
-    <div class="step-guide-text">Search for your institution below to see all its APP targets, grouped by Access, Success and Progression.</div>
-  </div>
-  <div class="hero-search">
-    <div class="search-row">
-      <div class="search-wrap">
-        <input type="text" id="search-input" placeholder="Type your institution name..." autocomplete="off"/>
-        <div class="suggestions" id="suggestions"></div>
-      </div>
-      <button class="btn" onclick="searchInstitution()">Search</button>
+
+  <div class="hero-mode-split">
+    <div class="hero-mode-card active" id="mode-card-inst" onclick="setHeroMode('inst')">
+      <div class="hero-mode-icon">&#127979;</div>
+      <div class="hero-mode-title">Filter by institution</div>
+      <div class="hero-mode-desc">Search for a university and browse all its APP targets</div>
     </div>
-    <div class="loading-msg" id="loading-msg">Loading data, please wait...</div>
+    <div class="hero-mode-card" id="mode-card-demo" onclick="setHeroMode('demo')">
+      <div class="hero-mode-icon">&#128202;</div>
+      <div class="hero-mode-title">Filter by demographic targets</div>
+      <div class="hero-mode-desc">Pick a lifecycle stage and demographic to see all institutions with matching targets</div>
+    </div>
   </div>
+
+  <!-- Institution search panel -->
+  <div class="hero-panel active" id="panel-inst">
+    <div class="step-guide">
+      <div class="step-guide-num">Step 1</div>
+      <div class="step-guide-text">Search for your institution below to see all its APP targets, grouped by Access, Success and Progression.</div>
+    </div>
+    <div class="hero-search">
+      <div class="search-row">
+        <div class="search-wrap">
+          <input type="text" id="search-input" placeholder="Type your institution name..." autocomplete="off"/>
+          <div class="suggestions" id="suggestions"></div>
+        </div>
+        <button class="btn" onclick="searchInstitution()">Search</button>
+      </div>
+      <div class="loading-msg" id="loading-msg">Loading data, please wait...</div>
+    </div>
+  </div>
+
+  <!-- Demographic search panel -->
+  <div class="hero-panel" id="panel-demo">
+    <div class="step-guide">
+      <div class="step-guide-num">Step 1</div>
+      <div class="step-guide-text">Choose a student lifecycle stage and demographic area to see all institutions with APP targets addressing that gap.</div>
+    </div>
+    <div class="demo-search-wrap">
+      <select class="demo-select" id="demo-stage" onchange="populateDemoCharacteristics()">
+        <option value="">Select a lifecycle stage...</option>
+      </select>
+      <select class="demo-select" id="demo-char" disabled>
+        <option value="">Select a demographic area...</option>
+      </select>
+      <button class="btn" onclick="searchByDemo()" style="width:100%;justify-content:center">Search</button>
+    </div>
+  </div>
+
   <div class="site-footer" style="margin-top:40px;border-top:none">
     This site is under development. Questions or suggestions?
     <a onclick="openFeedback()">Leave feedback</a> &nbsp;|&nbsp;
@@ -382,6 +445,63 @@
       <div class="result-count" id="similar-count"></div>
       <div id="similar-list"></div>
     </div>
+  </div>
+
+  <!-- Demographic results view -->
+  <div id="view-demo" style="display:none">
+    <div class="inst-header" style="margin-bottom:14px">
+      <div class="inst-header-left">
+        <span class="inst-name" id="demo-results-label"></span>
+      </div>
+      <button class="close-inst" onclick="clearDemoSearch()" title="New search">&#10005;</button>
+    </div>
+
+    <div style="padding:12px 16px;border-bottom:1px solid var(--border);margin-bottom:14px;background:var(--bg2);border:1px solid var(--border2);border-radius:12px">
+      <div class="filter-panel-wrapper">
+        <div class="filter-toggle-bar" onclick="toggleDemoFilterPanel()">
+          <span class="filter-toggle-left">
+            <span class="filter-step-label">Filters</span>
+            <span class="filter-step-text">Narrow results by institution type, region or student profile</span>
+            <span class="filter-dot" id="demo-filter-dot"></span>
+          </span>
+          <span class="filter-arrow" id="demo-filter-arrow">&#9660;</span>
+        </div>
+        <div class="filter-body" id="demo-filter-body">
+          <div class="filter-section">
+            <div class="filter-section-title">Institution</div>
+            <div class="filter-chips-row">
+              <label class="fchip" id="demo-chip-mission"><input type="checkbox" id="demo-filter-mission" onchange="applyDemoFilters()">Mission group<span class="chip-val" id="demo-val-mission"></span></label>
+              <label class="fchip" id="demo-chip-region"><input type="checkbox" id="demo-filter-region" onchange="applyDemoFilters()">Region<span class="chip-val" id="demo-val-region"></span></label>
+            </div>
+            <div style="margin-top:8px">
+              <div class="filter-section-title" style="margin-bottom:6px">Institution size</div>
+              <div class="filter-chips-row" id="demo-size-chips">
+                <label class="fchip active" id="demo-size-all"><input type="radio" name="demo-inst-size" value="all" checked onchange="applyDemoFilters()" style="display:none">All</label>
+                <label class="fchip" id="demo-size-vs"><input type="radio" name="demo-inst-size" value="vs" onchange="applyDemoFilters()" style="display:none">Very small (&lt;1k)</label>
+                <label class="fchip" id="demo-size-sm"><input type="radio" name="demo-inst-size" value="sm" onchange="applyDemoFilters()" style="display:none">Small (1k-5k)</label>
+                <label class="fchip" id="demo-size-md"><input type="radio" name="demo-inst-size" value="md" onchange="applyDemoFilters()" style="display:none">Medium (5k-15k)</label>
+                <label class="fchip" id="demo-size-lg"><input type="radio" name="demo-inst-size" value="lg" onchange="applyDemoFilters()" style="display:none">Large (15k+)</label>
+              </div>
+            </div>
+          </div>
+          <div class="filter-section">
+            <div class="filter-section-title">Student profile - minimum thresholds</div>
+            <div class="filter-group"><div class="filter-group-hd" onclick="toggleGroup('demo-grp-mature')"><span class="filter-group-name">Age &amp; Maturity <span class="filter-group-active-count" id="demo-cnt-mature" style="display:none"></span></span><span class="filter-group-arrow" id="arr-demo-grp-mature">&#9660;</span></div><div class="filter-group-body" id="demo-grp-mature"></div></div>
+            <div class="filter-group"><div class="filter-group-hd" onclick="toggleGroup('demo-grp-imd')"><span class="filter-group-name">Deprivation <span class="filter-group-active-count" id="demo-cnt-imd" style="display:none"></span></span><span class="filter-group-arrow" id="arr-demo-grp-imd">&#9660;</span></div><div class="filter-group-body" id="demo-grp-imd"></div></div>
+            <div class="filter-group"><div class="filter-group-hd" onclick="toggleGroup('demo-grp-tundra')"><span class="filter-group-name">HE participation (TUNDRA) <span class="filter-group-active-count" id="demo-cnt-tundra" style="display:none"></span></span><span class="filter-group-arrow" id="arr-demo-grp-tundra">&#9660;</span></div><div class="filter-group-body" id="demo-grp-tundra"></div></div>
+            <div class="filter-group"><div class="filter-group-hd" onclick="toggleGroup('demo-grp-ethnicity')"><span class="filter-group-name">Ethnicity <span class="filter-group-active-count" id="demo-cnt-ethnicity" style="display:none"></span></span><span class="filter-group-arrow" id="arr-demo-grp-ethnicity">&#9660;</span></div><div class="filter-group-body" id="demo-grp-ethnicity"></div></div>
+            <div class="filter-group"><div class="filter-group-hd" onclick="toggleGroup('demo-grp-disability')"><span class="filter-group-name">Disability <span class="filter-group-active-count" id="demo-cnt-disability" style="display:none"></span></span><span class="filter-group-arrow" id="arr-demo-grp-disability">&#9660;</span></div><div class="filter-group-body" id="demo-grp-disability"></div></div>
+            <div class="filter-group"><div class="filter-group-hd" onclick="toggleGroup('demo-grp-domicile')"><span class="filter-group-name">UK / International <span class="filter-group-active-count" id="demo-cnt-domicile" style="display:none"></span></span><span class="filter-group-arrow" id="arr-demo-grp-domicile">&#9660;</span></div><div class="filter-group-body" id="demo-grp-domicile"></div></div>
+            <div class="filter-group"><div class="filter-group-hd" onclick="toggleGroup('demo-grp-entryqual')"><span class="filter-group-name">Entry qualifications <span class="filter-group-active-count" id="demo-cnt-entryqual" style="display:none"></span></span><span class="filter-group-arrow" id="arr-demo-grp-entryqual">&#9660;</span></div><div class="filter-group-body" id="demo-grp-entryqual"></div></div>
+            <div class="filter-group"><div class="filter-group-hd" onclick="toggleGroup('demo-grp-other')"><span class="filter-group-name">Sex &amp; sexuality <span class="filter-group-active-count" id="demo-cnt-other" style="display:none"></span></span><span class="filter-group-arrow" id="arr-demo-grp-other">&#9660;</span></div><div class="filter-group-body" id="demo-grp-other"></div></div>
+          </div>
+          <button class="try-again-btn" onclick="resetDemoFilters()" style="margin-top:4px">Reset filters</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="result-count" id="demo-result-count" style="border-radius:8px 8px 0 0;border:1px solid var(--border);border-bottom:none;background:rgba(0,0,0,.1)"></div>
+    <div id="demo-results-list" style="border:1px solid var(--border);border-radius:0 0 8px 8px;overflow:hidden"></div>
   </div>
 
   <div class="site-footer">
@@ -554,6 +674,7 @@ function init() {
       });
       institutions.sort();
       dataLoaded=true;
+      buildDemoDropdowns();
       document.getElementById('loading-msg').classList.remove('visible');
       document.getElementById('search-input').placeholder='Type your institution name...';
     })
@@ -820,6 +941,276 @@ function submitFeedback(){
   document.getElementById('modal-thanks').style.display='block';
 }
 document.getElementById('feedback-modal').addEventListener('click',function(e){if(e.target===this)closeFeedback();});
+
+// ── Hero mode toggle ───────────────────────────────────────────────────────
+var currentHeroMode = 'inst';
+function setHeroMode(mode) {
+  currentHeroMode = mode;
+  document.getElementById('mode-card-inst').classList.toggle('active', mode==='inst');
+  document.getElementById('mode-card-demo').classList.toggle('active', mode==='demo');
+  document.getElementById('panel-inst').classList.toggle('active', mode==='inst');
+  document.getElementById('panel-demo').classList.toggle('active', mode==='demo');
+}
+
+// ── Demographic search ────────────────────────────────────────────────────
+var demoStages = [];
+var demoCharsByStage = {};
+var currentDemoResults = [];
+var demoFilterPanelOpen = false;
+var demoActiveThresholds = {}; // key -> minimum % value (0-100)
+var demoFilterMission = '';
+var demoFilterRegion = '';
+
+var DEMO_CHIP_GROUPS = {
+  'demo-grp-mature':    [{ key:'mature_pct', label:'Mature students' }],
+  'demo-grp-imd':       [{ key:'fsm', label:'Free school meals' },{ key:'imd_q1', label:'IMD Q1' },{ key:'imd_q2', label:'IMD Q2' },{ key:'imd_q3', label:'IMD Q3' },{ key:'imd_q4', label:'IMD Q4' },{ key:'imd_q5', label:'IMD Q5' }],
+  'demo-grp-tundra':    [{ key:'tundra_q1', label:'TUNDRA Q1' },{ key:'tundra_q2', label:'TUNDRA Q2' },{ key:'tundra_q3', label:'TUNDRA Q3' },{ key:'tundra_q4', label:'TUNDRA Q4' },{ key:'tundra_q5', label:'TUNDRA Q5' }],
+  'demo-grp-ethnicity': [{ key:'asian', label:'Asian' },{ key:'black', label:'Black' },{ key:'mixed', label:'Mixed' },{ key:'other_eth', label:'Other eth.' },{ key:'white', label:'White' },{ key:'gem', label:'GEM' }],
+  'demo-grp-disability':[{ key:'disability', label:'Disability' }],
+  'demo-grp-domicile':  [{ key:'uk_pct', label:'UK domicile' }],
+  'demo-grp-entryqual': [{ key:'alevel', label:'A-level' },{ key:'btec', label:'BTEC' },{ key:'access_found', label:'Access/Foundation' }],
+  'demo-grp-other':     [{ key:'male', label:'Male students' },{ key:'lgb', label:'LGB students' }]
+};
+var DEMO_GROUP_COUNTERS = {'demo-grp-mature':'demo-cnt-mature','demo-grp-imd':'demo-cnt-imd','demo-grp-tundra':'demo-cnt-tundra','demo-grp-ethnicity':'demo-cnt-ethnicity','demo-grp-disability':'demo-cnt-disability','demo-grp-domicile':'demo-cnt-domicile','demo-grp-entryqual':'demo-cnt-entryqual','demo-grp-other':'demo-cnt-other'};
+
+function buildDemoDropdowns() {
+  // Collect unique stages and characteristics from data
+  var stageSet = {}, charsByStage = {};
+  allData.forEach(function(r) {
+    if (!r.reference_number || !r.lifecycle_stage || !r.characteristic) return;
+    var stage = r.lifecycle_stage.trim();
+    var chr = r.characteristic.trim();
+    if (!stage || !chr) return;
+    stageSet[stage] = true;
+    if (!charsByStage[stage]) charsByStage[stage] = {};
+    charsByStage[stage][chr] = true;
+  });
+  demoStages = Object.keys(stageSet).sort();
+  demoCharsByStage = charsByStage;
+  var stageEl = document.getElementById('demo-stage');
+  stageEl.innerHTML = '<option value="">Select a lifecycle stage...</option>';
+  demoStages.forEach(function(s) {
+    var opt = document.createElement('option');
+    opt.value = s; opt.textContent = s;
+    stageEl.appendChild(opt);
+  });
+}
+
+function populateDemoCharacteristics() {
+  var stage = document.getElementById('demo-stage').value;
+  var charEl = document.getElementById('demo-char');
+  charEl.innerHTML = '<option value="">Select a demographic area...</option>';
+  if (!stage) { charEl.disabled = true; return; }
+  var chars = Object.keys(demoCharsByStage[stage] || {}).sort();
+  chars.forEach(function(c) {
+    var opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    charEl.appendChild(opt);
+  });
+  charEl.disabled = false;
+}
+
+function searchByDemo() {
+  var stage = document.getElementById('demo-stage').value;
+  var chr = document.getElementById('demo-char').value;
+  if (!stage || !chr) { alert('Please select both a lifecycle stage and a demographic area.'); return; }
+  currentDemoResults = allData.filter(function(r) {
+    return r.reference_number && r.lifecycle_stage === stage && r.characteristic === chr;
+  });
+  document.getElementById('demo-results-label').textContent = stage + ' - ' + chr;
+  buildDemoFilterUI();
+  resetDemoFilters();
+  document.body.classList.add('searched');
+  document.getElementById('view-all').style.display = 'none';
+  document.getElementById('view-focus').style.display = 'none';
+  document.getElementById('view-demo').style.display = 'block';
+}
+
+function clearDemoSearch() {
+  document.body.classList.remove('searched', 'demo-searched');
+  document.getElementById('view-demo').style.display = 'none';
+  document.getElementById('view-all').style.display = 'block';
+  document.body.classList.remove('searched');
+  currentDemoResults = [];
+}
+
+function toggleDemoFilterPanel() {
+  demoFilterPanelOpen = !demoFilterPanelOpen;
+  document.getElementById('demo-filter-body').classList.toggle('open', demoFilterPanelOpen);
+  document.getElementById('demo-filter-arrow').classList.toggle('open', demoFilterPanelOpen);
+}
+
+function buildDemoFilterUI() {
+  // Build threshold chips for each group
+  for (var grpId in DEMO_CHIP_GROUPS) {
+    var body = document.getElementById(grpId);
+    if (!body) continue;
+    body.innerHTML = '';
+    DEMO_CHIP_GROUPS[grpId].forEach(function(chip) {
+      body.appendChild(makeDemoThresholdChip(chip.key, chip.label));
+    });
+  }
+  // Populate mission group options from results
+  var missionSet = {};
+  currentDemoResults.forEach(function(r) {
+    var mg = (r.mission_group || '').trim();
+    if (mg) missionSet[mg] = true;
+  });
+  var missions = Object.keys(missionSet).sort();
+  var missionChip = document.getElementById('demo-chip-mission');
+  var missionCb = document.getElementById('demo-filter-mission');
+  var missionVal = document.getElementById('demo-val-mission');
+  // Build a select for mission filter, replacing the simple checkbox
+  var existingSelect = document.getElementById('demo-mission-select');
+  if (!existingSelect) {
+    var sel = document.createElement('select');
+    sel.id = 'demo-mission-select';
+    sel.className = 'demo-select';
+    sel.style.cssText = 'font-size:12px;padding:5px 8px;margin-top:6px;width:auto';
+    sel.onchange = function() { applyDemoFilters(); };
+    missionChip.parentNode.insertBefore(sel, missionChip.nextSibling);
+  }
+  var mSel = document.getElementById('demo-mission-select');
+  mSel.innerHTML = '<option value="">All mission groups</option>';
+  missions.forEach(function(m) { var o = document.createElement('option'); o.value = m; o.textContent = m; mSel.appendChild(o); });
+  missionChip.style.display = 'none'; // hide the checkbox chip; use select instead
+
+  // Region select
+  var regionSet = {};
+  currentDemoResults.forEach(function(r) { var reg = (r.region || '').trim(); if (reg) regionSet[reg] = true; });
+  var regions = Object.keys(regionSet).sort();
+  var existingRegSel = document.getElementById('demo-region-select');
+  if (!existingRegSel) {
+    var rSel = document.createElement('select');
+    rSel.id = 'demo-region-select';
+    rSel.className = 'demo-select';
+    rSel.style.cssText = 'font-size:12px;padding:5px 8px;margin-top:6px;width:auto';
+    rSel.onchange = function() { applyDemoFilters(); };
+    document.getElementById('demo-chip-region').parentNode.insertBefore(rSel, document.getElementById('demo-chip-region').nextSibling);
+  }
+  var rSel = document.getElementById('demo-region-select');
+  rSel.innerHTML = '<option value="">All regions</option>';
+  regions.forEach(function(reg) { var o = document.createElement('option'); o.value = reg; o.textContent = reg; rSel.appendChild(o); });
+  document.getElementById('demo-chip-region').style.display = 'none';
+}
+
+function makeDemoThresholdChip(key, label) {
+  // A chip with a small number input for minimum threshold
+  var wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;align-items:center;gap:6px;font-size:12px;padding:5px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:#f2f3f6';
+  var lbl = document.createElement('span');
+  lbl.textContent = label + ' \u2265';
+  var inp = document.createElement('input');
+  inp.type = 'number'; inp.min = 0; inp.max = 100; inp.placeholder = '%';
+  inp.style.cssText = 'width:52px;padding:2px 6px;font-size:12px;border:1px solid var(--border2);border-radius:5px;background:var(--bg);color:#f2f3f6;outline:none';
+  inp.addEventListener('input', function() {
+    var v = parseFloat(inp.value);
+    if (!isNaN(v) && inp.value !== '') { demoActiveThresholds[key] = v; } else { delete demoActiveThresholds[key]; }
+    updateDemoGroupCounters();
+    applyDemoFilters();
+  });
+  var pct = document.createElement('span');
+  pct.textContent = '%';
+  pct.style.color = 'var(--muted)';
+  wrap.appendChild(lbl); wrap.appendChild(inp); wrap.appendChild(pct);
+  return wrap;
+}
+
+function updateDemoGroupCounters() {
+  for (var grpId in DEMO_CHIP_GROUPS) {
+    var active = DEMO_CHIP_GROUPS[grpId].filter(function(c) { return demoActiveThresholds.hasOwnProperty(c.key); }).length;
+    var counterId = DEMO_GROUP_COUNTERS[grpId];
+    var el = document.getElementById(counterId);
+    if (el) { el.textContent = active; el.style.display = active > 0 ? 'inline' : 'none'; }
+  }
+}
+
+function resetDemoFilters() {
+  demoActiveThresholds = {};
+  var mSel = document.getElementById('demo-mission-select');
+  if (mSel) mSel.value = '';
+  var rSel = document.getElementById('demo-region-select');
+  if (rSel) rSel.value = '';
+  document.querySelector('input[name="demo-inst-size"][value="all"]').checked = true;
+  ['all','vs','sm','md','lg'].forEach(function(v) { var el = document.getElementById('demo-size-'+v); if (el) el.classList.toggle('active', v==='all'); });
+  // Clear number inputs
+  document.querySelectorAll('#demo-filter-body input[type=number]').forEach(function(i) { i.value = ''; });
+  updateDemoGroupCounters();
+  document.getElementById('demo-filter-dot').classList.remove('on');
+  applyDemoFilters();
+}
+
+function applyDemoFilters() {
+  var missionVal = (document.getElementById('demo-mission-select') || {}).value || '';
+  var regionVal = (document.getElementById('demo-region-select') || {}).value || '';
+  var sizeVal = document.querySelector('input[name="demo-inst-size"]:checked').value;
+  ['all','vs','sm','md','lg'].forEach(function(v) { var el = document.getElementById('demo-size-'+v); if (el) el.classList.toggle('active', sizeVal===v); });
+  var anyActive = missionVal || regionVal || sizeVal !== 'all' || Object.keys(demoActiveThresholds).length > 0;
+  document.getElementById('demo-filter-dot').classList.toggle('on', !!anyActive);
+
+  var filtered = currentDemoResults.filter(function(r) {
+    if (missionVal) { var mg = (r.mission_group || '').trim(); var mg2 = (r.mission_group2 || '').trim(); if (mg !== missionVal && mg2 !== missionVal) return false; }
+    if (regionVal && (r.region || '').trim() !== regionVal) return false;
+    if (sizeVal !== 'all') {
+      var n = parseInt(r.total_ug_students) || 0;
+      if (sizeVal === 'vs' && n >= 1000) return false;
+      if (sizeVal === 'sm' && (n < 1000 || n >= 5000)) return false;
+      if (sizeVal === 'md' && (n < 5000 || n >= 15000)) return false;
+      if (sizeVal === 'lg' && n < 15000) return false;
+    }
+    for (var key in demoActiveThresholds) {
+      var threshold = demoActiveThresholds[key];
+      var val = parsePct(r[key]);
+      if (val === null) return false;
+      if (Math.round(val * 100) < threshold) return false;
+    }
+    return true;
+  });
+
+  var totalInsts = countInsts(currentDemoResults);
+  var shownInsts = countInsts(filtered);
+  document.getElementById('demo-result-count').textContent = anyActive
+    ? 'Showing ' + shownInsts + ' of ' + totalInsts + ' institutions after filters (' + filtered.length + ' of ' + currentDemoResults.length + ' targets)'
+    : totalInsts + ' institutions - ' + currentDemoResults.length + ' matching targets';
+
+  if (!filtered.length) {
+    document.getElementById('demo-results-list').innerHTML = '<div class="empty">No institutions match the current filters.</div>';
+    return;
+  }
+
+  // Group by institution name
+  var grouped = {};
+  filtered.forEach(function(r) {
+    var name = r.used_name || r.legal_name;
+    if (!grouped[name]) grouped[name] = [];
+    grouped[name].push(r);
+  });
+
+  document.getElementById('demo-results-list').innerHTML = Object.keys(grouped).sort().map(function(name) {
+    var rows = grouped[name];
+    var instUrl = instPlanUrls[name] || '';
+    var studentCount = rows[0].total_ug_students ? '<span style="font-size:11px;color:#9a9fac;font-weight:400;margin-left:8px">' + Number(rows[0].total_ug_students).toLocaleString() + ' UG students</span>' : '';
+    var mg = [(rows[0].mission_group || '').trim(), (rows[0].mission_group2 || '').trim()].filter(Boolean).join(' / ');
+    var reg = (rows[0].region || '').trim();
+    var meta = [mg, reg].filter(Boolean).join(' - ');
+    var hd = '<div class="demo-inst-card"><div class="demo-inst-hd"><div style="flex:1;min-width:0"><div class="demo-inst-name">' + name + studentCount + '</div>' + (meta ? '<div style="font-size:11px;color:var(--muted);margin-top:2px">' + meta + '</div>' : '') + '</div>' + (instUrl ? '<a href="' + instUrl + '" target="_blank" class="app-link" style="flex-shrink:0">&#128196; APP</a>' : '') + '</div><div class="demo-inst-targets">';
+    var targetRows = rows.map(function(r, ri) {
+      var stage = r.lifecycle_stage || '', chr = r.characteristic || '', sc = stageClass(stage), label = buildLabel(r), ds = buildDataStr(r), hdet = hasDetail(r);
+      var detId = 'demodet-' + name.replace(/\W/g,'_') + ri;
+      return '<div class="demo-trow">' +
+        '<div class="trow-badges">' + (stage ? '<span class="badge ' + sc + '">' + stage + '</span>' : '') + (chr ? '<span class="badge badge-char">' + chr + '</span>' : '') + '</div>' +
+        '<div class="trow-headline">' + label + '</div>' +
+        (ds ? '<div class="trow-data">' + ds + '</div>' : '') +
+        (hdet ? '<div class="trow-actions"><button class="more-btn" onclick="toggleDetail(\'' + detId + '\',this)">+ More info</button></div>' + detailHtml(r, detId) : '') +
+        '</div>';
+    }).join('');
+    return hd + targetRows + '</div></div>';
+  }).join('');
+}
+
+// ── Patch init to also build demo dropdowns after data loads ──────────────
+var _origInit = init;
+init = function() { _origInit(); };
 
 function openAbout(){document.getElementById('about-modal').classList.add('open');}
 function closeAbout(){document.getElementById('about-modal').classList.remove('open');}
