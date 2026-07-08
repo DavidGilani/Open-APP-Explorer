@@ -40,11 +40,15 @@ def main():
     register = ss.worksheet("APPs")
     r_rows = register.get_all_values()
     url_by_ukprn = {}
+    past_url_by_ukprn = {}
     for row in r_rows[1:]:
-        ukprn = row[0].strip() if len(row) > 0 else ''
-        url   = row[3].strip() if len(row) > 3 else ''
+        ukprn    = row[0].strip() if len(row) > 0 else ''
+        url      = row[3].strip() if len(row) > 3 else ''
+        past_url = row[4].strip() if len(row) > 4 else ''
         if ukprn and url.startswith('http'):
             url_by_ukprn[ukprn] = url
+        if ukprn and past_url.startswith('http'):
+            past_url_by_ukprn[ukprn] = past_url
 
     # ── Institutions tab ──────────────────────────────────────────────────
     print("Reading Institutions tab...")
@@ -147,7 +151,9 @@ def main():
         obj['target_group']     = prefer_clean(obj.get('target_group', ''),     safe(row, idx_tg_clean))
         obj['comparator_group'] = prefer_clean(obj.get('comparator_group', ''), safe(row, idx_cg_clean))
 
-        obj['plan_url'] = url_by_ukprn.get(ukprn, '')
+        obj['plan_url']      = url_by_ukprn.get(ukprn, '')
+        obj['past_plan_url'] = past_url_by_ukprn.get(ukprn, '')
+        obj['current_plan']  = obj.get('current_plan', '').strip()
         inst = inst_by_ukprn.get(ukprn, {})
         for k, v in inst.items():
             obj[k] = v
