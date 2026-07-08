@@ -448,6 +448,14 @@
               <div class="filter-chips-row" id="suggested-chips"></div>
             </div>
             <div class="filter-section">
+              <div class="filter-section-title">Plan timeframe</div>
+              <div class="filter-chips-row" style="margin-bottom:12px">
+                <span class="plan-chip active" id="sim-plan-current" onclick="setSimPlanFilter('current')">Current targets only</span>
+                <span class="plan-chip" id="sim-plan-all" onclick="setSimPlanFilter('all')">All targets</span>
+                <span class="plan-chip" id="sim-plan-past" onclick="setSimPlanFilter('past')">Past targets only</span>
+              </div>
+            </div>
+            <div class="filter-section">
               <div class="filter-section-title">Institution</div>
               <div class="filter-chips-row">
                 <label class="fchip" id="chip-mission"><input type="checkbox" id="filter-mission" onchange="applyFilters()">Same mission group<span class="chip-val" id="val-mission"></span></label>
@@ -827,6 +835,8 @@ function findSimilar(idx){
     (hd?'<button class="more-btn" onclick="toggleDetail(\'sel-det\',this)" style="margin-top:8px">+ More info</button>'+detailHtml(t,'sel-det'):'');
   currentSimilarResults=allData.filter(function(r){var rn=r.used_name||r.legal_name;return rn!==currentInst&&r.reference_number&&r.lifecycle_stage===stage&&r.characteristic===chr;});
   document.getElementById('similar-meta').textContent='Matching on: '+[stage,chr].filter(Boolean).join(' and ');
+  simPlanFilter='current';
+  ['current','all','past'].forEach(function(v){var el=document.getElementById('sim-plan-'+v);if(el)el.classList.toggle('active',v==='current');});
   buildFilterUI(chr,t.aim||'',t.description_and_commentary||'');
   resetFilters();applyFilters();
   hideAllViews();
@@ -921,6 +931,7 @@ function applyFilters(){
   var instMG2=currentInstData?(currentInstData.mission_group2||'').trim():'';
   var instReg=currentInstData?(currentInstData.region||'').trim():'';
   var filtered=currentSimilarResults.filter(function(r){
+    if(!isPlanMatch(r,simPlanFilter))return false;
     if(filterMission&&(instMG||instMG2)){var rMG=(r.mission_group||'').trim();var rMG2=(r.mission_group2||'').trim();if(!((instMG&&(rMG===instMG||rMG2===instMG))||(instMG2&&(rMG===instMG2||rMG2===instMG2))))return false;}
     if(filterRegion&&instReg&&(r.region||'').trim()!==instReg)return false;
     if(effectiveSizeVal!=='all'){var n=parseInt(r.total_ug_students)||0;if(effectiveSizeVal==='vs'&&n>=1000)return false;if(effectiveSizeVal==='sm'&&(n<1000||n>=5000))return false;if(effectiveSizeVal==='md'&&(n<5000||n>=15000))return false;if(effectiveSizeVal==='lg'&&n<15000)return false;}
@@ -1227,6 +1238,16 @@ function init() {
 // ── Plan period filter ────────────────────────────────────────────────────
 var instPlanFilter = 'current';
 var demoPlanFilter = 'current';
+var simPlanFilter  = 'current';
+
+function setSimPlanFilter(val) {
+  simPlanFilter = val;
+  ['current','all','past'].forEach(function(v) {
+    var el = document.getElementById('sim-plan-'+v);
+    if (el) el.classList.toggle('active', v === val);
+  });
+  applyFilters();
+}
 
 function setInstPlanFilter(val) {
   instPlanFilter = val;
