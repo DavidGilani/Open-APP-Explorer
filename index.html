@@ -552,6 +552,12 @@
     <button class="summary-back" onclick="closeSummary()">&#8592; Back</button>
     <div class="summary-title">APP targets at a glance</div>
     <div class="summary-sub">A snapshot of Access and Participation Plan targets across UK universities in this dataset.</div>
+    <div class="plan-filter-row" style="margin-bottom:20px">
+      <span class="plan-filter-label">Showing:</span>
+      <span class="plan-chip active" id="sum-plan-current" onclick="setSummaryPlanFilter('current')">Current APPs only</span>
+      <span class="plan-chip" id="sum-plan-all" onclick="setSummaryPlanFilter('all')">All APPs</span>
+      <span class="plan-chip" id="sum-plan-past" onclick="setSummaryPlanFilter('past')">Past APPs only</span>
+    </div>
 
     <div class="stat-row">
       <div class="stat-card"><div class="stat-num" id="sum-insts">-</div><div class="stat-label">institutions with APPs in the dataset</div></div>
@@ -938,8 +944,11 @@ function applyFilters(){
     for(var key of activeNumericKeys){if(!withinBand(currentInstData?parsePct(currentInstData[key]):null,parsePct(r[key]),globalPrecision))return false;}
     return true;
   });
-  var total=currentSimilarResults.length,totalInsts=countInsts(currentSimilarResults),shownInsts=countInsts(filtered);
-  document.getElementById('similar-count').textContent=anyActive?'Showing '+shownInsts+' of '+totalInsts+' institutions after filters ('+filtered.length+' of '+total+' targets)':totalInsts+' institutions - '+total+' matching targets';
+  var total=currentSimilarResults.filter(function(r){return isPlanMatch(r,simPlanFilter);}).length;
+  var totalInsts=countInsts(currentSimilarResults.filter(function(r){return isPlanMatch(r,simPlanFilter);}));
+  var shownInsts=countInsts(filtered);
+  var anyActiveIncludingPlan=anyActive||(simPlanFilter!=='all');
+  document.getElementById('similar-count').textContent=anyActiveIncludingPlan?'Showing '+shownInsts+' of '+totalInsts+' institutions after filters ('+filtered.length+' of '+total+' targets)':totalInsts+' institutions - '+total+' matching targets';
   if(!filtered.length){document.getElementById('similar-list').innerHTML='<div class="empty">No universities match the current filters. Try loosening your criteria or switching to Loose matching.</div>';return;}
   var grouped={};
   filtered.forEach(function(r){var n=r.used_name||r.legal_name;if(!grouped[n])grouped[n]=[];grouped[n].push(r);});
@@ -1074,8 +1083,10 @@ function applyDemoFilters(){
     return true;
   });
 
-  var totalInsts=countInsts(currentDemoResults),shownInsts=countInsts(filtered);
-  document.getElementById('demo-result-count').textContent=anyActive?'Showing '+shownInsts+' of '+totalInsts+' institutions after filters ('+filtered.length+' of '+currentDemoResults.length+' targets)':totalInsts+' institutions - '+currentDemoResults.length+' matching targets';
+  var planFiltered=currentDemoResults.filter(function(r){return isPlanMatch(r,demoPlanFilter);});
+  var totalInsts=countInsts(planFiltered),shownInsts=countInsts(filtered);
+  var anyActiveIncludingPlan=anyActive||(demoPlanFilter!=='current');
+  document.getElementById('demo-result-count').textContent=anyActiveIncludingPlan?'Showing '+shownInsts+' of '+totalInsts+' institutions after filters ('+filtered.length+' of '+planFiltered.length+' targets)':totalInsts+' institutions - '+planFiltered.length+' matching targets';
 
   if(!filtered.length){document.getElementById('demo-results-list').innerHTML='<div class="empty">No institutions match the current filters.</div>';return;}
 
@@ -1106,12 +1117,22 @@ function applyDemoFilters(){
 
 // ── Summary view ──────────────────────────────────────────────────────────
 var summaryBuilt=false;
+var summaryPlanFilter='current';
+
+function setSummaryPlanFilter(val){
+  summaryPlanFilter=val;
+  ['current','all','past'].forEach(function(v){
+    var el=document.getElementById('sum-plan-'+v);
+    if(el)el.classList.toggle('active',v===val);
+  });
+  buildSummary();
+}
 
 function openSummary(){
   document.body.classList.add('searched');
   hideAllViews();
   document.getElementById('view-summary').style.display='block';
-  if(!summaryBuilt&&dataLoaded)buildSummary();
+  if(dataLoaded)buildSummary();
 }
 
 function closeSummary(){
@@ -1124,7 +1145,10 @@ function closeSummary(){
 }
 
 function buildSummary(){
-  var targets=allData.filter(function(r){return r.reference_number&&r.reference_number.trim();});
+  var targets=allData.filter(function(r){
+    if(!r.reference_number||!r.reference_number.trim())return false;
+    return isPlanMatch(r,summaryPlanFilter);
+  });
   var instSet={},charSet={};
   targets.forEach(function(r){var n=r.used_name||r.legal_name;if(n)instSet[n]=true;var c=(r.characteristic||'').trim();if(c)charSet[c]=true;});
   document.getElementById('sum-insts').textContent=Object.keys(instSet).length.toLocaleString();
@@ -1178,7 +1202,7 @@ function buildSummary(){
     stageDemoHtml+='</div>';
   });
   document.getElementById('sum-stage-bars').innerHTML=stageDemoHtml;
-  summaryBuilt=true;
+  // summaryBuilt intentionally not cached so filter changes trigger a rebuild
 }
 
 // ── Modals ────────────────────────────────────────────────────────────────
