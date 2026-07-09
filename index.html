@@ -471,31 +471,29 @@
               </div>
             </div>
             <div class="filter-section">
-              <div class="filter-section-title">IMD gap progress</div>
+              <div class="filter-section-title">Gap progress</div>
               <div class="progress-filter-row">
-                <span class="plan-chip active" id="demo-prog-all" onclick="setDemoProgressFilter('all')">All</span>
-                <span class="plan-chip" id="demo-prog-narrowing" onclick="setDemoProgressFilter('narrowing')">&#9660; Narrowing</span>
-                <span class="plan-chip" id="demo-prog-stable" onclick="setDemoProgressFilter('stable')">&#8212; Broadly stable</span>
-                <span class="plan-chip" id="demo-prog-widening" onclick="setDemoProgressFilter('widening')">&#9650; Widening</span>
-                <span class="plan-chip" id="demo-prog-nodata" onclick="setDemoProgressFilter('nodata')">No trend data</span>
+                <span class="plan-chip active" id="sim-prog-all" onclick="setSimProgressFilter('all')">All</span>
+                <span class="plan-chip" id="sim-prog-narrowing" onclick="setSimProgressFilter('narrowing')">&#9660; Narrowing</span>
+                <span class="plan-chip" id="sim-prog-stable" onclick="setSimProgressFilter('stable')">&#8212; Broadly stable</span>
+                <span class="plan-chip" id="sim-prog-widening" onclick="setSimProgressFilter('widening')">&#9650; Widening</span>
+                <span class="plan-chip" id="sim-prog-nodata" onclick="setSimProgressFilter('nodata')">No trend data</span>
               </div>
             </div>
             <div class="filter-section">
               <div class="filter-section-title">Institution</div>
-              <div class="filter-chips-row" id="demo-mission-row" style="margin-bottom:8px"></div>
+              <div class="filter-chips-row" style="margin-bottom:8px">
                 <label class="fchip" id="chip-mission"><input type="checkbox" id="filter-mission" onchange="applyFilters()">Same mission group<span class="chip-val" id="val-mission"></span></label>
                 <label class="fchip" id="chip-region"><input type="checkbox" id="filter-region" onchange="applyFilters()">Same region<span class="chip-val" id="val-region"></span></label>
               </div>
-              <div style="margin-top:8px">
-                <div class="filter-section-title" style="margin-bottom:6px">Institution size</div>
-                <div class="filter-chips-row" id="size-chips">
-                  <label class="fchip active" id="size-all"><input type="radio" name="inst-size" value="all" checked onchange="applyFilters()" style="display:none">All</label>
-                  <label class="fchip" id="size-mine"><input type="radio" name="inst-size" value="mine" onchange="applyFilters()" style="display:none">Same as mine<span class="chip-val" id="val-size-mine"></span></label>
-                  <label class="fchip" id="size-vs"><input type="radio" name="inst-size" value="vs" onchange="applyFilters()" style="display:none">Very small (&lt;1k)</label>
-                  <label class="fchip" id="size-sm"><input type="radio" name="inst-size" value="sm" onchange="applyFilters()" style="display:none">Small (1k-5k)</label>
-                  <label class="fchip" id="size-md"><input type="radio" name="inst-size" value="md" onchange="applyFilters()" style="display:none">Medium (5k-15k)</label>
-                  <label class="fchip" id="size-lg"><input type="radio" name="inst-size" value="lg" onchange="applyFilters()" style="display:none">Large (15k+)</label>
-                </div>
+              <div class="filter-section-title" style="margin-bottom:6px">Institution size</div>
+              <div class="filter-chips-row" id="size-chips">
+                <label class="fchip active" id="size-all"><input type="radio" name="inst-size" value="all" checked onchange="applyFilters()" style="display:none">All</label>
+                <label class="fchip" id="size-mine"><input type="radio" name="inst-size" value="mine" onchange="applyFilters()" style="display:none">Same as mine<span class="chip-val" id="val-size-mine"></span></label>
+                <label class="fchip" id="size-vs"><input type="radio" name="inst-size" value="vs" onchange="applyFilters()" style="display:none">Very small (&lt;1k)</label>
+                <label class="fchip" id="size-sm"><input type="radio" name="inst-size" value="sm" onchange="applyFilters()" style="display:none">Small (1k-5k)</label>
+                <label class="fchip" id="size-md"><input type="radio" name="inst-size" value="md" onchange="applyFilters()" style="display:none">Medium (5k-15k)</label>
+                <label class="fchip" id="size-lg"><input type="radio" name="inst-size" value="lg" onchange="applyFilters()" style="display:none">Large (15k+)</label>
               </div>
             </div>
             <div class="filter-section">
@@ -509,6 +507,7 @@
               <div class="filter-group"><div class="filter-group-hd" onclick="toggleGroup('grp-entryqual')"><span class="filter-group-name">Entry qualifications <span class="filter-group-active-count" id="cnt-entryqual" style="display:none"></span></span><span class="filter-group-arrow" id="arr-grp-entryqual">&#9660;</span></div><div class="filter-group-body" id="grp-entryqual"></div></div>
               <div class="filter-group"><div class="filter-group-hd" onclick="toggleGroup('grp-other')"><span class="filter-group-name">Sex &amp; sexuality <span class="filter-group-active-count" id="cnt-other" style="display:none"></span></span><span class="filter-group-arrow" id="arr-grp-other">&#9660;</span></div><div class="filter-group-body" id="grp-other"></div></div>
             </div>
+            <button class="try-again-btn" onclick="resetFilters()" style="margin-top:4px">Reset filters</button>
           </div>
         </div>
       </div>
@@ -582,7 +581,7 @@
   </div>
 
   <!-- Summary view -->
-  <div id="view-summary">
+  <div id="view-summary" style="max-width:680px;margin:0 auto">
     <button class="summary-back" onclick="closeSummary()">&#8592; Back</button>
     <div class="summary-title">APP targets at a glance</div>
     <div class="summary-sub">A snapshot of Access and Participation Plan targets across UK universities in this dataset.</div>
@@ -616,13 +615,16 @@
       <div class="summary-section-title">Top demographic areas by lifecycle stage</div>
       <div class="bar-chart" id="sum-stage-bars"></div>
     </div>
+    <div style="text-align:center;padding:20px 0 8px">
+      <button class="try-again-btn" onclick="closeSummary()">&#8592; Back to home</button>
+    </div>
   </div>
 
-  <div class="site-footer">
+  <div class="site-footer" id="post-search-footer">
     This site is under development. &nbsp;
     <a onclick="openFeedback()">Leave feedback</a> &nbsp;|&nbsp;
     <a onclick="openAbout()">About &amp; methodology</a> &nbsp;|&nbsp;
-    <a onclick="openSummary()">See visual summaries of APPs and targets across the UK</a>
+    <a id="footer-summary-link" onclick="openSummary()">See visual summaries of APPs and targets across the UK</a>
   </div>
 </div>
 
@@ -780,6 +782,13 @@ function detailHtml(t,id) {
   return '<div class="trow-detail" id="'+id+'">'+(t.aim&&t.aim!=='Not stated'&&t.aim.trim()!==''?'<div class="detail-label">Aim</div><div class="detail-text">'+t.aim+'</div>':'')+(t.description_and_commentary&&t.description_and_commentary!=='Not stated'&&t.description_and_commentary.trim()!==''?'<div class="detail-label">Description</div><div class="detail-text">'+t.description_and_commentary+'</div>':'')+'</div>';
 }
 function toggleDetail(id,btn) { var el=document.getElementById(id); if(!el) return; var open=el.classList.toggle('open'); btn.textContent=open?'- Less info':'+ More info'; }
+function toggleSimDetail(detailId,ofsContainerId,btn,r) {
+  var el=document.getElementById(detailId);
+  var open=el?el.classList.toggle('open'):false;
+  btn.textContent=open?'- Less info':'+ More info';
+  if(open){loadOfsForSimilarInst(r,ofsContainerId);}
+  else{var c=document.getElementById(ofsContainerId);if(c)c.innerHTML='';}
+}
 function getSizeBand(n){n=parseInt(n)||0;if(n<1000)return 'vs';if(n<5000)return 'sm';if(n<15000)return 'md';return 'lg';}
 function getSizeBandLabel(band){return {vs:'Very small (<1k)',sm:'Small (1k-5k)',md:'Medium (5k-15k)',lg:'Large (15k+)'}[band]||'';}
 
@@ -960,6 +969,8 @@ function resetFilters(){
   document.querySelectorAll('.fchip').forEach(function(c){c.classList.remove('active');});
   document.querySelector('input[name="inst-size"][value="all"]').checked=true;
   ['all','mine','vs','sm','md','lg'].forEach(function(v){var el=document.getElementById('size-'+v);if(el)el.classList.toggle('active',v==='all');});
+  simProgressFilter='all';
+  ['all','narrowing','stable','widening','nodata'].forEach(function(v){var el=document.getElementById('sim-prog-'+v);if(el)el.classList.toggle('active',v==='all');});
   updateGroupCounters();document.getElementById('filter-dot').classList.remove('on');
 }
 function applyFilters(){
@@ -980,6 +991,21 @@ function applyFilters(){
     if(filterRegion&&instReg&&(r.region||'').trim()!==instReg)return false;
     if(effectiveSizeVal!=='all'){var n=parseInt(r.total_ug_students)||0;if(effectiveSizeVal==='vs'&&n>=1000)return false;if(effectiveSizeVal==='sm'&&(n<1000||n>=5000))return false;if(effectiveSizeVal==='md'&&(n<5000||n>=15000))return false;if(effectiveSizeVal==='lg'&&n<15000)return false;}
     for(var key of activeNumericKeys){if(!withinBand(currentInstData?parsePct(currentInstData[key]):null,parsePct(r[key]),globalPrecision))return false;}
+    if(simProgressFilter!=='all'){
+      var rCharKey=getOfsCharacteristic(r);
+      var rOfsLC=getOfsLifecycle(r.lifecycle_stage||'');
+      var rUkprn2=(r.ukprn||'').toString().trim();
+      if(rCharKey&&rOfsLC&&rUkprn2){
+        var rCacheKey2=rCharKey==='imd'?rOfsLC:'char_'+rCharKey;
+        var rOfsData2=ofsCache[rCacheKey2];
+        if(rOfsData2){
+          var rFiltered2=rCharKey==='imd'?rOfsData2:rOfsData2.filter(function(x){return x.lifecycle===rOfsLC;});
+          var rRows2=getOfsRowsForCharInst(rFiltered2,rUkprn2,rCharKey,r);
+          var rTrend2=rRows2.length?getTrendFromRows(rRows2):'nodata';
+          if(rTrend2!==simProgressFilter)return false;
+        } else {if(simProgressFilter!=='nodata')return false;}
+      } else {if(simProgressFilter!=='nodata')return false;}
+    }
     return true;
   });
   var total=currentSimilarResults.filter(function(r){return isPlanMatch(r,simPlanFilter);}).length;
@@ -1005,21 +1031,12 @@ function applyFilters(){
       var studentCount = r.total_ug_students ? '<span style="font-size:11px;color:#9a9fac;font-weight:400;margin-left:8px">'+Number(r.total_ug_students).toLocaleString()+' UG students</span>' : '';
       // Sparkline for any supported characteristic
       var sparkHtml='';var trendBadge='';
-      var rCharKey=getOfsCharacteristic(r);
-      if(rCharKey){
-        var ofsLifecycle=getOfsLifecycle(r.lifecycle_stage||'');
-        var rUkprn=(r.ukprn||'').toString().trim();
-        if(ofsLifecycle&&rUkprn){
-          var rCacheKey=rCharKey==='imd'?ofsLifecycle:'char_'+rCharKey;
-          var rOfsData=ofsCache[rCacheKey];
-          if(rOfsData){
-            var rOfsFiltered=rCharKey==='imd'?rOfsData:rOfsData.filter(function(x){return x.lifecycle===ofsLifecycle;});
-            var ofsRows=getOfsRowsForCharInst(rOfsFiltered,rUkprn,rCharKey,r);
-            if(ofsRows.length){sparkHtml=buildSparklineSvg(ofsRows);trendBadge=trendBadgeHtml(getTrendFromRows(ofsRows));}
-          }
-        }
-      }
-      return '<div class="rrow"><div class="rrow-top"><div style="flex:1;min-width:0"><div class="rname">'+name+studentCount+trendBadge+'</div><div class="rdata">'+rLabel+'</div>'+(rd?'<div class="rdata-sub">'+rd+'</div>':'')+dataTags+'</div>'+(sparkHtml?'<div style="flex-shrink:0;margin-left:8px">'+sparkHtml+'</div>':'')+(rUrl?'<a href="'+rUrl+'" target="_blank" class="app-link" style="flex-shrink:0;margin-left:8px">&#128196; APP</a>':'')+'</div>'+(rHd?'<div style="margin-top:6px"><button class="more-btn" onclick="toggleDetail(\''+rid+'\',this)">+ More info</button>'+detailHtml(r,rid)+'</div>':'')+'</div>';
+      var simOfsRows=getSparklineRows(r);
+      if(simOfsRows.length){sparkHtml=buildSparklineSvg(simOfsRows);trendBadge=trendBadgeHtml(getTrendFromRows(simOfsRows));}
+      var simOfsCharKey=getOfsCharacteristic(r);
+      var simOfsContainerId='sim-ofs-'+name.replace(/\W/g,'_')+ri;
+      var moreInfoBtn=rHd||simOfsCharKey?'<div style="margin-top:6px"><button class="more-btn" onclick="toggleSimDetail(\''+rid+'\',\''+simOfsContainerId+'\',this,'+JSON.stringify(r).replace(/'/g,"\\'")+')">'+'+ More info</button>'+(rHd?detailHtml(r,rid):'<div class="trow-detail" id="'+rid+'"></div>')+'<div id="'+simOfsContainerId+'"></div></div>':'';
+      return '<div class="rrow"><div class="rrow-top"><div style="flex:1;min-width:0"><div class="rname">'+name+studentCount+trendBadge+'</div><div class="rdata">'+rLabel+'</div>'+(rd?'<div class="rdata-sub">'+rd+'</div>':'')+dataTags+'</div>'+(sparkHtml?'<div style="flex-shrink:0;margin-left:8px">'+sparkHtml+'</div>':'')+(rUrl?'<a href="'+rUrl+'" target="_blank" class="app-link" style="flex-shrink:0;margin-left:8px">&#128196; APP</a>':'')+'</div>'+moreInfoBtn+'</div>';
     }).join('');
   }).join('');
 }
@@ -1064,24 +1081,34 @@ function searchByDemo() {
   hideAllViews();
   document.getElementById('view-demo').style.display='block';
   window.scrollTo(0,0);
-  // Preload OfS data for this lifecycle/characteristic so sparklines render immediately
+  // Preload OfS data so sparklines render immediately
   var ofsLifecycle=getOfsLifecycle(stage);
   var demoCharKeyForLoad=currentDemoResults.length?getOfsCharacteristic(currentDemoResults[0]):null;
   if(ofsLifecycle&&demoCharKeyForLoad){
     if(demoCharKeyForLoad==='imd'){
-      if(OFS_FILES[ofsLifecycle]&&!ofsCache[ofsLifecycle]){
+      if(!ofsCache[ofsLifecycle]){
         fetch(OFS_FILES[ofsLifecycle])
           .then(function(r){if(!r.ok)throw new Error();return r.json();})
           .then(function(data){ofsCache[ofsLifecycle]=data;applyDemoFilters();})
           .catch(function(){});
       }
     } else {
-      var preloadCacheKey='char_'+demoCharKeyForLoad;
-      if(OFS_CHAR_FILES[demoCharKeyForLoad]&&!ofsCache[preloadCacheKey]){
-        fetch(OFS_CHAR_FILES[demoCharKeyForLoad])
-          .then(function(r){if(!r.ok)throw new Error();return r.json();})
-          .then(function(data){ofsCache[preloadCacheKey]=data;applyDemoFilters();})
-          .catch(function(){});
+      var preloadCK='char_'+demoCharKeyForLoad;
+      var preloadLCK=preloadCK+'_'+ofsLifecycle;
+      if(!ofsCache[preloadLCK]){
+        if(ofsCache[preloadCK]){
+          ofsCache[preloadLCK]=ofsCache[preloadCK].filter(function(r){return r.lifecycle===ofsLifecycle;});
+          applyDemoFilters();
+        } else {
+          fetch(OFS_CHAR_FILES[demoCharKeyForLoad])
+            .then(function(r){if(!r.ok)throw new Error();return r.json();})
+            .then(function(data){
+              ofsCache[preloadCK]=data;
+              ofsCache[preloadLCK]=data.filter(function(r){return r.lifecycle===ofsLifecycle;});
+              applyDemoFilters();
+            })
+            .catch(function(){});
+        }
       }
     }
   }
@@ -1139,6 +1166,16 @@ function setDemoProgressFilter(val){
   applyDemoFilters();
 }
 
+var simProgressFilter='all';
+function setSimProgressFilter(val){
+  simProgressFilter=val;
+  ['all','narrowing','stable','widening','nodata'].forEach(function(v){
+    var el=document.getElementById('sim-prog-'+v);
+    if(el)el.classList.toggle('active',v===val);
+  });
+  applyFilters();
+}
+
 function syncDemoMGChips(){document.querySelectorAll('#demo-mission-row .fchip').forEach(function(c){var inp=c.querySelector('input');c.classList.toggle('active',inp&&inp.checked);});}
 function syncDemoRegChips(){document.querySelectorAll('#demo-region-row .fchip').forEach(function(c){var inp=c.querySelector('input');c.classList.toggle('active',inp&&inp.checked);});}
 
@@ -1167,16 +1204,10 @@ function applyDemoFilters(){
     if(demoMissionFilter){var mg=(r.mission_group||'').trim();var mg2=(r.mission_group2||'').trim();if(mg!==demoMissionFilter&&mg2!==demoMissionFilter)return false;}
     if(demoRegionFilter&&(r.region||'').trim()!==demoRegionFilter)return false;
     if(sizeVal!=='all'){var n=parseInt(r.total_ug_students)||0;if(sizeVal==='vs'&&n>=1000)return false;if(sizeVal==='sm'&&(n<1000||n>=5000))return false;if(sizeVal==='md'&&(n<5000||n>=15000))return false;if(sizeVal==='lg'&&n<15000)return false;}
-    if(demoProgressFilter!=='all'&&isImdTarget(r)){
-      var ofsLifecycle=getOfsLifecycle(r.lifecycle_stage||'');
-      var rUkprn=(r.ukprn||'').toString().trim();
-      if(ofsLifecycle&&rUkprn&&ofsCache[ofsLifecycle]){
-        var ofsRows=getOfsRowsForInst(ofsCache[ofsLifecycle],rUkprn,getImfPair(r));
-        var trend=ofsRows.length?getTrendFromRows(ofsRows):'nodata';
-        if(trend!==demoProgressFilter)return false;
-      } else {
-        if(demoProgressFilter!=='nodata')return false;
-      }
+    if(demoProgressFilter!=='all'){
+      var dProws=getSparklineRows(r);
+      var dPtrend=dProws.length?getTrendFromRows(dProws):'nodata';
+      if(dPtrend!==demoProgressFilter)return false;
     }
     return true;
   });
@@ -1203,17 +1234,8 @@ function applyDemoFilters(){
     var demoSparkHtml='';var demoTrendBadge='';
     var demoCharKey=rows.length?getOfsCharacteristic(rows[0]):null;
     if(demoCharKey){
-      var demoOfsLC=getOfsLifecycle(rows[0].lifecycle_stage||'');
-      var demoUkprn=(rows[0].ukprn||'').toString().trim();
-      if(demoOfsLC&&demoUkprn){
-        var demoCacheKey=demoCharKey==='imd'?demoOfsLC:'char_'+demoCharKey;
-        var demoOfsData=ofsCache[demoCacheKey];
-        if(demoOfsData){
-          var demoFiltered=demoCharKey==='imd'?demoOfsData:demoOfsData.filter(function(x){return x.lifecycle===demoOfsLC;});
-          var demoOfsRows=getOfsRowsForCharInst(demoFiltered,demoUkprn,demoCharKey,rows[0]);
-          if(demoOfsRows.length){demoSparkHtml=buildSparklineSvg(demoOfsRows);demoTrendBadge=trendBadgeHtml(getTrendFromRows(demoOfsRows));}
-        }
-      }
+      var demoOfsRows=getSparklineRows(rows[0]);
+      if(demoOfsRows.length){demoSparkHtml=buildSparklineSvg(demoOfsRows);demoTrendBadge=trendBadgeHtml(getTrendFromRows(demoOfsRows));}
     }
     var targetRows=rows.map(function(r,ri){
       var stage=r.lifecycle_stage||'',chr=r.characteristic||'',sc=stageClass(stage),label=buildLabel(r),ds=buildDataStr(r),hdet=hasDetail(r);
@@ -1452,7 +1474,6 @@ var OFS_CHAR_FILES = {
   'tundra':     './ofs_tundra.json',
   'age':        './ofs_age.json',
 };
-// Default pairs to try for each characteristic (preferred first)
 var OFS_CHAR_PAIRS = {
   'ethnicity':  [['White','ABMO'],['White','Black']],
   'disability': [['NoKnownDisability','Disabled']],
@@ -1460,7 +1481,33 @@ var OFS_CHAR_PAIRS = {
   'tundra':     [['TUNDRAQ5','TUNDRAQ1'],['TUNDRAQ3_5','TUNDRAQ1_2']],
   'age':        [['Young_Under21','Mature_Age21andOver']],
 };
-var YEAR_LABELS = {}; // retained for compatibility
+var OFS_CHAR_LABELS = {
+  'imd':        'IMD gap trend',
+  'ethnicity':  'Ethnicity gap trend',
+  'disability': 'Disability gap trend',
+  'fsm':        'Free school meals gap trend',
+  'tundra':     'TUNDRA gap trend',
+  'age':        'Age gap trend',
+};
+var OFS_PAIR_LABELS = {
+  'White,ABMO':                        'White vs ABMO gap (percentage points)',
+  'White,Black':                       'White vs Black gap (percentage points)',
+  'NoKnownDisability,Disabled':        'No known disability vs Disabled gap (percentage points)',
+  'NotEligibleForFSM,EligibleForFSM':  'Not eligible FSM vs Eligible FSM gap (percentage points)',
+  'TUNDRAQ5,TUNDRAQ1':                 'TUNDRA Q5 vs Q1 gap (percentage points)',
+  'TUNDRAQ3_5,TUNDRAQ1_2':            'TUNDRA Q3-5 vs Q1+2 gap (percentage points)',
+  'Young_Under21,Mature_Age21andOver': 'Young vs Mature gap (percentage points)',
+  'IMDQ5,IMDQ1':                       'IMD Q5 vs Q1 gap (percentage points)',
+  'IMDQ3_5,IMDQ1_2':                  'IMD Q3-5 vs Q1+2 gap (percentage points)',
+};
+var OFS_CHAR_SOURCE_NOTES = {
+  'imd':        'IMD 2019',
+  'ethnicity':  'ethnicity',
+  'disability': 'disability status',
+  'fsm':        'FSM eligibility',
+  'tundra':     'TUNDRA quintile',
+  'age':        'age on commencement',
+};
 
 function getOfsLifecycle(stage) {
   if (!stage) return null;
@@ -1484,7 +1531,6 @@ function getOfsCharacteristic(t) {
   if (chr.includes('age') || chr.includes('age on commencement')) return 'age';
   return null;
 }
-// Keep isImdTarget as a convenience wrapper used in existing filter logic
 function isImdTarget(t) { return getOfsCharacteristic(t) === 'imd'; }
 
 function getImfPair(t) {
@@ -1494,15 +1540,19 @@ function getImfPair(t) {
   if ((all.includes('q1') && all.includes('q2')) || all.includes('q1_2') || all.includes('q1+2') || all.includes('quintile 1 and 2')) return 'IMDQ3_5_vs_IMDQ1_2';
   return 'IMDQ5_vs_IMDQ1';
 }
-function getOfsFileKey(charKey, lifecycle) {
-  if (charKey === 'imd') return lifecycle; // uses OFS_FILES keyed by lifecycle
-  return charKey;                           // uses OFS_CHAR_FILES keyed by charKey
+
+function getOfsRowsForInst(ofsData, ukprn, pair) {
+  var ind1=pair==='IMDQ3_5_vs_IMDQ1_2'?'IMDQ3_5':'IMDQ5';
+  var ind2=pair==='IMDQ3_5_vs_IMDQ1_2'?'IMDQ1_2':'IMDQ1';
+  var rows=ofsData.filter(function(r){return r.ukprn===ukprn&&r.split_ind1===ind1&&r.split_ind2===ind2;});
+  if(!rows.length){
+    var alt1=ind1==='IMDQ5'?'IMDQ3_5':'IMDQ5';
+    var alt2=ind2==='IMDQ1'?'IMDQ1_2':'IMDQ1';
+    rows=ofsData.filter(function(r){return r.ukprn===ukprn&&r.split_ind1===alt1&&r.split_ind2===alt2;});
+  }
+  return rows;
 }
-function getOfsPreferredPair(charKey) {
-  // For IMD the pair is determined per-target by getImfPair; for others return first pair
-  if (charKey === 'imd') return null;
-  return (OFS_CHAR_PAIRS[charKey] || [])[0] || null;
-}
+
 function getOfsRowsForCharInst(ofsData, ukprn, charKey, t) {
   if (charKey === 'imd') return getOfsRowsForInst(ofsData, ukprn, getImfPair(t));
   var pairs = OFS_CHAR_PAIRS[charKey] || [];
@@ -1559,46 +1609,70 @@ function trendBadgeHtml(trend) {
   return '<span class="ofs-trend-badge '+cls[trend]+'">'+map[trend]+'</span>';
 }
 
-// Get rows for a specific institution from cached OfS data
-function getOfsRowsForInst(ofsData, ukprn, pair) {
-  var ind1=pair==='IMDQ3_5_vs_IMDQ1_2'?'IMDQ3_5':'IMDQ5';
-  var ind2=pair==='IMDQ3_5_vs_IMDQ1_2'?'IMDQ1_2':'IMDQ1';
-  var rows=ofsData.filter(function(r){return r.ukprn===ukprn&&r.split_ind1===ind1&&r.split_ind2===ind2;});
-  if(!rows.length){
-    var alt1=ind1==='IMDQ5'?'IMDQ3_5':'IMDQ5';
-    var alt2=ind2==='IMDQ1'?'IMDQ1_2':'IMDQ1';
-    rows=ofsData.filter(function(r){return r.ukprn===ukprn&&r.split_ind1===alt1&&r.split_ind2===alt2;});
-  }
-  return rows;
+// Get cached OfS rows for a result row (any characteristic) - only works if data already in cache
+function getSparklineRows(r) {
+  var charKey=getOfsCharacteristic(r);
+  var ofsLC=getOfsLifecycle(r.lifecycle_stage||'');
+  var ukprn=(r.ukprn||'').toString().trim();
+  if(!charKey||!ofsLC||!ukprn)return [];
+  // IMD uses lifecycle as the cache key directly; others use lcCacheKey sub-cache
+  var cacheKey=charKey==='imd'?ofsLC:('char_'+charKey+'_'+ofsLC);
+  var ofsData=ofsCache[cacheKey];
+  if(!ofsData)return [];
+  return getOfsRowsForCharInst(ofsData,ukprn,charKey,r);
 }
 
-var OFS_CHAR_LABELS = {
-  'imd':        'IMD gap trend',
-  'ethnicity':  'Ethnicity gap trend',
-  'disability': 'Disability gap trend',
-  'fsm':        'Free school meals gap trend',
-  'tundra':     'TUNDRA gap trend',
-  'age':        'Age gap trend',
-};
-var OFS_PAIR_LABELS = {
-  'White,ABMO':                       'White vs ABMO gap (percentage points)',
-  'White,Black':                      'White vs Black gap (percentage points)',
-  'NoKnownDisability,Disabled':       'No known disability vs Disabled gap (percentage points)',
-  'NotEligibleForFSM,EligibleForFSM': 'Not eligible FSM vs Eligible FSM gap (percentage points)',
-  'TUNDRAQ5,TUNDRAQ1':                'TUNDRA Q5 vs Q1 gap (percentage points)',
-  'TUNDRAQ3_5,TUNDRAQ1_2':           'TUNDRA Q3-5 vs Q1+2 gap (percentage points)',
-  'Young_Under21,Mature_Age21andOver':'Young vs Mature gap (percentage points)',
-  'IMDQ5,IMDQ1':                      'IMD Q5 vs Q1 gap (percentage points)',
-  'IMDQ3_5,IMDQ1_2':                 'IMD Q3-5 vs Q1+2 gap (percentage points)',
-};
-var OFS_CHAR_SOURCE_NOTES = {
-  'imd':        'IMD 2019',
-  'ethnicity':  'ethnicity',
-  'disability': 'disability status',
-  'fsm':        'FSM eligibility',
-  'tundra':     'TUNDRA quintile',
-  'age':        'age on commencement',
-};
+function buildOfsSvgChart(rows, lifecycle) {
+  var yearOrder = ['YEAR1','YEAR2','YEAR3','YEAR4','YEAR5','YEAR6'];
+  var byYear = {};
+  rows.forEach(function(r) { byYear[r.year] = r; });
+  var validYears = yearOrder.filter(function(y) {
+    var r = byYear[y]; return r && !isNaN(parseFloat(r.gap));
+  });
+  if (!validYears.length) return null;
+  var gaps = validYears.map(function(y) { return parseFloat(byYear[y].gap); });
+  var labels = validYears.map(function(y) { return byYear[y].academic_year || y; });
+  var trend = '';
+  if (gaps.length >= 2) {
+    var first=gaps[0],last=gaps[gaps.length-1];
+    if(last<first-0.5)trend=' - narrowing';
+    else if(last>first+0.5)trend=' - widening';
+    else trend=' - broadly stable';
+  }
+  var W=400,H=110,padL=42,padR=8,padT=18,padB=28;
+  var chartW=W-padL-padR,chartH=H-padT-padB,n=validYears.length;
+  var minG=Math.min.apply(null,gaps),maxG=Math.max.apply(null,gaps);
+  var range=maxG-minG;
+  if(range<4){minG=minG-2;maxG=maxG+2;range=maxG-minG;}
+  if(minG>0)minG=0;if(maxG<0)maxG=0;range=maxG-minG;
+  function xPos(i){return padL+(n===1?chartW/2:i/(n-1)*chartW);}
+  function yPos(g){return padT+chartH-((g-minG)/range*chartH);}
+  var zeroY=yPos(0);
+  var svgParts=[];
+  svgParts.push('<line x1="'+padL+'" y1="'+zeroY+'" x2="'+(W-padR)+'" y2="'+zeroY+'" stroke="rgba(255,255,255,.15)" stroke-width="1" stroke-dasharray="3,3"/>');
+  svgParts.push('<text x="10" y="'+(padT+chartH/2)+'" text-anchor="middle" font-size="8" fill="#9a9fac" transform="rotate(-90,10,'+(padT+chartH/2)+')">pp gap</text>');
+  [minG,(minG+maxG)/2,maxG].forEach(function(v){
+    var y=yPos(v);
+    svgParts.push('<text x="'+(padL-4)+'" y="'+(y+3)+'" text-anchor="end" font-size="9" fill="#9a9fac">'+Math.round(v)+'</text>');
+  });
+  svgParts.push('<text x="'+(padL+chartW/2)+'" y="'+(H-1)+'" text-anchor="middle" font-size="8" fill="#9a9fac">Academic year</text>');
+  var areaPoints=validYears.map(function(y,i){return xPos(i)+','+yPos(gaps[i]);}).join(' ');
+  var firstX=xPos(0),lastX=xPos(validYears.length-1);
+  svgParts.push('<polygon points="'+firstX+','+zeroY+' '+areaPoints+' '+lastX+','+zeroY+'" fill="rgba(240,144,122,0.15)"/>');
+  svgParts.push('<polyline points="'+validYears.map(function(y,i){return xPos(i)+','+yPos(gaps[i]);}).join(' ')+'" fill="none" stroke="#f0907a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>');
+  validYears.forEach(function(y,i){
+    var g=gaps[i],x=xPos(i),yy=yPos(g);
+    svgParts.push('<circle cx="'+x+'" cy="'+yy+'" r="3" fill="#f0907a" stroke="#16171a" stroke-width="1.5"/>');
+    var valY=yy-8;if(valY<padT+10)valY=yy+14;
+    var valX=x;if(i===0)valX=Math.max(x,padL+18);
+    svgParts.push('<text x="'+valX+'" y="'+valY+'" text-anchor="middle" font-size="9" font-weight="700" fill="#f2f3f6">'+(g>0?'+':'')+g.toFixed(1)+'</text>');
+  });
+  validYears.forEach(function(y,i){
+    var lbl=(labels[i]||'').replace('20','').replace('-','/')||y;
+    svgParts.push('<text x="'+xPos(i)+'" y="'+(H-4)+'" text-anchor="middle" font-size="9" fill="#9a9fac">'+lbl+'</text>');
+  });
+  return {svg:'<svg class="ofs-chart-svg" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'+svgParts.join('')+'</svg>',trend:trend};
+}
 
 function loadOfsAndRender(t, containerId) {
   var lifecycle = getOfsLifecycle(t.lifecycle_stage || '');
@@ -1606,145 +1680,107 @@ function loadOfsAndRender(t, containerId) {
   if (!lifecycle || !charKey) return;
   var ukprn = (t.ukprn || '').toString().trim();
   if (!ukprn) return;
-
   var container = document.getElementById(containerId);
   if (!container) return;
   var panelTitle = 'OfS equity data - ' + (OFS_CHAR_LABELS[charKey] || 'gap trend');
-  container.innerHTML = '<div class="ofs-panel"><div class="ofs-panel-title">' + panelTitle + '</div><div class="ofs-note">Loading...</div></div>';
+  container.innerHTML = '<div class="ofs-panel"><div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-note">Loading...</div></div>';
 
   function render(data) {
     var rows = getOfsRowsForCharInst(data, ukprn, charKey, t);
-    var usedInd1 = rows.length ? rows[0].split_ind1 : '';
-    var usedInd2 = rows.length ? rows[0].split_ind2 : '';
-    var pairLabel = OFS_PAIR_LABELS[usedInd1 + ',' + usedInd2] || (usedInd1 + ' vs ' + usedInd2 + ' gap (percentage points)');
-
-    // For IMD, also check the pair label from the old logic
-    if (charKey === 'imd') {
-      var pair = getImfPair(t);
-      pairLabel = pair === 'IMDQ3_5_vs_IMDQ1_2' ? 'IMD Q3-5 vs Q1+2 gap (percentage points)' : 'IMD Q5 vs Q1 gap (percentage points)';
+    var usedInd1=rows.length?rows[0].split_ind1:'';
+    var usedInd2=rows.length?rows[0].split_ind2:'';
+    var pairLabel=OFS_PAIR_LABELS[usedInd1+','+usedInd2]||(usedInd1+' vs '+usedInd2+' gap (percentage points)');
+    if(charKey==='imd'){
+      var pair=getImfPair(t);
+      pairLabel=pair==='IMDQ3_5_vs_IMDQ1_2'?'IMD Q3-5 vs Q1+2 gap (percentage points)':'IMD Q5 vs Q1 gap (percentage points)';
     }
-
-    if (!rows.length) {
-      container.innerHTML = '<div class="ofs-panel"><div class="ofs-panel-title">' + panelTitle + '</div><div class="ofs-no-data">No OfS data available for this institution and lifecycle stage.</div></div>';
+    if(!rows.length){
+      container.innerHTML='<div class="ofs-panel"><div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-no-data">No OfS data available for this institution and lifecycle stage.</div></div>';
       return;
     }
-
-    var yearOrder = ['YEAR1','YEAR2','YEAR3','YEAR4','YEAR5','YEAR6'];
-    var byYear = {};
-    rows.forEach(function(r) { byYear[r.year] = r; });
-
-    var validYears = yearOrder.filter(function(y) {
-      var r = byYear[y];
-      return r && !isNaN(parseFloat(r.gap));
-    });
-
-    if (!validYears.length) {
-      container.innerHTML = '<div class="ofs-panel"><div class="ofs-panel-title">' + panelTitle + '</div><div class="ofs-no-data">Gap data suppressed for this institution (small numbers).</div></div>';
+    var chart=buildOfsSvgChart(rows,lifecycle);
+    if(!chart){
+      container.innerHTML='<div class="ofs-panel"><div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-no-data">Gap data suppressed for this institution (small numbers).</div></div>';
       return;
     }
-
-    var gaps = validYears.map(function(y) { return parseFloat(byYear[y].gap); });
-    var labels = validYears.map(function(y) { return byYear[y].academic_year || y; });
-
-    var trend = '';
-    if (gaps.length >= 2) {
-      var first = gaps[0], last = gaps[gaps.length-1];
-      if (last < first - 0.5) trend = ' - narrowing';
-      else if (last > first + 0.5) trend = ' - widening';
-      else trend = ' - broadly stable';
-    }
-
-    var W = 400, H = 110, padL = 42, padR = 8, padT = 18, padB = 28;
-    var chartW = W - padL - padR;
-    var chartH = H - padT - padB;
-    var n = validYears.length;
-
-    var minG = Math.min.apply(null, gaps);
-    var maxG = Math.max.apply(null, gaps);
-    var range = maxG - minG;
-    if (range < 4) { minG = minG - 2; maxG = maxG + 2; range = maxG - minG; }
-    if (minG > 0) minG = 0;
-    if (maxG < 0) maxG = 0;
-    range = maxG - minG;
-
-    function xPos(i) { return padL + (n === 1 ? chartW/2 : i / (n-1) * chartW); }
-    function yPos(g) { return padT + chartH - ((g - minG) / range * chartH); }
-
-    var zeroY = yPos(0);
-    var svgParts = [];
-    svgParts.push('<line x1="'+padL+'" y1="'+zeroY+'" x2="'+(W-padR)+'" y2="'+zeroY+'" stroke="rgba(255,255,255,.15)" stroke-width="1" stroke-dasharray="3,3"/>');
-    svgParts.push('<text x="10" y="'+(padT+chartH/2)+'" text-anchor="middle" font-size="8" fill="#9a9fac" transform="rotate(-90,10,'+(padT+chartH/2)+')">pp gap</text>');
-    var yTicks = [minG, (minG+maxG)/2, maxG];
-    yTicks.forEach(function(v) {
-      var y = yPos(v);
-      svgParts.push('<text x="'+(padL-4)+'" y="'+(y+3)+'" text-anchor="end" font-size="9" fill="#9a9fac">'+Math.round(v)+'</text>');
-    });
-    svgParts.push('<text x="'+(padL+chartW/2)+'" y="'+(H-1)+'" text-anchor="middle" font-size="8" fill="#9a9fac">Academic year</text>');
-
-    var areaPoints = validYears.map(function(y,i){ return xPos(i)+','+yPos(gaps[i]); }).join(' ');
-    var firstX = xPos(0), lastX = xPos(validYears.length-1);
-    svgParts.push('<polygon points="'+firstX+','+zeroY+' '+areaPoints+' '+lastX+','+zeroY+'" fill="rgba(240,144,122,0.15)"/>');
-
-    var linePoints = validYears.map(function(y,i){ return xPos(i)+','+yPos(gaps[i]); }).join(' ');
-    svgParts.push('<polyline points="'+linePoints+'" fill="none" stroke="#f0907a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>');
-
-    validYears.forEach(function(y,i) {
-      var g = gaps[i];
-      var x = xPos(i), yy = yPos(g);
-      svgParts.push('<circle cx="'+x+'" cy="'+yy+'" r="3" fill="#f0907a" stroke="#16171a" stroke-width="1.5"/>');
-      var valY = yy - 8;
-      if (valY < padT + 10) valY = yy + 14;
-      var valX = x;
-      if (i === 0) valX = Math.max(x, padL + 18);
-      svgParts.push('<text x="'+valX+'" y="'+valY+'" text-anchor="middle" font-size="9" font-weight="700" fill="#f2f3f6">'+(g>0?'+':'')+g.toFixed(1)+'</text>');
-    });
-
-    validYears.forEach(function(y,i) {
-      var lbl = (labels[i]||'').replace('20','').replace('-','/')||y;
-      svgParts.push('<text x="'+xPos(i)+'" y="'+(H-4)+'" text-anchor="middle" font-size="9" fill="#9a9fac">'+lbl+'</text>');
-    });
-
-    var svg = '<svg class="ofs-chart-svg" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'+svgParts.join('')+'</svg>';
-    var sourceNote = OFS_CHAR_SOURCE_NOTES[charKey] || charKey;
-
-    container.innerHTML = '<div class="ofs-panel">' +
-      '<div class="ofs-panel-title">' + panelTitle + '</div>' +
-      '<div class="ofs-pair-label">' + pairLabel + trend + '</div>' +
-      svg +
-      '<div class="ofs-note">Source: OfS access and participation data (full-time undergraduates, ' + sourceNote + '). Positive gap = disadvantaged group has lower rate. Data shown for ' + lifecycle.toLowerCase() + '.</div>' +
+    var sourceNote=OFS_CHAR_SOURCE_NOTES[charKey]||charKey;
+    container.innerHTML='<div class="ofs-panel">'+
+      '<div class="ofs-panel-title">'+panelTitle+'</div>'+
+      '<div class="ofs-pair-label">'+pairLabel+chart.trend+'</div>'+
+      chart.svg+
+      '<div class="ofs-note">Source: OfS access and participation data (full-time undergraduates, '+sourceNote+'). Positive gap = disadvantaged group has lower rate. Data shown for '+lifecycle.toLowerCase()+'.</div>'+
       '</div>';
   }
 
-  // Route to correct cache key and file
-  if (charKey === 'imd') {
-    if (ofsCache[lifecycle]) {
-      render(ofsCache[lifecycle]);
-    } else {
+  if(charKey==='imd'){
+    if(ofsCache[lifecycle]){render(ofsCache[lifecycle]);}
+    else{
       fetch(OFS_FILES[lifecycle])
-        .then(function(r) { if (!r.ok) throw new Error('not found'); return r.json(); })
-        .then(function(data) { ofsCache[lifecycle] = data; render(data); })
-        .catch(function() {
-          container.innerHTML = '<div class="ofs-panel"><div class="ofs-no-data">OfS data file not available.</div></div>';
-        });
+        .then(function(r){if(!r.ok)throw new Error();return r.json();})
+        .then(function(data){ofsCache[lifecycle]=data;render(data);})
+        .catch(function(){container.innerHTML='<div class="ofs-panel"><div class="ofs-no-data">OfS data file not available.</div></div>';});
     }
   } else {
-    var cacheKey = 'char_' + charKey;
-    if (ofsCache[cacheKey]) {
-      // Filter to this lifecycle stage before rendering
-      render(ofsCache[cacheKey].filter(function(r) { return r.lifecycle === lifecycle; }));
+    var cacheKey='char_'+charKey;
+    var lcCacheKey=cacheKey+'_'+lifecycle;
+    if(ofsCache[lcCacheKey]){render(ofsCache[lcCacheKey]);}
+    else if(ofsCache[cacheKey]){
+      ofsCache[lcCacheKey]=ofsCache[cacheKey].filter(function(r){return r.lifecycle===lifecycle;});
+      render(ofsCache[lcCacheKey]);
     } else {
       fetch(OFS_CHAR_FILES[charKey])
-        .then(function(r) { if (!r.ok) throw new Error('not found'); return r.json(); })
-        .then(function(data) {
-          ofsCache[cacheKey] = data;
-          render(data.filter(function(r) { return r.lifecycle === lifecycle; }));
+        .then(function(r){if(!r.ok)throw new Error();return r.json();})
+        .then(function(data){
+          ofsCache[cacheKey]=data;
+          ofsCache[lcCacheKey]=data.filter(function(r){return r.lifecycle===lifecycle;});
+          render(ofsCache[lcCacheKey]);
         })
-        .catch(function() {
-          container.innerHTML = '<div class="ofs-panel"><div class="ofs-no-data">OfS data file not available.</div></div>';
-        });
+        .catch(function(){container.innerHTML='<div class="ofs-panel"><div class="ofs-no-data">OfS data file not available.</div></div>';});
     }
   }
 }
+
+// Show full chart for a similar institution row when "More info" is expanded
+function loadOfsForSimilarInst(r, containerId) {
+  var lifecycle=getOfsLifecycle(r.lifecycle_stage||'');
+  var charKey=getOfsCharacteristic(r);
+  if(!lifecycle||!charKey)return;
+  var ukprn=(r.ukprn||'').toString().trim();
+  if(!ukprn)return;
+  var container=document.getElementById(containerId);
+  if(!container)return;
+  var panelTitle='OfS equity data - '+(OFS_CHAR_LABELS[charKey]||'gap trend');
+  container.innerHTML='<div class="ofs-panel"><div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-note">Loading...</div></div>';
+
+  function renderSim(data){
+    var rows=getOfsRowsForCharInst(data,ukprn,charKey,r);
+    var usedInd1=rows.length?rows[0].split_ind1:'';
+    var usedInd2=rows.length?rows[0].split_ind2:'';
+    var pairLabel=OFS_PAIR_LABELS[usedInd1+','+usedInd2]||(usedInd1+' vs '+usedInd2+' gap (percentage points)');
+    if(charKey==='imd'){var pair=getImfPair(r);pairLabel=pair==='IMDQ3_5_vs_IMDQ1_2'?'IMD Q3-5 vs Q1+2 gap (percentage points)':'IMD Q5 vs Q1 gap (percentage points)';}
+    if(!rows.length){container.innerHTML='<div class="ofs-panel"><div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-no-data">No OfS data available for this institution.</div></div>';return;}
+    var chart=buildOfsSvgChart(rows,lifecycle);
+    if(!chart){container.innerHTML='<div class="ofs-panel"><div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-no-data">Gap data suppressed (small numbers).</div></div>';return;}
+    var sourceNote=OFS_CHAR_SOURCE_NOTES[charKey]||charKey;
+    container.innerHTML='<div class="ofs-panel">'+
+      '<div class="ofs-panel-title">'+panelTitle+'</div>'+
+      '<div class="ofs-pair-label">'+pairLabel+chart.trend+'</div>'+
+      chart.svg+
+      '<div class="ofs-note">Source: OfS access and participation data (full-time undergraduates, '+sourceNote+'). Positive gap = disadvantaged group has lower rate.</div>'+
+      '</div>';
+  }
+
+  if(charKey==='imd'){
+    if(ofsCache[lifecycle])renderSim(ofsCache[lifecycle]);
+    else fetch(OFS_FILES[lifecycle]).then(function(res){if(!res.ok)throw new Error();return res.json();}).then(function(data){ofsCache[lifecycle]=data;renderSim(data);}).catch(function(){container.innerHTML='';});
+  } else {
+    var ck='char_'+charKey,lck=ck+'_'+lifecycle;
+    if(ofsCache[lck])renderSim(ofsCache[lck]);
+    else if(ofsCache[ck]){ofsCache[lck]=ofsCache[ck].filter(function(r){return r.lifecycle===lifecycle;});renderSim(ofsCache[lck]);}
+    else fetch(OFS_CHAR_FILES[charKey]).then(function(res){if(!res.ok)throw new Error();return res.json();}).then(function(data){ofsCache[ck]=data;ofsCache[lck]=data.filter(function(r){return r.lifecycle===lifecycle;});renderSim(ofsCache[lck]);}).catch(function(){container.innerHTML='';});
+  }
+}
+
 init();</script>
 </body>
 </html>
