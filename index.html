@@ -1605,7 +1605,7 @@ function loadOfsAndRender(t, containerId) {
   _ofsLoadAndRun(charKey,lifecycle,function(data){
     if(!data){container.innerHTML='<div class="ofs-panel"><div class="ofs-no-data">OfS data file not available.</div></div>';return;}
     _ofsRenderInto(containerId,t,getOfsRowsForCharInst(data,ukprn,charKey,t),charKey,lifecycle);
-  });
+  },function(){applyFilters();});
 }
 
 function loadOfsForSimilarInst(r, containerId) {
@@ -1619,10 +1619,9 @@ function loadOfsForSimilarInst(r, containerId) {
   var panelTitle='OfS equity data - '+(OFS_CHAR_LABELS[charKey]||'gap trend');
   container.innerHTML='<div class="ofs-panel"><div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-note">Loading...</div></div>';
   _ofsLoadAndRun(charKey,lifecycle,function(data){
-    if(!data){container.innerHTML='<div class="ofs-panel"><div class="ofs-no-data">OfS data file not available.</div></div>';return;}
-    _ofsRenderInto(containerId,t,getOfsRowsForCharInst(data,ukprn,charKey,t),charKey,lifecycle);
-  },function(){applyFilters();});
-}
+    if(!data){container.innerHTML='';return;}
+    _ofsRenderInto(containerId,r,getOfsRowsForCharInst(data,ukprn,charKey,r),charKey,lifecycle);
+  });
 }
 
 init();</script>
