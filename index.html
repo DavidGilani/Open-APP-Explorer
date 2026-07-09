@@ -471,16 +471,6 @@
               </div>
             </div>
             <div class="filter-section">
-              <div class="filter-section-title">IMD gap progress</div>
-              <div class="progress-filter-row">
-                <span class="plan-chip active" id="demo-prog-all" onclick="setDemoProgressFilter('all')">All</span>
-                <span class="plan-chip" id="demo-prog-narrowing" onclick="setDemoProgressFilter('narrowing')">&#9660; Narrowing</span>
-                <span class="plan-chip" id="demo-prog-stable" onclick="setDemoProgressFilter('stable')">&#8212; Broadly stable</span>
-                <span class="plan-chip" id="demo-prog-widening" onclick="setDemoProgressFilter('widening')">&#9650; Widening</span>
-                <span class="plan-chip" id="demo-prog-nodata" onclick="setDemoProgressFilter('nodata')">No trend data</span>
-              </div>
-            </div>
-            <div class="filter-section">
               <div class="filter-section-title">Institution</div>
               <div class="filter-chips-row" style="margin-bottom:8px">
                 <label class="fchip" id="chip-mission"><input type="checkbox" id="filter-mission" onchange="applyFilters()">Same mission group<span class="chip-val" id="val-mission"></span></label>
@@ -1570,15 +1560,15 @@ function buildOfsSvgChart(rows) {
   return {svg:'<svg class="ofs-chart-svg" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'+sp.join('')+'</svg>',trend:trend};
 }
 
-function _ofsLoadAndRun(charKey, lifecycle, onData) {
+function _ofsLoadAndRun(charKey, lifecycle, onData, onCached) {
   if(charKey==='imd'){
     if(ofsCache[lifecycle]){onData(ofsCache[lifecycle]);}
-    else{fetch(OFS_FILES[lifecycle]).then(function(r){if(!r.ok)throw new Error();return r.json();}).then(function(d){ofsCache[lifecycle]=d;onData(d);}).catch(function(){onData(null);});}
+    else{fetch(OFS_FILES[lifecycle]).then(function(r){if(!r.ok)throw new Error();return r.json();}).then(function(d){ofsCache[lifecycle]=d;onData(d);if(onCached)onCached();}).catch(function(){onData(null);});}
   } else {
     var ck='char_'+charKey, lck=ck+'_'+lifecycle;
     if(ofsCache[lck]){onData(ofsCache[lck]);}
     else if(ofsCache[ck]){ofsCache[lck]=ofsCache[ck].filter(function(r){return r.lifecycle===lifecycle;});onData(ofsCache[lck]);}
-    else{fetch(OFS_CHAR_FILES[charKey]).then(function(r){if(!r.ok)throw new Error();return r.json();}).then(function(d){ofsCache[ck]=d;ofsCache[lck]=d.filter(function(r){return r.lifecycle===lifecycle;});onData(ofsCache[lck]);}).catch(function(){onData(null);});}
+    else{fetch(OFS_CHAR_FILES[charKey]).then(function(r){if(!r.ok)throw new Error();return r.json();}).then(function(d){ofsCache[ck]=d;ofsCache[lck]=d.filter(function(r){return r.lifecycle===lifecycle;});onData(ofsCache[lck]);if(onCached)onCached();}).catch(function(){onData(null);});}
   }
 }
 
@@ -1629,9 +1619,10 @@ function loadOfsForSimilarInst(r, containerId) {
   var panelTitle='OfS equity data - '+(OFS_CHAR_LABELS[charKey]||'gap trend');
   container.innerHTML='<div class="ofs-panel"><div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-note">Loading...</div></div>';
   _ofsLoadAndRun(charKey,lifecycle,function(data){
-    if(!data){container.innerHTML='';return;}
-    _ofsRenderInto(containerId,r,getOfsRowsForCharInst(data,ukprn,charKey,r),charKey,lifecycle);
-  });
+    if(!data){container.innerHTML='<div class="ofs-panel"><div class="ofs-no-data">OfS data file not available.</div></div>';return;}
+    _ofsRenderInto(containerId,t,getOfsRowsForCharInst(data,ukprn,charKey,t),charKey,lifecycle);
+  },function(){applyFilters();});
+}
 }
 
 init();</script>
