@@ -190,6 +190,13 @@
     .ofs-note{font-size:10px;color:var(--muted);line-height:1.5;margin-top:6px}
     .ofs-no-data{font-size:12px;color:var(--muted);font-style:italic}
     .ofs-chart-svg{width:100%;overflow:visible;display:block}
+    .ofs-sparkline{display:block;width:120px;height:36px;flex-shrink:0}
+    .ofs-trend-badge{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600;white-space:nowrap;margin-left:6px;vertical-align:middle}
+    .ofs-trend-narrowing{background:#1a2e1a;color:#5dcaa5;border:1px solid #2a4a2a}
+    .ofs-trend-widening{background:#2e1a1a;color:#f0907a;border:1px solid #4a2a2a}
+    .ofs-trend-stable{background:#1e1f23;color:#9a9fac;border:1px solid #3a3b40}
+    .ofs-trend-nodata{background:#1e1f23;color:#9a9fac;border:1px solid #3a3b40}
+    .progress-filter-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 
     /* Filter panel */
     .filter-panel-wrapper{border:1px solid var(--accent3);border-radius:10px;overflow:hidden;background:rgba(26,45,80,.2)}
@@ -464,8 +471,18 @@
               </div>
             </div>
             <div class="filter-section">
+              <div class="filter-section-title">IMD gap progress</div>
+              <div class="progress-filter-row">
+                <span class="plan-chip active" id="demo-prog-all" onclick="setDemoProgressFilter('all')">All</span>
+                <span class="plan-chip" id="demo-prog-narrowing" onclick="setDemoProgressFilter('narrowing')">&#9660; Narrowing</span>
+                <span class="plan-chip" id="demo-prog-stable" onclick="setDemoProgressFilter('stable')">&#8212; Broadly stable</span>
+                <span class="plan-chip" id="demo-prog-widening" onclick="setDemoProgressFilter('widening')">&#9650; Widening</span>
+                <span class="plan-chip" id="demo-prog-nodata" onclick="setDemoProgressFilter('nodata')">No trend data</span>
+              </div>
+            </div>
+            <div class="filter-section">
               <div class="filter-section-title">Institution</div>
-              <div class="filter-chips-row">
+              <div class="filter-chips-row" id="demo-mission-row" style="margin-bottom:8px"></div>
                 <label class="fchip" id="chip-mission"><input type="checkbox" id="filter-mission" onchange="applyFilters()">Same mission group<span class="chip-val" id="val-mission"></span></label>
                 <label class="fchip" id="chip-region"><input type="checkbox" id="filter-region" onchange="applyFilters()">Same region<span class="chip-val" id="val-region"></span></label>
               </div>
@@ -534,9 +551,18 @@
         </div>
         <div class="filter-body" id="demo-filter-body">
           <div class="filter-section">
+            <div class="filter-section-title">IMD gap progress</div>
+            <div class="progress-filter-row">
+              <span class="plan-chip active" id="demo-prog-all" onclick="setDemoProgressFilter('all')">All</span>
+              <span class="plan-chip" id="demo-prog-narrowing" onclick="setDemoProgressFilter('narrowing')">&#9660; Narrowing</span>
+              <span class="plan-chip" id="demo-prog-stable" onclick="setDemoProgressFilter('stable')">&#8212; Broadly stable</span>
+              <span class="plan-chip" id="demo-prog-widening" onclick="setDemoProgressFilter('widening')">&#9650; Widening</span>
+              <span class="plan-chip" id="demo-prog-nodata" onclick="setDemoProgressFilter('nodata')">No trend data</span>
+            </div>
+          </div>
+          <div class="filter-section">
             <div class="filter-section-title">Institution</div>
             <div class="filter-chips-row" id="demo-mission-row" style="margin-bottom:8px"></div>
-            <div class="filter-chips-row" id="demo-region-row" style="margin-bottom:8px"></div>
             <div class="filter-section-title" style="margin-bottom:6px">Institution size</div>
             <div class="filter-chips-row">
               <label class="fchip active" id="demo-size-all"><input type="radio" name="demo-inst-size" value="all" checked onchange="applyDemoFilters()" style="display:none">All</label>
@@ -688,6 +714,7 @@ var currentDemoResults = [];
 var demoFilterPanelOpen = false;
 var demoMissionFilter  = '';
 var demoRegionFilter   = '';
+var demoProgressFilter = 'all';
 
 // ── Config ────────────────────────────────────────────────────────────────
 var CHIP_GROUPS = {
@@ -857,6 +884,7 @@ function findSimilar(idx){
   resetFilters();applyFilters();
   hideAllViews();
   document.getElementById('view-focus').style.display='block';
+  window.scrollTo(0,0);
 }
 
 function showAllTargets(){hideAllViews();document.getElementById('view-all').style.display='block';}
@@ -974,8 +1002,18 @@ function applyFilters(){
         activeNumericKeys.forEach(function(key){var v=parsePct(r[key]);if(v!==null){var allChips=[].concat.apply([],Object.values(CHIP_GROUPS));var def=allChips.find(function(c){return c.key===key;});parts.push((def?def.label:key)+': '+fmtPct(v));}});
         if(parts.length)dataTags='<div class="rtags">'+parts.join(' · ')+'</div>';
       }
-      var studentCount=r.total_ug_students?'<span style="font-size:11px;color:#9a9fac;font-weight:400;margin-left:8px">'+Number(r.total_ug_students).toLocaleString()+' UG students</span>':'';
-      return '<div class="rrow"><div class="rrow-top"><div style="flex:1;min-width:0"><div class="rname">'+name+studentCount+'</div><div class="rdata">'+rLabel+'</div>'+(rd?'<div class="rdata-sub">'+rd+'</div>':'')+dataTags+'</div>'+(rUrl?'<a href="'+rUrl+'" target="_blank" class="app-link" style="flex-shrink:0;margin-left:8px">&#128196; APP</a>':'')+'</div>'+(rHd?'<div style="margin-top:6px"><button class="more-btn" onclick="toggleDetail(\''+rid+'\',this)">+ More info</button>'+detailHtml(r,rid)+'</div>':'')+'</div>';
+      var studentCount = r.total_ug_students ? '<span style="font-size:11px;color:#9a9fac;font-weight:400;margin-left:8px">'+Number(r.total_ug_students).toLocaleString()+' UG students</span>' : '';
+      // Sparkline for IMD targets
+      var sparkHtml='';var trendBadge='';
+      if(isImdTarget(r)){
+        var ofsLifecycle=getOfsLifecycle(r.lifecycle_stage||'');
+        var rUkprn=(r.ukprn||'').toString().trim();
+        if(ofsLifecycle&&rUkprn&&ofsCache[ofsLifecycle]){
+          var ofsRows=getOfsRowsForInst(ofsCache[ofsLifecycle],rUkprn,getImfPair(r));
+          if(ofsRows.length){sparkHtml=buildSparklineSvg(ofsRows);trendBadge=trendBadgeHtml(getTrendFromRows(ofsRows));}
+        }
+      }
+      return '<div class="rrow"><div class="rrow-top"><div style="flex:1;min-width:0"><div class="rname">'+name+studentCount+trendBadge+'</div><div class="rdata">'+rLabel+'</div>'+(rd?'<div class="rdata-sub">'+rd+'</div>':'')+dataTags+'</div>'+(sparkHtml?'<div style="flex-shrink:0;margin-left:8px">'+sparkHtml+'</div>':'')+(rUrl?'<a href="'+rUrl+'" target="_blank" class="app-link" style="flex-shrink:0;margin-left:8px">&#128196; APP</a>':'')+'</div>'+(rHd?'<div style="margin-top:6px"><button class="more-btn" onclick="toggleDetail(\''+rid+'\',this)">+ More info</button>'+detailHtml(r,rid)+'</div>':'')+'</div>';
     }).join('');
   }).join('');
 }
@@ -1019,6 +1057,15 @@ function searchByDemo() {
   document.body.classList.add('searched');
   hideAllViews();
   document.getElementById('view-demo').style.display='block';
+  window.scrollTo(0,0);
+  // Preload OfS data for this lifecycle stage so sparklines render immediately
+  var ofsLifecycle=getOfsLifecycle(stage);
+  if(ofsLifecycle&&OFS_FILES[ofsLifecycle]&&!ofsCache[ofsLifecycle]){
+    fetch(OFS_FILES[ofsLifecycle])
+      .then(function(r){if(!r.ok)throw new Error();return r.json();})
+      .then(function(data){ofsCache[ofsLifecycle]=data;applyDemoFilters();})
+      .catch(function(){});
+  }
 }
 
 function clearDemoSearch() {
@@ -1064,6 +1111,15 @@ function buildDemoFilterUI() {
   });
 }
 
+function setDemoProgressFilter(val){
+  demoProgressFilter=val;
+  ['all','narrowing','stable','widening','nodata'].forEach(function(v){
+    var el=document.getElementById('demo-prog-'+v);
+    if(el)el.classList.toggle('active',v===val);
+  });
+  applyDemoFilters();
+}
+
 function syncDemoMGChips(){document.querySelectorAll('#demo-mission-row .fchip').forEach(function(c){var inp=c.querySelector('input');c.classList.toggle('active',inp&&inp.checked);});}
 function syncDemoRegChips(){document.querySelectorAll('#demo-region-row .fchip').forEach(function(c){var inp=c.querySelector('input');c.classList.toggle('active',inp&&inp.checked);});}
 
@@ -1076,6 +1132,8 @@ function resetDemoFilters(){
   var allSize=document.querySelector('input[name="demo-inst-size"][value="all"]');if(allSize)allSize.checked=true;
   ['all','vs','sm','md','lg'].forEach(function(v){var el=document.getElementById('demo-size-'+v);if(el)el.classList.toggle('active',v==='all');});
   document.getElementById('demo-filter-dot').classList.remove('on');
+  demoProgressFilter='all';
+  ['all','narrowing','stable','widening','nodata'].forEach(function(v){var el=document.getElementById('demo-prog-'+v);if(el)el.classList.toggle('active',v==='all');});
   applyDemoFilters();
 }
 
@@ -1090,6 +1148,17 @@ function applyDemoFilters(){
     if(demoMissionFilter){var mg=(r.mission_group||'').trim();var mg2=(r.mission_group2||'').trim();if(mg!==demoMissionFilter&&mg2!==demoMissionFilter)return false;}
     if(demoRegionFilter&&(r.region||'').trim()!==demoRegionFilter)return false;
     if(sizeVal!=='all'){var n=parseInt(r.total_ug_students)||0;if(sizeVal==='vs'&&n>=1000)return false;if(sizeVal==='sm'&&(n<1000||n>=5000))return false;if(sizeVal==='md'&&(n<5000||n>=15000))return false;if(sizeVal==='lg'&&n<15000)return false;}
+    if(demoProgressFilter!=='all'&&isImdTarget(r)){
+      var ofsLifecycle=getOfsLifecycle(r.lifecycle_stage||'');
+      var rUkprn=(r.ukprn||'').toString().trim();
+      if(ofsLifecycle&&rUkprn&&ofsCache[ofsLifecycle]){
+        var ofsRows=getOfsRowsForInst(ofsCache[ofsLifecycle],rUkprn,getImfPair(r));
+        var trend=ofsRows.length?getTrendFromRows(ofsRows):'nodata';
+        if(trend!==demoProgressFilter)return false;
+      } else {
+        if(demoProgressFilter!=='nodata')return false;
+      }
+    }
     return true;
   });
 
@@ -1111,6 +1180,16 @@ function applyDemoFilters(){
     var reg=(rows[0].region||'').trim();
     var meta=[mg,reg].filter(Boolean).join(' - ');
     var hd='<div class="demo-inst-card"><div class="demo-inst-hd"><div style="flex:1;min-width:0"><div class="demo-inst-name">'+name+studentCount+'</div>'+(meta?'<div style="font-size:11px;color:var(--muted);margin-top:2px">'+meta+'</div>':'')+'</div>'+(instUrl?'<a href="'+instUrl+'" target="_blank" class="app-link" style="flex-shrink:0">&#128196; APP</a>':'')+'</div><div>';
+    // Build sparkline for this institution once (same for all targets in same lifecycle)
+    var demoSparkHtml='';var demoTrendBadge='';
+    if(rows.length&&isImdTarget(rows[0])){
+      var demoOfsLC=getOfsLifecycle(rows[0].lifecycle_stage||'');
+      var demoUkprn=(rows[0].ukprn||'').toString().trim();
+      if(demoOfsLC&&demoUkprn&&ofsCache[demoOfsLC]){
+        var demoOfsRows=getOfsRowsForInst(ofsCache[demoOfsLC],demoUkprn,getImfPair(rows[0]));
+        if(demoOfsRows.length){demoSparkHtml=buildSparklineSvg(demoOfsRows);demoTrendBadge=trendBadgeHtml(getTrendFromRows(demoOfsRows));}
+      }
+    }
     var targetRows=rows.map(function(r,ri){
       var stage=r.lifecycle_stage||'',chr=r.characteristic||'',sc=stageClass(stage),label=buildLabel(r),ds=buildDataStr(r),hdet=hasDetail(r);
       var detId='demodet-'+name.replace(/\W/g,'_')+ri;
@@ -1121,7 +1200,8 @@ function applyDemoFilters(){
         (hdet?'<div class="trow-actions"><button class="more-btn" onclick="toggleDetail(\''+detId+'\',this)">+ More info</button></div>'+detailHtml(r,detId):'')+
         '</div>';
     }).join('');
-    return hd+targetRows+'</div></div>';
+    var sparkRow=demoSparkHtml?'<div style="padding:6px 14px 8px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,.05)">'+demoSparkHtml+'<span style="font-size:10px;color:var(--muted)">IMD gap trend'+demoTrendBadge+'</span></div>':'';
+    return hd+sparkRow+targetRows+'</div></div>';
   }).join('');
 }
 
@@ -1365,6 +1445,63 @@ function getImfPair(t) {
   return 'IMDQ5_vs_IMDQ1';
 }
 
+function getTrendFromRows(rows) {
+  var yearOrder=['YEAR1','YEAR2','YEAR3','YEAR4','YEAR5','YEAR6'];
+  var byYear={};
+  rows.forEach(function(r){byYear[r.year]=r;});
+  var valid=yearOrder.filter(function(y){var r=byYear[y];return r&&!isNaN(parseFloat(r.gap));});
+  if(valid.length<2)return 'nodata';
+  var first=parseFloat(byYear[valid[0]].gap),last=parseFloat(byYear[valid[valid.length-1]].gap);
+  if(last<first-0.5)return 'narrowing';
+  if(last>first+0.5)return 'widening';
+  return 'stable';
+}
+
+function buildSparklineSvg(rows) {
+  var yearOrder=['YEAR1','YEAR2','YEAR3','YEAR4','YEAR5','YEAR6'];
+  var byYear={};
+  rows.forEach(function(r){byYear[r.year]=r;});
+  var valid=yearOrder.filter(function(y){var r=byYear[y];return r&&!isNaN(parseFloat(r.gap));});
+  if(!valid.length)return '';
+  var gaps=valid.map(function(y){return parseFloat(byYear[y].gap);});
+  var W=120,H=36,padL=4,padR=4,padT=4,padB=4;
+  var cW=W-padL-padR,cH=H-padT-padB,n=valid.length;
+  var minG=Math.min.apply(null,gaps),maxG=Math.max.apply(null,gaps);
+  if(minG>0)minG=0;if(maxG<0)maxG=0;
+  var range=maxG-minG;if(range<2)range=2;
+  function xp(i){return padL+(n===1?cW/2:i/(n-1)*cW);}
+  function yp(g){return padT+cH-((g-minG)/range*cH);}
+  var zeroY=yp(0);
+  var pts=valid.map(function(y,i){return xp(i)+','+yp(gaps[i]);}).join(' ');
+  var firstX=xp(0),lastX=xp(n-1);
+  var trend=getTrendFromRows(rows);
+  var lineColor=trend==='narrowing'?'#5dcaa5':trend==='widening'?'#f0907a':'#9a9fac';
+  return '<svg class="ofs-sparkline" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'+
+    '<line x1="'+padL+'" y1="'+zeroY+'" x2="'+(W-padR)+'" y2="'+zeroY+'" stroke="rgba(255,255,255,.1)" stroke-width="1"/>'+
+    '<polygon points="'+firstX+','+zeroY+' '+pts+' '+lastX+','+zeroY+'" fill="'+lineColor+'" opacity="0.12"/>'+
+    '<polyline points="'+pts+'" fill="none" stroke="'+lineColor+'" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>'+
+    '</svg>';
+}
+
+function trendBadgeHtml(trend) {
+  var map={narrowing:'Narrowing',widening:'Widening',stable:'Broadly stable',nodata:'No trend data'};
+  var cls={narrowing:'ofs-trend-narrowing',widening:'ofs-trend-widening',stable:'ofs-trend-stable',nodata:'ofs-trend-nodata'};
+  return '<span class="ofs-trend-badge '+cls[trend]+'">'+map[trend]+'</span>';
+}
+
+// Get rows for a specific institution from cached OfS data
+function getOfsRowsForInst(ofsData, ukprn, pair) {
+  var ind1=pair==='IMDQ3_5_vs_IMDQ1_2'?'IMDQ3_5':'IMDQ5';
+  var ind2=pair==='IMDQ3_5_vs_IMDQ1_2'?'IMDQ1_2':'IMDQ1';
+  var rows=ofsData.filter(function(r){return r.ukprn===ukprn&&r.split_ind1===ind1&&r.split_ind2===ind2;});
+  if(!rows.length){
+    var alt1=ind1==='IMDQ5'?'IMDQ3_5':'IMDQ5';
+    var alt2=ind2==='IMDQ1'?'IMDQ1_2':'IMDQ1';
+    rows=ofsData.filter(function(r){return r.ukprn===ukprn&&r.split_ind1===alt1&&r.split_ind2===alt2;});
+  }
+  return rows;
+}
+
 function loadOfsAndRender(t, containerId) {
   var lifecycle = getOfsLifecycle(t.lifecycle_stage || '');
   if (!lifecycle || !isImdTarget(t)) return;
@@ -1428,7 +1565,7 @@ function loadOfsAndRender(t, containerId) {
     }
 
     // SVG line chart
-    var W = 400, H = 90, padL = 32, padR = 8, padT = 10, padB = 22;
+    var W = 400, H = 110, padL = 42, padR = 8, padT = 18, padB = 28;
     var chartW = W - padL - padR;
     var chartH = H - padT - padB;
     var n = validYears.length;
@@ -1450,12 +1587,16 @@ function loadOfsAndRender(t, containerId) {
     var svgParts = [];
     svgParts.push('<line x1="'+padL+'" y1="'+zeroY+'" x2="'+(W-padR)+'" y2="'+zeroY+'" stroke="rgba(255,255,255,.15)" stroke-width="1" stroke-dasharray="3,3"/>');
 
-    // Y axis labels
+    // Y axis label (rotated)
+    svgParts.push('<text x="10" y="'+(padT+chartH/2)+'" text-anchor="middle" font-size="8" fill="#9a9fac" transform="rotate(-90,10,'+(padT+chartH/2)+')">pp gap</text>');
+    // Y axis ticks
     var yTicks = [minG, (minG+maxG)/2, maxG];
     yTicks.forEach(function(v) {
       var y = yPos(v);
       svgParts.push('<text x="'+(padL-4)+'" y="'+(y+3)+'" text-anchor="end" font-size="9" fill="#9a9fac">'+Math.round(v)+'</text>');
     });
+    // X axis label
+    svgParts.push('<text x="'+(padL+chartW/2)+'" y="'+(H-1)+'" text-anchor="middle" font-size="8" fill="#9a9fac">Academic year</text>');
 
     // Area fill under the line
     var areaPoints = validYears.map(function(y,i){ return xPos(i)+','+yPos(gaps[i]); }).join(' ');
@@ -1471,9 +1612,12 @@ function loadOfsAndRender(t, containerId) {
       var g = gaps[i];
       var x = xPos(i), yy = yPos(g);
       svgParts.push('<circle cx="'+x+'" cy="'+yy+'" r="3" fill="#f0907a" stroke="#16171a" stroke-width="1.5"/>');
-      var valY = yy - 6;
-      if (valY < padT + 8) valY = yy + 14;
-      svgParts.push('<text x="'+x+'" y="'+valY+'" text-anchor="middle" font-size="9" font-weight="700" fill="#f2f3f6">'+(g>0?'+':'')+g.toFixed(1)+'</text>');
+      var valY = yy - 8;
+      if (valY < padT + 10) valY = yy + 14;
+      // Shift first label right to avoid y-axis overlap
+      var valX = x;
+      if (i === 0) valX = Math.max(x, padL + 18);
+      svgParts.push('<text x="'+valX+'" y="'+valY+'" text-anchor="middle" font-size="9" font-weight="700" fill="#f2f3f6">'+(g>0?'+':'')+g.toFixed(1)+'</text>');
     });
 
     // X axis labels - show academic year, abbreviated
