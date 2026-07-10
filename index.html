@@ -1000,7 +1000,7 @@ function applyFilters(){
       var sparkHtml='';var trendBadge='';
       var simRows=getSparklineRows(r);
       if(simRows.length){sparkHtml=buildSparklineSvg(simRows);trendBadge=trendBadgeHtml(getTrendFromRows(simRows));}
-      var simOfsId='sim-ofs-'+ri;
+      var simOfsId='sim-ofs-'+name.replace(/\W/g,'_')+ri;
       var simHasOfs=!!getOfsCharacteristic(r);
       var simIdx=_simInsts.length;_simInsts.push(r);
       var moreBlock=rHd?'<div style="margin-top:6px"><button class="more-btn" onclick="toggleSimDetail(\''+rid+'\',\''+simOfsId+'\',this,_simInsts['+simIdx+'])">'+'+ More info</button>'+detailHtml(r,rid)+'<div id="'+simOfsId+'"></div></div>':simHasOfs?'<div style="margin-top:6px"><button class="more-btn" onclick="toggleSimDetail(\''+rid+'\',\''+simOfsId+'\',this,_simInsts['+simIdx+'])">'+'+ More info</button><div class="trow-detail" id="'+rid+'"></div><div id="'+simOfsId+'"></div></div>':'';
@@ -1163,10 +1163,10 @@ function applyDemoFilters(){
     var mg=[(rows[0].mission_group||'').trim(),(rows[0].mission_group2||'').trim()].filter(Boolean).join(' / ');
     var reg=(rows[0].region||'').trim();
     var meta=[mg,reg].filter(Boolean).join(' - ');
-    var hd='<div class="demo-inst-card"><div class="demo-inst-hd"><div style="flex:1;min-width:0"><div class="demo-inst-name">'+name+studentCount+'</div>'+(meta?'<div style="font-size:11px;color:var(--muted);margin-top:2px">'+meta+'</div>':'')+'</div>'+(instUrl?'<a href="'+instUrl+'" target="_blank" class="app-link" style="flex-shrink:0">&#128196; APP</a>':'')+'</div><div>';
     // Build sparkline for this institution once (same for all targets in same lifecycle)
     var demoSparkHtml='';var demoTrendBadge='';
     if(rows.length){var demoSRows=getSparklineRows(rows[0]);if(demoSRows.length){demoSparkHtml=buildSparklineSvg(demoSRows);demoTrendBadge=trendBadgeHtml(getTrendFromRows(demoSRows));}}
+    var hd='<div class="demo-inst-card"><div class="demo-inst-hd"><div style="flex:1;min-width:0"><div class="demo-inst-name">'+name+studentCount+'</div>'+(meta?'<div style="font-size:11px;color:var(--muted);margin-top:2px">'+meta+'</div>':'')+'</div>'+(demoSparkHtml?'<div style="flex-shrink:0;margin-left:8px;display:flex;align-items:center;gap:6px">'+demoSparkHtml+(demoTrendBadge?'<span style="font-size:10px;color:var(--muted)">'+demoTrendBadge+'</span>':'')+'</div>':'')+(instUrl?'<a href="'+instUrl+'" target="_blank" class="app-link" style="flex-shrink:0">&#128196; APP</a>':'')+'</div><div>';
     var targetRows=rows.map(function(r,ri){
       var stage=r.lifecycle_stage||'',chr=r.characteristic||'',sc=stageClass(stage),label=buildLabel(r),ds=buildDataStr(r),hdet=hasDetail(r);
       var detId='demodet-'+name.replace(/\W/g,'_')+ri;
@@ -1181,9 +1181,7 @@ function applyDemoFilters(){
         demoMore+
         '</div>';
     }).join('');
-    var demoSparkLabel=rows.length&&getOfsCharacteristic(rows[0])?(OFS_CHAR_LABELS[getOfsCharacteristic(rows[0])]||'Gap trend'):'Gap trend';
-    var sparkRow=demoSparkHtml?'<div style="padding:6px 14px 8px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,.05)">'+demoSparkHtml+'<span style="font-size:10px;color:var(--muted)">'+demoSparkLabel+demoTrendBadge+'</span></div>':'';
-    return hd+sparkRow+targetRows+'</div></div>';
+    return hd+targetRows+'</div></div>';
   }).join('');
 }
 
