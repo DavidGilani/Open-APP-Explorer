@@ -955,6 +955,7 @@ function resetFilters(){
   updateGroupCounters();document.getElementById('filter-dot').classList.remove('on');
 }
 function applyFilters(){
+  window._simInsts=[];
   var filterMission=document.getElementById('filter-mission').checked;
   var filterRegion=document.getElementById('filter-region').checked;
   var sizeVal=document.querySelector('input[name="inst-size"]:checked').value;
@@ -1001,7 +1002,8 @@ function applyFilters(){
       if(simRows.length){sparkHtml=buildSparklineSvg(simRows);trendBadge=trendBadgeHtml(getTrendFromRows(simRows));}
       var simOfsId='sim-ofs-'+ri;
       var simHasOfs=!!getOfsCharacteristic(r);
-      var moreBlock=rHd?'<div style="margin-top:6px"><button class="more-btn" onclick="toggleSimDetail(\''+rid+'\',\''+simOfsId+'\',this,'+JSON.stringify(r).replace(/\\/g,'\\\\').replace(/'/g,"\\'")+')">'+'+ More info</button>'+detailHtml(r,rid)+'<div id="'+simOfsId+'"></div></div>':simHasOfs?'<div style="margin-top:6px"><button class="more-btn" onclick="toggleSimDetail(\''+rid+'\',\''+simOfsId+'\',this,'+JSON.stringify(r).replace(/\\/g,'\\\\').replace(/'/g,"\\'")+')">'+'+ More info</button><div class="trow-detail" id="'+rid+'"></div><div id="'+simOfsId+'"></div></div>':'';
+      var simIdx=_simInsts.length;_simInsts.push(r);
+      var moreBlock=rHd?'<div style="margin-top:6px"><button class="more-btn" onclick="toggleSimDetail(\''+rid+'\',\''+simOfsId+'\',this,_simInsts['+simIdx+'])">'+'+ More info</button>'+detailHtml(r,rid)+'<div id="'+simOfsId+'"></div></div>':simHasOfs?'<div style="margin-top:6px"><button class="more-btn" onclick="toggleSimDetail(\''+rid+'\',\''+simOfsId+'\',this,_simInsts['+simIdx+'])">'+'+ More info</button><div class="trow-detail" id="'+rid+'"></div><div id="'+simOfsId+'"></div></div>':'';
       return '<div class="rrow"><div class="rrow-top"><div style="flex:1;min-width:0"><div class="rname">'+name+studentCount+trendBadge+'</div><div class="rdata">'+rLabel+'</div>'+(rd?'<div class="rdata-sub">'+rd+'</div>':'')+dataTags+'</div>'+(sparkHtml?'<div style="flex-shrink:0;margin-left:8px">'+sparkHtml+'</div>':'')+(rUrl?'<a href="'+rUrl+'" target="_blank" class="app-link" style="flex-shrink:0;margin-left:8px">&#128196; APP</a>':'')+'</div>'+moreBlock+'</div>';
     }).join('');
   }).join('');
@@ -1125,6 +1127,7 @@ function resetDemoFilters(){
 }
 
 function applyDemoFilters(){
+  window._demoInsts=[];
   var sizeVal=document.querySelector('input[name="demo-inst-size"]:checked').value;
   ['all','vs','sm','md','lg'].forEach(function(v){var el=document.getElementById('demo-size-'+v);if(el)el.classList.toggle('active',v===sizeVal);});
   var anyActive=demoMissionFilter||demoRegionFilter||sizeVal!=='all';
@@ -1167,11 +1170,15 @@ function applyDemoFilters(){
     var targetRows=rows.map(function(r,ri){
       var stage=r.lifecycle_stage||'',chr=r.characteristic||'',sc=stageClass(stage),label=buildLabel(r),ds=buildDataStr(r),hdet=hasDetail(r);
       var detId='demodet-'+name.replace(/\W/g,'_')+ri;
+      var demoOfsId='demoofs-'+name.replace(/\W/g,'_')+ri;
+      var demoHasOfs=!!getOfsCharacteristic(r);
+      var demoIdx=_demoInsts.length;_demoInsts.push(r);
+      var demoMore=(hdet||demoHasOfs)?'<div style="margin-top:6px"><button class="more-btn" onclick="toggleSimDetail(\''+detId+'\',\''+demoOfsId+'\',this,_demoInsts['+demoIdx+'])">'+'+ More info</button>'+detailHtml(r,detId)+'<div id="'+demoOfsId+'"></div></div>':'';
       return '<div class="demo-trow">'+
         '<div class="trow-badges">'+(stage?'<span class="badge '+sc+'">'+stage+'</span>':'')+(chr?'<span class="badge badge-char">'+chr+'</span>':'')+'</div>'+
         '<div class="trow-headline">'+label+'</div>'+
         (ds?'<div class="trow-data">'+ds+'</div>':'')+
-        (hdet?'<div class="trow-actions"><button class="more-btn" onclick="toggleDetail(\''+detId+'\',this)">+ More info</button></div>'+detailHtml(r,detId):'')+
+        demoMore+
         '</div>';
     }).join('');
     var demoSparkLabel=rows.length&&getOfsCharacteristic(rows[0])?(OFS_CHAR_LABELS[getOfsCharacteristic(rows[0])]||'Gap trend'):'Gap trend';
