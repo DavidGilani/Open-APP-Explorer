@@ -1552,12 +1552,15 @@ function buildOfsSvgChart(rows) {
   // X-tick labels at H-pB+12 (mid of bottom padding), "Academic year" label at H-4
   vy.forEach(function(y,i){var lbl=(labels[i]||'').replace('20','').replace('-','/')||y;sp.push('<text x="'+xPos(i)+'" y="'+(H-pB+12)+'" text-anchor="middle" font-size="9" fill="#9a9fac">'+lbl+'</text>');});
   sp.push('<text x="'+(pL+cW/2)+'" y="'+(H-4)+'" text-anchor="middle" font-size="8" fill="#9a9fac">Academic year</text>');
+  var chartTrend=gaps.length>=2?(gaps[gaps.length-1]<gaps[0]-0.5?'narrowing':gaps[gaps.length-1]>gaps[0]+0.5?'widening':'stable'):'stable';
+  var chartCol=chartTrend==='narrowing'?'#5dcaa5':chartTrend==='widening'?'#f0907a':'#9a9fac';
+  var chartFill=chartTrend==='narrowing'?'rgba(93,202,165,0.15)':chartTrend==='widening'?'rgba(240,144,122,0.15)':'rgba(154,159,172,0.15)';
   var ap=vy.map(function(y,i){return xPos(i)+','+yPos(gaps[i]);}).join(' ');
-  sp.push('<polygon points="'+xPos(0)+','+zy+' '+ap+' '+xPos(vy.length-1)+','+zy+'" fill="rgba(240,144,122,0.15)"/>');
-  sp.push('<polyline points="'+ap+'" fill="none" stroke="#f0907a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>');
+  sp.push('<polygon points="'+xPos(0)+','+zy+' '+ap+' '+xPos(vy.length-1)+','+zy+'" fill="'+chartFill+'"/>');
+  sp.push('<polyline points="'+ap+'" fill="none" stroke="'+chartCol+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>');
   vy.forEach(function(y,i){
     var g=gaps[i],x=xPos(i),yy=yPos(g);
-    sp.push('<circle cx="'+x+'" cy="'+yy+'" r="3" fill="#f0907a" stroke="#16171a" stroke-width="1.5"/>');
+    sp.push('<circle cx="'+x+'" cy="'+yy+'" r="3" fill="'+chartCol+'" stroke="#16171a" stroke-width="1.5"/>');
     var vy2=yy-8;if(vy2<pT+10)vy2=yy+14;
     var vx=x;if(i===0)vx=Math.max(x,pL+18);
     sp.push('<text x="'+vx+'" y="'+vy2+'" text-anchor="middle" font-size="9" font-weight="700" fill="#f2f3f6">'+(g>0?'+':'')+g.toFixed(1)+'</text>');
