@@ -563,6 +563,10 @@
               <label class="fchip" id="demo-size-lg"><input type="radio" name="demo-inst-size" value="lg" onchange="applyDemoFilters()" style="display:none">Large (15k+)</label>
             </div>
           </div>
+          <div class="filter-section" id="demo-profile-section" style="display:none">
+            <div class="filter-section-title">Student profile</div>
+            <div id="demo-profile-filters"></div>
+          </div>
           <button class="try-again-btn" onclick="resetDemoFilters()" style="margin-top:4px">Reset filters</button>
         </div>
       </div>
@@ -708,6 +712,20 @@ var demoRegionFilter   = '';
 var demoProgressFilter = 'all';
 
 // ── Config ────────────────────────────────────────────────────────────────
+var DEMO_BAND_KEYS = [
+  {key:'mature_pct', label:'Mature students'},
+  {key:'fsm',        label:'Free school meals (FSM)'},
+  {key:'imd_q1',     label:'IMD Q1 (most deprived)'},
+  {key:'tundra_q1',  label:'TUNDRA Q1 (low HE participation)'},
+  {key:'gem',        label:'GEM students'},
+  {key:'disability', label:'Disability'},
+  {key:'alevel',     label:'A-level entry'},
+  {key:'btec',       label:'BTEC entry'},
+  {key:'male',       label:'Male students'}
+];
+var _demoBands = {};
+var demoBandFilters = {};
+
 var CHIP_GROUPS = {
   'grp-mature':    [{ key:'mature_pct', label:'Mature students' }],
   'grp-imd':       [{ key:'fsm', label:'Free school meals' },{ key:'imd_q1', label:'IMD Q1' },{ key:'imd_q2', label:'IMD Q2' },{ key:'imd_q3', label:'IMD Q3' },{ key:'imd_q4', label:'IMD Q4' },{ key:'imd_q5', label:'IMD Q5' }],
@@ -734,6 +752,29 @@ var RELEVANCE_MAP = [
 var LIFECYCLE_COLORS = { access:'#b8aeff', success:'#5dcaa5', progression:'#f0907a', other:'#9a9fac' };
 
 // ── Utilities ─────────────────────────────────────────────────────────────
+function computeDemoBands() {
+  DEMO_BAND_KEYS.forEach(function(dk){
+    var seen={},vals=[];
+    allData.forEach(function(r){
+      var uk=(r.ukprn||'').toString().trim();
+      if(!uk||seen[uk])return;
+      seen[uk]=true;
+      var v=parsePct(r[dk.key]);
+      if(v!==null)vals.push(v);
+    });
+    vals.sort(function(a,b){return a-b;});
+    if(vals.length<8){_demoBands[dk.key]=null;return;}
+    var p25=vals[Math.floor(vals.length*0.25)];
+    var p50=vals[Math.floor(vals.length*0.50)];
+    var p75=vals[Math.floor(vals.length*0.75)];
+    _demoBands[dk.key]=[
+      {min:-Infinity, max:p25,      label:'<'+Math.round(p25*100)+'%'},
+      {min:p25,       max:p50,      label:Math.round(p25*100)+'–'+Math.round(p50*100)+'%'},
+      {min:p50,       max:p75,      label:Math.round(p50*100)+'–'+Math.round(p75*100)+'%'},
+      {min:p75,       max:Infinity, label:'≥'+Math.round(p75*100)+'%'}
+    ];
+  });
+}
 function parsePct(val) { if(val===null||val===undefined||val==='') return null; var n=parseFloat(val); return isNaN(n)?null:(n>1?n/100:n); }
 function fmtPct(val) { return val===null?'-':Math.round(val*100)+'%'; }
 function withinBand(a,b,pp) { return a!==null&&b!==null&&Math.abs(a-b)<=pp/100; }
@@ -1098,6 +1139,64 @@ function buildDemoFilterUI() {
     lbl.querySelector('input').addEventListener('change',function(){demoRegionFilter=reg;applyDemoFilters();syncDemoRegChips();});
     rRow.appendChild(lbl);
   });
+
+  buildDemoProfileFilters();
+}
+
+function buildDemoProfileFilters(){
+  var profSection=document.getElementById('demo-profile-section');
+  var profFilters=document.getElementById('demo-profile-filters');
+  if(!profFilters)return;
+  profFilters.innerHTML='';
+  var hasAny=false;
+  DEMO_BAND_KEYS.forEach(function(dk){
+    var bands=_demoBands[dk.key];
+    if(!bands)return;
+    hasAny=true;
+    var row=document.createElement('div');
+    row.style.cssText='margin-bottom:10px';
+    var lbl=document.createElement('div');
+    lbl.style.cssText='font-size:11px;color:var(--muted);margin-bottom:4px';
+    lbl.textContent=dk.label;
+    row.appendChild(lbl);
+    var chips=document.createElement('div');
+    chips.className='filter-chips-row';
+    chips.setAttribute('data-bandkey',dk.key);
+    var allChip=document.createElement('span');
+    allChip.className='plan-chip active';
+    allChip.textContent='All';
+    allChip.addEventListener('click',function(){demoBandFilters[dk.key]=new Set();syncAllBandChipsToState();applyDemoFilters();});
+    chips.appendChild(allChip);
+    bands.forEach(function(band,bi){
+      var chip=document.createElement('span');
+      chip.className='plan-chip';
+      chip.textContent=band.label;
+      chip.addEventListener('click',function(){
+        if(!demoBandFilters[dk.key])demoBandFilters[dk.key]=new Set();
+        if(demoBandFilters[dk.key].has(bi))demoBandFilters[dk.key].delete(bi);
+        else demoBandFilters[dk.key].add(bi);
+        syncAllBandChipsToState();
+        applyDemoFilters();
+      });
+      chips.appendChild(chip);
+    });
+    row.appendChild(chips);
+    profFilters.appendChild(row);
+  });
+  if(profSection)profSection.style.display=hasAny?'block':'none';
+}
+
+function syncAllBandChipsToState(){
+  DEMO_BAND_KEYS.forEach(function(dk){
+    var bands=_demoBands[dk.key];
+    if(!bands)return;
+    var chipsEl=document.querySelector('#demo-profile-filters [data-bandkey="'+dk.key+'"]');
+    if(!chipsEl)return;
+    var active=demoBandFilters[dk.key]&&demoBandFilters[dk.key].size>0;
+    var chipEls=chipsEl.querySelectorAll('.plan-chip');
+    if(chipEls[0])chipEls[0].classList.toggle('active',!active);
+    bands.forEach(function(b,bi){if(chipEls[bi+1])chipEls[bi+1].classList.toggle('active',!!(demoBandFilters[dk.key]&&demoBandFilters[dk.key].has(bi)));});
+  });
 }
 
 function setDemoProgressFilter(val){
@@ -1123,6 +1222,7 @@ function resetDemoFilters(){
   document.getElementById('demo-filter-dot').classList.remove('on');
   demoProgressFilter='all';
   ['all','narrowing','stable','widening','nodata'].forEach(function(v){var el=document.getElementById('demo-prog-'+v);if(el)el.classList.toggle('active',v==='all');});
+  demoBandFilters={};syncAllBandChipsToState();
   applyDemoFilters();
 }
 
@@ -1130,7 +1230,8 @@ function applyDemoFilters(){
   window._demoInsts=[];
   var sizeVal=document.querySelector('input[name="demo-inst-size"]:checked').value;
   ['all','vs','sm','md','lg'].forEach(function(v){var el=document.getElementById('demo-size-'+v);if(el)el.classList.toggle('active',v===sizeVal);});
-  var anyActive=demoMissionFilter||demoRegionFilter||sizeVal!=='all';
+  var anyBandActive=Object.keys(demoBandFilters).some(function(k){return demoBandFilters[k]&&demoBandFilters[k].size>0;});
+  var anyActive=demoMissionFilter||demoRegionFilter||sizeVal!=='all'||anyBandActive;
   document.getElementById('demo-filter-dot').classList.toggle('on',!!anyActive);
 
   var filtered=currentDemoResults.filter(function(r){
@@ -1142,6 +1243,15 @@ function applyDemoFilters(){
       var dpRows=getSparklineRows(r);
       var dpTrend=dpRows.length?getTrendFromRows(dpRows):'nodata';
       if(dpTrend!==demoProgressFilter)return false;
+    }
+    for(var bk in demoBandFilters){
+      if(!demoBandFilters[bk]||!demoBandFilters[bk].size)continue;
+      var bv=parsePct(r[bk]);
+      var bbands=_demoBands[bk];
+      if(!bbands)continue;
+      var inBand=false;
+      demoBandFilters[bk].forEach(function(bi){if(bv!==null&&bv>=bbands[bi].min&&bv<bbands[bi].max)inBand=true;});
+      if(!inBand)return false;
     }
     return true;
   });
@@ -1315,6 +1425,7 @@ function init() {
         if(r.plan_url&&r.plan_url.length>10){var n=r.used_name||r.legal_name;if(n&&!instPlanUrls[n])instPlanUrls[n]=r.plan_url;}
       });
       institutions.sort();
+      computeDemoBands();
       dataLoaded=true;
       buildDemoDropdowns();
       document.getElementById('loading-msg').classList.remove('visible');
