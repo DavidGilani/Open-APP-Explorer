@@ -1,12 +1,15 @@
 import gspread
 import json
+import os
 import time
 import urllib.request
 from google.oauth2.service_account import Credentials
 
 CREDENTIALS_FILE = r"C:\Users\David278\credentials.json"
 SHEET_ID = "1jH2blZLjztpLqAgh7BV7G-Kl7TI1_PZZxojEY2lH5Zg"
-OUTPUT_FILE = r"C:\Users\David278\Open-APP-Explorer\data.json"
+# Write data.json next to this script, so it always lands in the repo folder
+# regardless of where the repo is cloned.
+OUTPUT_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data.json")
 
 def get_sheets_client():
     scopes = [
