@@ -195,6 +195,11 @@
     .ofs-toggle-btn{background:transparent;border:none;color:var(--muted);font-size:11px;font-weight:600;padding:3px 10px;cursor:pointer;transition:background .15s,color .15s}
     .ofs-toggle-btn.active{background:rgba(255,255,255,.1);color:var(--text)}
     .ofs-toggle-btn:hover:not(.active){background:rgba(255,255,255,.05);color:var(--text)}
+    .ofs-ov-btn{background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:11px;font-weight:600;padding:3px 10px;cursor:pointer;margin-bottom:6px;margin-left:6px;transition:background .15s,color .15s}
+    .ofs-ov-btn:hover{background:rgba(255,255,255,.05);color:var(--text)}
+    .ofs-ov-btn.active{background:rgba(126,184,247,.15);color:#7eb8f7;border-color:rgba(126,184,247,.4)}
+    .ofs-ov-line{stroke:#6b7280;stroke-width:1;fill:none;stroke-opacity:.28;transition:stroke-opacity .1s,stroke-width .1s;cursor:pointer}
+    .ofs-ov-line:hover{stroke:#f2f3f6;stroke-opacity:1;stroke-width:2}
     .ofs-chart-svg{width:100%;overflow:visible;display:block}
     .ofs-sparkline{display:block;width:120px;height:36px;flex-shrink:0}
     .ofs-trend-badge{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600;white-space:nowrap;margin-left:6px;vertical-align:middle}
@@ -1567,6 +1572,7 @@ var OFS_CHAR_SOURCE_NOTES = {
 };
 var ofsViewMode='gaps'; // 'gaps' | 'indicators'
 var _ofsLastRender={}; // containerId -> {t, rows, charKey, lifecycle, allData}
+var _ofsOverlay={};    // containerId -> bool (overlay all institutions on gap chart)
 var OFS_IND_GROUPS={
   'imd':       ['IMDQ5','IMDQ4','IMDQ3','IMDQ2','IMDQ1'],
   'ethnicity': ['White','ABMO','Black','Asian','Mixed','Other'],
@@ -1747,6 +1753,72 @@ function buildOfsSvgChart(rows) {
   return {svg:'<svg class="ofs-chart-svg" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'+sp.join('')+'</svg>',trend:trend};
 }
 
+// Overlay chart: the selected institution's gap line prominent, with every other
+// institution (same characteristic pair + lifecycle) drawn faint behind it.
+// Aligned on academic_year (YEAR1..6 codes are per-institution relative).
+function buildOfsOverlayChart(primaryRows, allData) {
+  if(!primaryRows||!primaryRows.length)return null;
+  var i1=primaryRows[0].split_ind1,i2=primaryRows[0].split_ind2,pUk=(primaryRows[0].ukprn||'').toString().trim();
+  // Group matching gap rows by institution
+  var byInst={};
+  allData.forEach(function(r){
+    if(r.split_ind1!==i1||r.split_ind2!==i2)return;
+    if(r.split_ind2==='[N/A]')return;
+    var g=parseFloat(r.gap),ay=r.academic_year;
+    if(isNaN(g)||!ay)return;
+    var uk=(r.ukprn||'').toString().trim();
+    if(!byInst[uk])byInst[uk]={name:r.provider_name||uk,byAy:{}};
+    byInst[uk].byAy[ay]=g;
+  });
+  // All academic years, ascending
+  var aySet={};Object.keys(byInst).forEach(function(uk){Object.keys(byInst[uk].byAy).forEach(function(ay){aySet[ay]=true;});});
+  var allAy=Object.keys(aySet).sort();
+  if(allAy.length<1)return null;
+  var ayIdx={};allAy.forEach(function(ay,i){ayIdx[ay]=i;});
+  // Y range across all values (include 0)
+  var vals=[0];
+  Object.keys(byInst).forEach(function(uk){Object.keys(byInst[uk].byAy).forEach(function(ay){vals.push(byInst[uk].byAy[ay]);});});
+  var minG=Math.min.apply(null,vals),maxG=Math.max.apply(null,vals),range=maxG-minG;
+  if(range<4){minG-=2;maxG+=2;range=maxG-minG;}
+  var W=400,H=150,pL=42,pR=8,pT=18,pB=42,cW=W-pL-pR,cH=H-pT-pB,n=allAy.length;
+  function xPos(i){return pL+(n===1?cW/2:i/(n-1)*cW);}
+  function yPos(g){return pT+cH-((g-minG)/range*cH);}
+  var zy=yPos(0),sp=[];
+  sp.push('<line x1="'+pL+'" y1="'+zy+'" x2="'+(W-pR)+'" y2="'+zy+'" stroke="rgba(255,255,255,.15)" stroke-width="1" stroke-dasharray="3,3"/>');
+  sp.push('<text x="10" y="'+(pT+cH/2)+'" text-anchor="middle" font-size="8" fill="#9a9fac" transform="rotate(-90,10,'+(pT+cH/2)+')">pp gap</text>');
+  [minG,(minG+maxG)/2,maxG].forEach(function(v){sp.push('<text x="'+(pL-4)+'" y="'+(yPos(v)+3)+'" text-anchor="end" font-size="9" fill="#9a9fac">'+Math.round(v)+'</text>');});
+  allAy.forEach(function(ay,i){
+    // Thin the labels if crowded
+    if(n>7&&i%2!==0&&i!==n-1)return;
+    var lbl=(ay||'').replace('20','').replace('-','/');
+    sp.push('<text x="'+xPos(i)+'" y="'+(H-pB+12)+'" text-anchor="middle" font-size="8" fill="#9a9fac">'+lbl+'</text>');
+  });
+  sp.push('<text x="'+(pL+cW/2)+'" y="'+(H-16)+'" text-anchor="middle" font-size="8" fill="#9a9fac">Academic year</text>');
+  // Faint lines for every non-primary institution
+  var others=0;
+  Object.keys(byInst).forEach(function(uk){
+    if(uk===pUk)return;
+    var inst=byInst[uk],pts=[];
+    allAy.forEach(function(ay){if(inst.byAy[ay]!==undefined)pts.push(xPos(ayIdx[ay])+','+yPos(inst.byAy[ay]));});
+    if(pts.length<2)return;
+    others++;
+    var nm=(inst.name||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    sp.push('<polyline class="ofs-ov-line" points="'+pts.join(' ')+'"><title>'+nm+'</title></polyline>');
+  });
+  // Primary institution on top, bold
+  var pInst=byInst[pUk];
+  var trend='stable';
+  if(pInst){
+    var pAy=allAy.filter(function(ay){return pInst.byAy[ay]!==undefined;});
+    if(pAy.length>=2){var f=pInst.byAy[pAy[0]],l=pInst.byAy[pAy[pAy.length-1]];trend=l<f-0.5?'narrowing':l>f+0.5?'widening':'stable';}
+    var col=trend==='narrowing'?'#5dcaa5':trend==='widening'?'#f0907a':'#7eb8f7';
+    var ppts=pAy.map(function(ay){return xPos(ayIdx[ay])+','+yPos(pInst.byAy[ay]);});
+    if(ppts.length>=2)sp.push('<polyline points="'+ppts.join(' ')+'" fill="none" stroke="'+col+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>');
+    pAy.forEach(function(ay){sp.push('<circle cx="'+xPos(ayIdx[ay])+'" cy="'+yPos(pInst.byAy[ay])+'" r="3" fill="'+col+'" stroke="#16171a" stroke-width="1.5"/>');});
+  }
+  return {svg:'<svg class="ofs-chart-svg" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'+sp.join('')+'</svg>',others:others,trend:trend};
+}
+
 function buildOfsIndicatorChart(indGroupData) {
   var yo=['YEAR1','YEAR2','YEAR3','YEAR4','YEAR5','YEAR6'];
   // Build per-group year maps, filter to groups with at least one valid point
@@ -1804,11 +1876,11 @@ function buildOfsIndicatorChart(indGroupData) {
   return '<svg class="ofs-chart-svg" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'+sp.join('')+'</svg>';
 }
 
-function _ofsToggleHtml(containerId){
-  return '<div style="display:flex;justify-content:flex-end"><div class="ofs-toggle">'+
+function _ofsToggleHtml(containerId,extra){
+  return '<div style="display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap"><div class="ofs-toggle">'+
     '<button class="ofs-toggle-btn'+(ofsViewMode==='gaps'?' active':'')+'" onclick="switchOfsMode(\'gaps\',\''+containerId+'\')">Gaps</button>'+
     '<button class="ofs-toggle-btn'+(ofsViewMode==='indicators'?' active':'')+'" onclick="switchOfsMode(\'indicators\',\''+containerId+'\')">Indicators</button>'+
-    '</div></div>';
+    '</div>'+(extra||'')+'</div>';
 }
 
 function switchOfsMode(mode,containerId){
@@ -1819,6 +1891,12 @@ function switchOfsMode(mode,containerId){
   document.querySelectorAll('.ofs-toggle-btn').forEach(function(btn){
     btn.classList.toggle('active',btn.textContent.toLowerCase()===mode);
   });
+}
+
+function toggleOfsOverlay(containerId){
+  _ofsOverlay[containerId]=!_ofsOverlay[containerId];
+  var p=_ofsLastRender[containerId];
+  if(p)_ofsRenderInto(containerId,p.t,p.rows,p.charKey,p.lifecycle,p.allData);
 }
 
 function _ofsLoadAndRun(charKey, lifecycle, onData, onCached) {
@@ -1874,7 +1952,17 @@ function _ofsRenderInto(containerId, t, rows, charKey, lifecycle, allData) {
   var usedInd1=rows[0].split_ind1,usedInd2=rows[0].split_ind2;
   var pairLabel=OFS_PAIR_LABELS[usedInd1+','+usedInd2]||(usedInd1+' vs '+usedInd2+' gap (pp)');
   if(charKey==='imd'){var p=getImfPair(t);pairLabel=p==='IMDQ3_5_vs_IMDQ1_2'?'IMD Q3-5 vs Q1+2 gap (percentage points)':'IMD Q5 vs Q1 gap (percentage points)';}
-  container.innerHTML='<div class="ofs-panel">'+toggle+'<div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-pair-label">'+pairLabel+chart.trend+'</div>'+chart.svg+'<div class="ofs-note">Source: OfS access and participation data (full-time undergraduates, '+note+'). Positive gap = disadvantaged group has lower rate. Data shown for '+lifecycle.toLowerCase()+'.</div></div>';
+  var ovOn=!!_ofsOverlay[containerId];
+  var ovBtn=allData?('<button class="ofs-ov-btn'+(ovOn?' active':'')+'" onclick="toggleOfsOverlay(\''+containerId+'\')">'+(ovOn?'Hide sector overlay':'Compare all institutions')+'</button>'):'';
+  var header=_ofsToggleHtml(containerId,ovBtn);
+  if(ovOn&&allData){
+    var ov=buildOfsOverlayChart(rows,allData);
+    if(ov){
+      container.innerHTML='<div class="ofs-panel">'+header+'<div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-pair-label">'+pairLabel+' – this institution vs all others'+'</div>'+ov.svg+'<div class="ofs-note">This institution is the bold '+(ov.trend==='narrowing'?'green':ov.trend==='widening'?'red':'blue')+' line; each faint line is another institution ('+ov.others+' shown). Hover a line to see its name. Source: OfS access and participation data (full-time undergraduates, '+note+'), '+lifecycle.toLowerCase()+'. A target sits with an institution, not where its students live.</div></div>';
+      return;
+    }
+  }
+  container.innerHTML='<div class="ofs-panel">'+header+'<div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-pair-label">'+pairLabel+chart.trend+'</div>'+chart.svg+'<div class="ofs-note">Source: OfS access and participation data (full-time undergraduates, '+note+'). Positive gap = disadvantaged group has lower rate. Data shown for '+lifecycle.toLowerCase()+'.</div></div>';
 }
 
 function loadOfsAndRender(t, containerId) {
