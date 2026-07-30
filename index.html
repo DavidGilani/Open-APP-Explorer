@@ -270,6 +270,20 @@
     .stat-label{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.4}
     .summary-section{margin-bottom:24px}
     .summary-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:12px}
+    .map-controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+    .map-controls select{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:7px 10px;font-family:Arial,sans-serif;cursor:pointer}
+    .map-wrap{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start}
+    .map-svg-box{flex:0 0 auto;width:320px;max-width:100%}
+    #uk-map{width:100%;height:auto;background:var(--bg2);border:1px solid var(--border2);border-radius:12px;display:block}
+    .map-dot{cursor:pointer}
+    .map-dot:hover{stroke:#f2f3f6;stroke-width:1.5}
+    .map-panel{flex:1;min-width:240px;background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:16px;align-self:stretch}
+    .map-panel h4{font-size:14px;font-weight:700;color:#f2f3f6;margin:0 0 4px}
+    .map-panel .mp-meta{font-size:12px;color:var(--muted);margin-bottom:12px}
+    .map-panel .mp-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border)}
+    .map-panel .mp-row span:last-child{color:#f2f3f6;font-weight:600}
+    .map-tgt{font-size:12px;color:var(--muted);padding:6px 0;border-bottom:1px solid var(--border);line-height:1.4}
+    .map-hint{font-size:12px;color:var(--muted);line-height:1.5}
     .lifecycle-wrap{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:20px;display:flex;align-items:center;gap:32px;flex-wrap:wrap}
     .lifecycle-legend{display:flex;flex-direction:column;gap:12px;flex:1;min-width:160px}
     .legend-row{display:flex;align-items:center;gap:10px}
@@ -617,6 +631,20 @@
       <div class="stat-card"><div class="stat-num" id="sum-insts">-</div><div class="stat-label">institutions with APPs in the dataset</div></div>
       <div class="stat-card"><div class="stat-num" id="sum-targets">-</div><div class="stat-label">total targets captured</div></div>
       <div class="stat-card"><div class="stat-num" id="sum-chars">-</div><div class="stat-label">distinct demographic areas targeted</div></div>
+    </div>
+
+    <div class="summary-section" id="map-section">
+      <div class="summary-section-title">Where targets are across the UK</div>
+      <div class="map-controls">
+        <select id="map-stage" onchange="setMapFilter('stage',this.value)"><option value="">All lifecycle stages</option></select>
+        <select id="map-char" onchange="setMapFilter('char',this.value)"><option value="">All demographic areas</option></select>
+        <select id="map-region" onchange="setMapFilter('region',this.value)"><option value="">All regions</option></select>
+      </div>
+      <div class="map-wrap">
+        <div class="map-svg-box"><svg id="uk-map" viewBox="0 0 320 460" xmlns="http://www.w3.org/2000/svg"></svg></div>
+        <div class="map-panel" id="map-panel"></div>
+      </div>
+      <div class="ofs-note" style="margin-top:10px">Each circle is an institution, placed at its registered address and sized by how many matching targets it has. A target sits with an institution, not necessarily where its students live. Hover for the name, click for its targets, or choose a region to summarise it.</div>
     </div>
 
     <div class="summary-section">
@@ -1441,7 +1469,148 @@ function buildSummary(){
     stageDemoHtml+='</div>';
   });
   document.getElementById('sum-stage-bars').innerHTML=stageDemoHtml;
+  buildMap();
   // summaryBuilt intentionally not cached so filter changes trigger a rebuild
+}
+
+// ── UK map (summary view) ──────────────────────────────────────────────────
+var UK_OUTLINE=[[[-4.153,53.226],[-4.066,53.226],[-3.854,53.284],[-3.589,53.282],[-3.336,53.347],[-3.102,53.248],[-3.083,53.271],[-3.192,53.386],[-3.062,53.411],[-2.882,53.285],[-2.776,53.292],[-2.703,53.346],[-2.854,53.321],[-2.954,53.36],[-3.107,53.552],[-2.979,53.694],[-2.899,53.723],[-3.006,53.735],[-3.051,53.765],[-3.053,53.906],[-2.933,53.951],[-2.834,54.085],[-2.814,54.223],[-2.935,54.151],[-3.152,54.082],[-3.226,54.099],[-3.409,54.277],[-3.434,54.348],[-3.634,54.512],[-3.569,54.642],[-3.381,54.884],[-3.287,54.939],[-3.103,54.934],[-3.026,54.946],[-3.023,54.971],[-3.571,54.991],[-3.616,54.875],[-3.696,54.881],[-3.812,54.849],[-3.965,54.765],[-4.136,54.775],[-4.348,54.858],[-4.393,54.908],[-4.429,54.864],[-4.36,54.771],[-4.345,54.707],[-4.387,54.676],[-4.506,54.703],[-4.599,54.78],[-4.852,54.869],[-4.962,54.798],[-4.868,54.682],[-4.856,54.631],[-4.941,54.649],[-4.963,54.68],[-4.957,54.723],[-5.12,54.834],[-5.176,54.901],[-5.174,55.001],[-5.054,55.047],[-5.011,55.135],[-4.866,55.222],[-4.836,55.322],[-4.747,55.412],[-4.638,55.444],[-4.613,55.495],[-4.699,55.607],[-4.916,55.697],[-4.88,55.936],[-4.797,55.953],[-4.482,55.921],[-4.855,55.986],[-4.86,56.07],[-4.829,56.113],[-4.867,56.106],[-4.898,55.981],[-4.979,55.866],[-5.173,55.929],[-5.225,55.902],[-5.208,55.826],[-5.303,55.851],[-5.341,55.905],[-5.309,56.008],[-5.203,56.117],[-4.918,56.271],[-5.032,56.232],[-5.259,56.107],[-5.391,56.0],[-5.432,56.008],[-5.38,55.75],[-5.447,55.705],[-5.486,55.643],[-5.555,55.414],[-5.515,55.362],[-5.596,55.306],[-5.777,55.297],[-5.794,55.39],[-5.719,55.44],[-5.702,55.589],[-5.608,55.759],[-5.674,55.807],[-5.676,55.912],[-5.571,56.037],[-5.626,56.021],[-5.67,55.973],[-5.68,55.991],[-5.512,56.182],[-5.598,56.16],[-5.574,56.325],[-5.521,56.389],[-5.421,56.433],[-5.221,56.436],[-5.108,56.508],[-5.066,56.561],[-5.203,56.454],[-5.399,56.479],[-5.377,56.521],[-5.332,56.517],[-5.246,56.556],[-5.351,56.545],[-5.383,56.583],[-5.12,56.817],[-5.564,56.541],[-5.677,56.494],[-5.931,56.57],[-6.008,56.637],[-5.547,56.692],[-5.762,56.712],[-5.919,56.674],[-6.191,56.68],[-6.235,56.719],[-6.19,56.75],[-5.954,56.782],[-5.853,56.742],[-5.799,56.789],[-5.854,56.828],[-5.718,56.839],[-5.661,56.869],[-5.739,56.894],[-5.922,56.888],[-5.822,57.006],[-5.738,57.012],[-5.643,56.972],[-5.52,56.996],[-5.631,56.985],[-5.787,57.052],[-5.725,57.113],[-5.533,57.088],[-5.4,57.106],[-5.55,57.116],[-5.65,57.162],[-5.646,57.235],[-5.55,57.257],[-5.45,57.221],[-5.406,57.229],[-5.571,57.284],[-5.599,57.33],[-5.463,57.387],[-5.45,57.42],[-5.769,57.34],[-5.819,57.364],[-5.871,57.479],[-5.84,57.573],[-5.777,57.57],[-5.651,57.508],[-5.509,57.535],[-5.535,57.552],[-5.669,57.546],[-5.81,57.638],[-5.817,57.822],[-5.799,57.855],[-5.717,57.869],[-5.683,57.846],[-5.662,57.786],[-5.603,57.767],[-5.581,57.83],[-5.645,57.878],[-5.611,57.924],[-5.457,57.859],[-5.431,57.901],[-5.339,57.921],[-5.218,57.901],[-5.103,57.851],[-5.189,57.948],[-5.398,58.031],[-5.455,58.076],[-5.427,58.099],[-5.319,58.064],[-5.28,58.08],[-5.274,58.149],[-5.396,58.242],[-5.392,58.259],[-5.072,58.265],[-5.126,58.287],[-5.175,58.35],[-5.109,58.508],[-5.005,58.623],[-4.772,58.604],[-4.702,58.559],[-4.677,58.524],[-4.757,58.442],[-4.604,58.523],[-4.595,58.565],[-4.565,58.576],[-4.429,58.54],[-4.277,58.534],[-3.785,58.567],[-3.66,58.62],[-3.365,58.595],[-3.354,58.661],[-3.026,58.647],[-3.056,58.454],[-3.209,58.304],[-3.364,58.274],[-3.515,58.162],[-3.997,57.951],[-4.012,57.927],[-3.991,57.902],[-4.015,57.868],[-4.12,57.851],[-4.392,57.905],[-4.346,57.858],[-4.043,57.814],[-3.926,57.807],[-3.851,57.82],[-3.802,57.86],[-3.773,57.851],[-3.978,57.698],[-4.021,57.699],[-4.031,57.731],[-4.297,57.674],[-4.436,57.575],[-4.191,57.671],[-4.081,57.665],[-4.047,57.643],[-4.241,57.5],[-4.197,57.486],[-4.038,57.557],[-3.754,57.625],[-3.593,57.637],[-3.506,57.674],[-3.488,57.709],[-3.289,57.726],[-3.223,57.692],[-3.042,57.662],[-2.898,57.707],[-2.4,57.666],[-2.186,57.669],[-2.076,57.699],[-1.918,57.671],[-1.822,57.579],[-1.773,57.458],[-1.978,57.314],[-2.062,57.204],[-2.093,57.07],[-2.19,56.975],[-2.186,56.918],[-2.22,56.868],[-2.478,56.715],[-2.449,56.687],[-2.527,56.579],[-2.721,56.489],[-3.07,56.452],[-3.278,56.357],[-3.193,56.359],[-2.884,56.451],[-2.809,56.439],[-2.801,56.344],[-2.644,56.317],[-2.583,56.268],[-2.788,56.187],[-2.957,56.202],[-3.154,56.086],[-3.393,56.011],[-3.583,56.055],[-3.737,56.056],[-3.725,56.027],[-3.053,55.944],[-2.91,55.978],[-2.82,56.057],[-2.631,56.055],[-2.08,55.867],[-1.98,55.757],[-1.82,55.634],[-1.634,55.581],[-1.581,55.486],[-1.573,55.42],[-1.599,55.386],[-1.515,55.15],[-1.381,54.976],[-1.298,54.764],[-1.165,54.65],[-0.565,54.48],[-0.458,54.377],[-0.382,54.256],[-0.263,54.174],[-0.075,54.112],[-0.174,54.082],[-0.215,54.015],[-0.128,53.864],[0.141,53.627],[0.152,53.592],[0.118,53.564],[0.138,53.6],[0.109,53.619],[0.03,53.64],[-0.086,53.624],[-0.273,53.736],[-0.549,53.706],[-0.632,53.729],[-0.719,53.7],[-0.52,53.685],[-0.298,53.713],[-0.207,53.631],[0.027,53.51],[0.147,53.475],[0.236,53.399],[0.34,53.233],[0.358,53.161],[0.342,53.096],[0.173,53.009],[0.0,52.88],[0.086,52.89],[0.165,52.86],[0.239,52.796],[0.363,52.78],[0.431,52.826],[0.494,52.937],[0.546,52.966],[0.878,52.968],[1.282,52.927],[1.393,52.894],[1.675,52.748],[1.746,52.62],[1.749,52.456],[1.58,52.076],[1.329,51.928],[1.274,51.988],[1.16,52.023],[1.294,51.877],[1.224,51.809],[1.05,51.771],[0.987,51.826],[0.7,51.719],[0.759,51.691],[0.932,51.739],[0.951,51.606],[0.789,51.524],[0.649,51.537],[0.465,51.503],[0.383,51.451],[0.536,51.488],[0.698,51.471],[0.723,51.441],[0.645,51.441],[0.556,51.408],[0.588,51.386],[0.905,51.341],[1.386,51.388],[1.427,51.331],[1.39,51.154],[1.354,51.127],[1.046,51.049],[0.979,50.997],[0.975,50.932],[0.781,50.936],[0.662,50.869],[0.349,50.809],[0.242,50.738],[-0.255,50.826],[-0.675,50.781],[-0.746,50.766],[-0.796,50.725],[-0.91,50.772],[-0.864,50.801],[-0.927,50.839],[-1.155,50.844],[-1.116,50.809],[-1.137,50.779],[-1.331,50.791],[-1.593,50.724],[-1.684,50.739],[-1.934,50.713],[-2.042,50.734],[-2.08,50.694],[-1.953,50.667],[-1.936,50.639],[-1.958,50.599],[-2.058,50.586],[-2.197,50.626],[-2.394,50.642],[-2.464,50.598],[-2.425,50.56],[-2.434,50.542],[-2.495,50.596],[-2.662,50.673],[-2.925,50.732],[-2.978,50.706],[-3.244,50.674],[-3.437,50.605],[-3.5,50.536],[-3.652,50.231],[-3.717,50.207],[-3.813,50.217],[-3.947,50.314],[-4.053,50.296],[-4.175,50.378],[-4.38,50.364],[-4.483,50.326],[-4.763,50.311],[-4.857,50.232],[-5.048,50.171],[-5.075,50.085],[-5.059,50.042],[-5.159,50.004],[-5.193,49.955],[-5.256,50.001],[-5.253,50.03],[-5.29,50.069],[-5.471,50.125],[-5.537,50.113],[-5.539,50.074],[-5.567,50.051],[-5.66,50.036],[-5.713,50.054],[-5.696,50.153],[-5.496,50.217],[-5.428,50.194],[-5.154,50.342],[-5.052,50.422],[-5.014,50.545],[-4.781,50.594],[-4.744,50.667],[-4.554,50.785],[-4.524,51.015],[-4.358,50.989],[-4.304,51.004],[-4.209,51.074],[-4.226,51.189],[-3.792,51.239],[-3.511,51.224],[-3.39,51.181],[-3.028,51.206],[-3.007,51.307],[-2.96,51.375],[-2.653,51.564],[-2.472,51.724],[-2.38,51.756],[-2.397,51.776],[-2.461,51.747],[-2.715,51.581],[-2.966,51.542],[-3.116,51.49],[-3.186,51.396],[-3.346,51.379],[-3.56,51.406],[-3.749,51.525],[-3.84,51.621],[-3.966,51.61],[-4.206,51.532],[-4.278,51.557],[-4.291,51.61],[-4.116,51.634],[-4.075,51.649],[-4.075,51.677],[-4.262,51.677],[-4.436,51.737],[-4.574,51.734],[-4.676,51.719],[-4.709,51.65],[-4.862,51.641],[-4.941,51.594],[-5.051,51.62],[-5.021,51.669],[-4.861,51.713],[-4.884,51.747],[-4.904,51.714],[-5.011,51.703],[-5.247,51.73],[-5.102,51.779],[-5.127,51.854],[-5.259,51.871],[-5.239,51.916],[-5.097,51.961],[-5.077,51.996],[-4.832,52.015],[-4.737,52.104],[-4.669,52.13],[-4.495,52.138],[-4.232,52.249],[-4.131,52.335],[-4.06,52.486],[-4.081,52.553],[-4.128,52.605],[-4.053,52.717],[-4.148,52.798],[-4.118,52.894],[-4.134,52.914],[-4.414,52.885],[-4.539,52.793],[-4.761,52.789],[-4.619,52.909],[-4.364,53.026],[-4.33,53.112],[-4.153,53.226]],[[-6.353,55.238],[-6.067,55.194],[-6.034,55.155],[-6.036,55.058],[-5.791,54.851],[-5.732,54.848],[-5.688,54.806],[-5.688,54.761],[-5.711,54.739],[-5.888,54.675],[-5.924,54.634],[-5.908,54.605],[-5.738,54.674],[-5.577,54.678],[-5.535,54.652],[-5.431,54.487],[-5.461,54.386],[-5.508,54.364],[-5.545,54.401],[-5.532,54.427],[-5.568,54.524],[-5.693,54.575],[-5.705,54.534],[-5.645,54.493],[-5.573,54.377],[-5.562,54.283],[-5.653,54.226],[-5.746,54.248],[-5.864,54.224],[-5.896,54.099],[-6.044,54.031],[-6.108,54.036],[-6.197,54.095],[-6.339,54.116],[-6.447,54.058],[-6.62,54.037],[-6.735,54.184],[-6.852,54.287],[-6.876,54.345],[-7.025,54.417],[-7.161,54.337],[-7.176,54.289],[-7.143,54.256],[-7.146,54.225],[-7.281,54.125],[-7.33,54.113],[-7.559,54.127],[-7.697,54.202],[-7.821,54.199],[-7.867,54.224],[-7.878,54.289],[-7.941,54.299],[-8.056,54.366],[-8.172,54.464],[-7.752,54.594],[-7.777,54.627],[-7.906,54.664],[-7.928,54.699],[-7.83,54.736],[-7.739,54.711],[-7.553,54.763],[-7.326,55.045],[-7.253,55.071],[-7.251,55.046],[-7.074,55.038],[-7.02,55.07],[-6.967,55.156],[-6.73,55.18],[-6.516,55.233],[-6.353,55.238]],[[-6.204,58.356],[-6.324,58.264],[-6.328,58.235],[-6.281,58.222],[-6.148,58.256],[-6.172,58.207],[-6.264,58.177],[-6.329,58.183],[-6.382,58.13],[-6.62,58.082],[-6.396,58.105],[-6.354,58.033],[-6.474,57.94],[-6.571,57.911],[-6.662,57.924],[-6.706,58.008],[-6.659,58.047],[-6.59,58.05],[-6.684,58.057],[-6.761,57.998],[-6.661,57.885],[-6.735,57.826],[-6.973,57.725],[-7.123,57.817],[-7.125,57.838],[-7.066,57.821],[-6.83,57.901],[-6.935,57.95],[-7.036,57.953],[-7.113,57.984],[-7.056,58.02],[-7.128,58.135],[-7.041,58.233],[-6.908,58.213],[-6.936,58.188],[-6.862,58.104],[-6.873,58.179],[-6.745,58.197],[-6.808,58.26],[-6.798,58.302],[-6.673,58.349],[-6.55,58.363],[-6.267,58.512],[-6.223,58.496],[-6.166,58.425],[-6.204,58.356]],[[-6.144,57.568],[-6.127,57.306],[-5.887,57.239],[-5.751,57.276],[-5.649,57.26],[-5.664,57.205],[-5.928,57.039],[-6.012,57.022],[-6.035,57.055],[-5.974,57.13],[-6.031,57.177],[-6.077,57.124],[-6.177,57.171],[-6.314,57.157],[-6.481,57.303],[-6.413,57.335],[-6.31,57.304],[-6.533,57.408],[-6.574,57.384],[-6.576,57.333],[-6.7,57.364],[-6.786,57.446],[-6.638,57.606],[-6.463,57.509],[-6.376,57.524],[-6.421,57.637],[-6.346,57.685],[-6.277,57.672],[-6.144,57.568]],[[-1.296,60.491],[-1.287,60.471],[-1.037,60.444],[-1.101,60.276],[-1.199,60.268],[-1.126,60.148],[-1.212,60.103],[-1.269,59.851],[-1.378,59.902],[-1.263,60.107],[-1.291,60.241],[-1.41,60.255],[-1.364,60.23],[-1.358,60.192],[-1.449,60.151],[-1.52,60.181],[-1.52,60.201],[-1.665,60.231],[-1.693,60.28],[-1.655,60.303],[-1.427,60.321],[-1.32,60.356],[-1.446,60.461],[-1.61,60.474],[-1.547,60.536],[-1.302,60.637],[-1.296,60.491]],[[-5.784,56.509],[-5.648,56.436],[-5.702,56.359],[-5.809,56.318],[-5.872,56.314],[-5.853,56.348],[-5.883,56.352],[-6.265,56.259],[-6.321,56.264],[-6.366,56.309],[-6.339,56.339],[-6.232,56.318],[-6.018,56.375],[-6.194,56.361],[-6.2,56.387],[-6.143,56.428],[-6.021,56.463],[-6.003,56.494],[-6.126,56.474],[-6.325,56.539],[-6.32,56.603],[-6.134,56.653],[-6.057,56.636],[-5.971,56.544],[-5.784,56.509]],[[-6.122,55.879],[-6.098,55.797],[-6.03,55.721],[-6.025,55.681],[-6.077,55.65],[-6.274,55.573],[-6.326,55.587],[-6.251,55.767],[-6.265,55.778],[-6.338,55.78],[-6.449,55.68],[-6.509,55.682],[-6.442,55.854],[-6.31,55.864],[-6.137,55.934],[-6.122,55.879]],[[-2.793,58.951],[-2.756,58.918],[-2.824,58.879],[-2.97,58.939],[-3.195,58.911],[-3.346,58.966],[-3.368,59.01],[-3.351,59.106],[-3.219,59.149],[-3.077,59.122],[-2.998,59.07],[-2.947,58.998],[-2.793,58.951]],[[-4.153,53.226],[-4.351,53.124],[-4.402,53.126],[-4.567,53.273],[-4.569,53.388],[-4.429,53.424],[-4.314,53.412],[-4.277,53.398],[-4.222,53.322],[-4.047,53.303],[-4.153,53.226]],[[-5.947,55.83],[-5.972,55.788],[-6.063,55.804],[-6.079,55.906],[-5.968,56.024],[-5.694,56.147],[-5.691,56.107],[-5.947,55.83]],[[-1.06,50.687],[-1.168,50.602],[-1.282,50.579],[-1.494,50.667],[-1.57,50.661],[-1.297,50.772],[-1.118,50.737],[-1.06,50.687]],[[-5.104,55.439],[-5.232,55.43],[-5.34,55.475],[-5.4,55.601],[-5.381,55.669],[-5.295,55.717],[-5.16,55.679],[-5.084,55.553],[-5.074,55.459],[-5.104,55.439]]];
+var _mapProj=null;
+var mapStageFilter='',mapCharFilter='',mapRegionFilter='';
+var _mapInstById={};
+
+function _mapProjection(W,H){
+  if(_mapProj&&_mapProj.W===W&&_mapProj.H===H)return _mapProj;
+  var xs=[],ys=[];
+  UK_OUTLINE.forEach(function(r){r.forEach(function(p){xs.push(p[0]);ys.push(p[1]);});});
+  var lng0=Math.min.apply(null,xs),lng1=Math.max.apply(null,xs),lat0=Math.min.apply(null,ys),lat1=Math.max.apply(null,ys);
+  var k=Math.cos((lat0+lat1)/2*Math.PI/180),pad=10;
+  var mx=(lng1-lng0)*k,my=(lat1-lat0),sc=Math.min((W-2*pad)/mx,(H-2*pad)/my);
+  var offx=(W-mx*sc)/2,offy=(H-my*sc)/2;
+  _mapProj={W:W,H:H,fn:function(lng,lat){return [offx+(lng-lng0)*k*sc,offy+(lat1-lat)*sc];}};
+  return _mapProj;
+}
+
+function setMapFilter(kind,val){
+  if(kind==='stage')mapStageFilter=val;
+  else if(kind==='char')mapCharFilter=val;
+  else if(kind==='region')mapRegionFilter=val;
+  buildMap();
+}
+
+// Populate the stage/char/region dropdowns once from the data
+function _initMapControls(targets){
+  var charSet={},regSet={};
+  targets.forEach(function(r){
+    var c=(r.characteristic||'').trim();if(c)charSet[c]=true;
+    var rg=(r.region||'').trim();if(rg)regSet[rg]=true;
+  });
+  var stageSel=document.getElementById('map-stage');
+  if(stageSel.options.length<=1){
+    [['access','Access'],['success','Success (continuation, completion, attainment)'],['progression','Progression']].forEach(function(s){
+      var o=document.createElement('option');o.value=s[0];o.textContent=s[1];stageSel.appendChild(o);
+    });
+  }
+  var charSel=document.getElementById('map-char');
+  if(charSel.options.length<=1){
+    Object.keys(charSet).sort().forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;charSel.appendChild(o);});
+  }
+  var regSel=document.getElementById('map-region');
+  if(regSel.options.length<=1){
+    Object.keys(regSet).sort().forEach(function(rg){var o=document.createElement('option');o.value=rg;o.textContent=rg;regSel.appendChild(o);});
+  }
+}
+
+function buildMap(){
+  var svg=document.getElementById('uk-map');if(!svg)return;
+  var W=320,H=460,proj=_mapProjection(W,H);
+  // Base targets: same plan filter as the rest of the summary
+  var baseTargets=allData.filter(function(r){return r.reference_number&&r.reference_number.trim()&&isPlanMatch(r,summaryPlanFilter);});
+  _initMapControls(baseTargets);
+  // Apply the map's own type filters
+  var targets=baseTargets.filter(function(r){
+    if(mapStageFilter&&getGroup(r.lifecycle_stage)!==mapStageFilter)return false;
+    if(mapCharFilter&&(r.characteristic||'').trim()!==mapCharFilter)return false;
+    return true;
+  });
+  // Group into institutions with coordinates
+  var insts={};_mapInstById={};
+  var anyCoords=false;
+  targets.forEach(function(r){
+    var uk=(r.ukprn||'').toString().trim();if(!uk)return;
+    var lat=parseFloat(r.lat),lng=parseFloat(r.lng);
+    if(isNaN(lat)||isNaN(lng))return;
+    anyCoords=true;
+    if(!insts[uk])insts[uk]={ukprn:uk,name:r.used_name||r.legal_name||uk,region:(r.region||'').trim(),lat:lat,lng:lng,targets:[]};
+    insts[uk].targets.push(r);
+  });
+  // Basemap outline
+  var paths='';
+  UK_OUTLINE.forEach(function(ring){
+    var d='M'+ring.map(function(p){var xy=proj.fn(p[0],p[1]);return xy[0].toFixed(1)+','+xy[1].toFixed(1);}).join(' L')+'Z';
+    paths+='<path d="'+d+'" fill="#20242c" stroke="#3a3b40" stroke-width="0.5"/>';
+  });
+  if(!anyCoords){
+    svg.innerHTML=paths;
+    document.getElementById('map-panel').innerHTML='<div class="map-hint">Location data will appear here once institution postcodes have been geocoded. Add a <strong>postcode</strong> column to the Institutions tab and re-run the export script to populate the map.</div>';
+    return;
+  }
+  // Dots
+  var instList=Object.keys(insts).map(function(k){return insts[k];});
+  instList.forEach(function(it){_mapInstById[it.ukprn]=it;});
+  var maxC=Math.max.apply(null,instList.map(function(it){return it.targets.length;}));
+  var dots='';
+  instList.forEach(function(it){
+    var xy=proj.fn(it.lng,it.lat);
+    var rad=3+Math.sqrt(it.targets.length/maxC)*7;
+    var inRegion=!mapRegionFilter||it.region===mapRegionFilter;
+    var fill=inRegion?'#7eb8f7':'#4a5568';
+    var op=inRegion?0.82:0.3;
+    var nm=(it.name||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    dots+='<circle class="map-dot" cx="'+xy[0].toFixed(1)+'" cy="'+xy[1].toFixed(1)+'" r="'+rad.toFixed(1)+'" fill="'+fill+'" fill-opacity="'+op+'" stroke="#16171a" stroke-width="0.5" onclick="showMapInst(\''+it.ukprn+'\')"><title>'+nm+' – '+it.targets.length+' target'+(it.targets.length!==1?'s':'')+'</title></circle>';
+  });
+  svg.innerHTML=paths+dots;
+  // Panel: region summary if a region is chosen, else overview
+  if(mapRegionFilter)renderMapRegion(instList.filter(function(it){return it.region===mapRegionFilter;}));
+  else renderMapOverview(instList);
+}
+
+function renderMapOverview(instList){
+  var nInst=instList.length,nT=0;instList.forEach(function(it){nT+=it.targets.length;});
+  document.getElementById('map-panel').innerHTML=
+    '<h4>'+nInst.toLocaleString()+' institutions shown</h4>'+
+    '<div class="mp-meta">'+nT.toLocaleString()+' matching target'+(nT!==1?'s':'')+' across the map.</div>'+
+    '<div class="map-hint">Hover a circle for the institution name and target count. Click a circle to list its targets. Choose a region above to summarise all targets there.</div>';
+}
+
+function renderMapRegion(regionInsts){
+  var nInst=regionInsts.length,all=[];regionInsts.forEach(function(it){all=all.concat(it.targets);});
+  var byStage={access:0,success:0,progression:0,other:0};
+  var byChar={};
+  all.forEach(function(r){byStage[getGroup(r.lifecycle_stage)]++;var c=(r.characteristic||'').trim();if(c)byChar[c]=(byChar[c]||0)+1;});
+  var stageRows=['access','success','progression'].filter(function(g){return byStage[g];}).map(function(g){
+    return '<div class="mp-row"><span>'+getGroupLabel(g)+'</span><span>'+byStage[g]+'</span></div>';
+  }).join('');
+  var charRows=Object.keys(byChar).sort(function(a,b){return byChar[b]-byChar[a];}).slice(0,6).map(function(c){
+    return '<div class="mp-row"><span>'+c+'</span><span>'+byChar[c]+'</span></div>';
+  }).join('');
+  document.getElementById('map-panel').innerHTML=
+    '<h4>'+mapRegionFilter+'</h4>'+
+    '<div class="mp-meta">'+nInst+' institution'+(nInst!==1?'s':'')+' · '+all.length+' matching target'+(all.length!==1?'s':'')+'</div>'+
+    '<div style="font-size:11px;color:#9a9fac;text-transform:uppercase;letter-spacing:.05em;margin:8px 0 2px">By lifecycle stage</div>'+stageRows+
+    '<div style="font-size:11px;color:#9a9fac;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 2px">Top demographic areas</div>'+charRows;
+}
+
+function showMapInst(ukprn){
+  var it=_mapInstById[ukprn];if(!it)return;
+  var rows=it.targets.map(function(r){
+    var stage=r.lifecycle_stage||'',chr=(r.characteristic||'').trim(),sc=stageClass(stage),label=buildLabel(r);
+    return '<div class="map-tgt"><div style="margin-bottom:3px">'+(stage?'<span class="badge '+sc+'">'+stage+'</span>':'')+(chr?' <span class="badge badge-char">'+chr+'</span>':'')+'</div>'+label+'</div>';
+  }).join('');
+  document.getElementById('map-panel').innerHTML=
+    '<h4>'+it.name+'</h4>'+
+    '<div class="mp-meta">'+(it.region?it.region+' · ':'')+it.targets.length+' matching target'+(it.targets.length!==1?'s':'')+'</div>'+
+    rows;
 }
 
 // ── Modals ────────────────────────────────────────────────────────────────

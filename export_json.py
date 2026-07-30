@@ -1,5 +1,7 @@
 import gspread
 import json
+import time
+import urllib.request
 from google.oauth2.service_account import Credentials
 
 CREDENTIALS_FILE = r"C:\Users\David278\credentials.json"
@@ -30,6 +32,51 @@ def parse_int(val):
     except:
         return None
 
+def geocode_postcodes(inst_by_ukprn):
+    """Fill in lat/lng on each institution from its postcode, using the free
+    postcodes.io bulk endpoint (no API key). Institutions without a postcode,
+    or whose postcode cannot be found, are left without coordinates."""
+    # Unique, cleaned postcodes
+    pc_to_insts = {}
+    for uk, inst in inst_by_ukprn.items():
+        pc = (inst.get("postcode") or "").strip().upper()
+        if pc:
+            pc_to_insts.setdefault(pc, []).append(inst)
+    postcodes = list(pc_to_insts.keys())
+    if not postcodes:
+        print("  No postcodes to geocode.")
+        return
+    print(f"Geocoding {len(postcodes)} unique postcodes via postcodes.io...")
+    found = 0
+    for i in range(0, len(postcodes), 100):
+        batch = postcodes[i:i + 100]
+        body = json.dumps({"postcodes": batch}).encode("utf-8")
+        req = urllib.request.Request(
+            "https://api.postcodes.io/postcodes",
+            data=body,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+        except Exception as e:
+            print(f"  Geocode batch {i//100 + 1} failed: {e}")
+            time.sleep(1)
+            continue
+        for item in data.get("result", []):
+            res = item.get("result")
+            query = (item.get("query") or "").strip().upper()
+            if res and res.get("latitude") is not None:
+                for inst in pc_to_insts.get(query, []):
+                    inst["lat"] = round(res["latitude"], 5)
+                    inst["lng"] = round(res["longitude"], 5)
+                found += 1
+        print(f"  ...geocoded {min(i + 100, len(postcodes))}/{len(postcodes)}")
+        time.sleep(0.3)  # be gentle with the free service
+    print(f"  Matched coordinates for {found} of {len(postcodes)} postcodes.")
+
+
 def main():
     print("Connecting to Google Sheets...")
     gc = get_sheets_client()
@@ -54,6 +101,20 @@ def main():
     print("Reading Institutions tab...")
     inst_sheet = ss.worksheet("Institutions")
     i_rows = inst_sheet.get_all_values()
+
+    # Find the postcode column by header name (robust to where it is added, as
+    # long as it is appended to the right of the existing positional columns).
+    header_row = i_rows[0] if i_rows else []
+    pc_col = -1
+    for idx, h in enumerate(header_row):
+        if 'postcode' in h.strip().lower():
+            pc_col = idx
+            break
+    if pc_col == -1:
+        print("  Note: no 'postcode' column found in Institutions tab - map coordinates will be skipped.")
+    else:
+        print(f"  Found postcode column at index {pc_col} ('{header_row[pc_col]}')")
+
     inst_by_ukprn = {}
     for row in i_rows[1:]:
         def g(idx):
@@ -62,6 +123,7 @@ def main():
         if not ukprn:
             continue
         inst_by_ukprn[ukprn] = {
+            "postcode":       g(pc_col) if pc_col != -1 else '',
             "mission_group":  g(2),
             "mission_group2": g(3),
             "region":         g(4),
@@ -96,6 +158,10 @@ def main():
             "total_apprenticeship": parse_int(g(32)),
             "total_ug_students":    parse_int(g(33)),
         }
+
+    # ── Geocode postcodes -> lat/lng via postcodes.io (free, no API key) ────
+    if pc_col != -1:
+        geocode_postcodes(inst_by_ukprn)
 
     # ── Targets tab ───────────────────────────────────────────────────────
     print("Reading Targets tab...")
