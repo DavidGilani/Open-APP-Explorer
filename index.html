@@ -53,6 +53,8 @@
     .hero-mode-desc{font-size:12px;color:var(--muted);line-height:1.4}
     .hero-panel{width:100%;max-width:500px;display:none}
     .hero-panel.active{display:block}
+    .hero-caveat{width:100%;max-width:560px;margin-top:32px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:12px 16px;font-size:12px;line-height:1.6;color:var(--muted);text-align:left}
+    .hero-caveat a{color:#6db8f0;cursor:pointer}
 
     /* Demographic search selects */
     .demo-search-wrap{display:flex;flex-direction:column;gap:10px}
@@ -364,11 +366,16 @@
     </div>
   </div>
 
-  <div class="site-footer" style="margin-top:40px;border-top:none">
+  <div class="hero-caveat">
+    A quick note before you dive in: targets and their descriptions are the institutions' own words, taken directly from published APPs. The OfS outcome data behind the charts is often based on multi-year averages and can lag the current position, and providers hold richer internal data. This tool is here to support collaboration and shared learning – not to rank or judge institutions. <a onclick="openAbout()">Read more</a>.
+  </div>
+
+  <div class="site-footer" style="margin-top:28px;border-top:none">
     This site is under development. Questions or suggestions?
     <a onclick="openFeedback()">Leave feedback</a> &nbsp;|&nbsp;
     <a onclick="openAbout()">About &amp; methodology</a> &nbsp;|&nbsp;
     <a onclick="openSummary()">See visual summaries of APPs and targets across the UK</a>
+    <div style="margin-top:10px">Already used Open APP Explorer in your work? <a onclick="openFeedback()">Tell us how</a> – it helps us show the tool's value and shape what comes next.</div>
   </div>
 </div>
 
@@ -395,7 +402,7 @@
       <span class="plan-filter-label">Showing:</span>
       <span class="plan-chip active" id="inst-plan-current" onclick="setInstPlanFilter('current')">Current targets only</span>
       <span class="plan-chip" id="inst-plan-all" onclick="setInstPlanFilter('all')">All targets</span>
-      <span class="plan-chip" id="inst-plan-past" onclick="setInstPlanFilter('past')">Past targets only</span>
+      <span class="plan-chip" id="inst-plan-past" title="Targets from an institution's previously-submitted APP (superseded by their current plan)." onclick="setInstPlanFilter('past')">Past targets only</span>
     </div>
 
     <div class="step2-guide">
@@ -471,7 +478,7 @@
               <div class="filter-chips-row" style="margin-bottom:12px">
                 <span class="plan-chip active" id="sim-plan-current" onclick="setSimPlanFilter('current')">Current targets only</span>
                 <span class="plan-chip" id="sim-plan-all" onclick="setSimPlanFilter('all')">All targets</span>
-                <span class="plan-chip" id="sim-plan-past" onclick="setSimPlanFilter('past')">Past targets only</span>
+                <span class="plan-chip" id="sim-plan-past" title="Targets from an institution's previously-submitted APP (superseded by their current plan)." onclick="setSimPlanFilter('past')">Past targets only</span>
               </div>
             </div>
             <div class="filter-section">
@@ -530,7 +537,7 @@
       <span class="plan-filter-label">Showing:</span>
       <span class="plan-chip active" id="demo-plan-current" onclick="setDemoPlanFilter('current')">Current targets only</span>
       <span class="plan-chip" id="demo-plan-all" onclick="setDemoPlanFilter('all')">All targets</span>
-      <span class="plan-chip" id="demo-plan-past" onclick="setDemoPlanFilter('past')">Past targets only</span>
+      <span class="plan-chip" id="demo-plan-past" title="Targets from an institution's previously-submitted APP (superseded by their current plan)." onclick="setDemoPlanFilter('past')">Past targets only</span>
     </div>
 
     <div style="margin-bottom:14px">
@@ -589,7 +596,7 @@
       <span class="plan-filter-label">Showing:</span>
       <span class="plan-chip active" id="sum-plan-current" onclick="setSummaryPlanFilter('current')">Current APPs only</span>
       <span class="plan-chip" id="sum-plan-all" onclick="setSummaryPlanFilter('all')">All APPs</span>
-      <span class="plan-chip" id="sum-plan-past" onclick="setSummaryPlanFilter('past')">Past APPs only</span>
+      <span class="plan-chip" id="sum-plan-past" title="Targets from an institution's previously-submitted APP (superseded by their current plan)." onclick="setSummaryPlanFilter('past')">Past APPs only</span>
     </div>
 
     <div class="stat-row">
@@ -677,6 +684,10 @@
     <h3>Where does the data come from?</h3>
     <p>Targets are extracted from publicly available APP documents published on the OfS. Extraction is carried out using AI, which reads the target sections of each PDF and structures the data into comparable fields. This means occasional errors or gaps are possible - if you spot something incorrect for your institution, please use the feedback form.</p>
     <p>Demographic data (IMD, ethnicity, disability, and so on) is drawn from the OfS's own published student characteristic data, matched to each institution by UKPRN. Mission group data was taken from publicly available sources, but is also prone to error.</p>
+    <p>The <strong>Aim</strong> and <strong>Description</strong> shown for each target are the institution's own words, taken directly from their published APP. They are not summaries written or standardised by this tool, so wording and level of detail vary from one institution to another.</p>
+    <h3>How to read the figures</h3>
+    <p>Most targets describe a <strong>gap</strong> between two groups of students (for example the difference in completion rates between students from the most and least deprived areas). Where a target shows a baseline and a target figure, these usually refer to the size of that gap in percentage points – so a smaller number is the institution aiming to <em>narrow</em> the gap. A few targets instead describe an absolute rate for a single group. The charts let you switch between <strong>Gaps</strong> and <strong>Indicators</strong> (the underlying rates for each group) to see both perspectives.</p>
+    <p>OfS figures are often based on <strong>multi-year averages</strong> and can lag the current position by a year or more. Providers also hold richer internal data, and may have adjusted delivery since a plan was published, so a published APP is not always a perfectly up-to-date picture. This tool is intended to support collaboration and shared learning, not to judge or rank institutions.</p>
     <p>OfS student characteristic data and equity gap data is published by the Office for Students and used here under the <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" target="_blank">Open Government Licence v3.0</a>. This tool displays and filters the data but does not alter the underlying figures. Some institutions show no equity gap data – this reflects suppression or rounding applied by OfS at source to meet data protection requirements, not a gap in our extraction.</p>
     <h3>How current is it?</h3>
     <p>The APP targets are taken from all 'currently active' APPs. Coverage is not complete - around 20-30% of institutions either had not yet published their APP at the time of extraction, or published it in a format that could not be read automatically.</p>
@@ -1123,7 +1134,7 @@ function buildDemoFilterUI() {
   mRow.innerHTML='<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-right:6px;align-self:center">Mission group</span>';
   var mAll=document.createElement('label');mAll.className='fchip active';mAll.id='demo-mg-all';
   mAll.innerHTML='<input type="radio" name="demo-mg" value="" checked style="display:none">All';
-  mAll.querySelector('input').addEventListener('change',function(){demoMissionFilter='';applyDemoFilters();});
+  mAll.querySelector('input').addEventListener('change',function(){demoMissionFilter='';applyDemoFilters();syncDemoMGChips();});
   mRow.appendChild(mAll);
   missions.forEach(function(m){
     var lbl=document.createElement('label');lbl.className='fchip';
@@ -1136,7 +1147,7 @@ function buildDemoFilterUI() {
   rRow.innerHTML='<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-right:6px;align-self:center">Region</span>';
   var rAll=document.createElement('label');rAll.className='fchip active';rAll.id='demo-reg-all';
   rAll.innerHTML='<input type="radio" name="demo-reg" value="" checked style="display:none">All';
-  rAll.querySelector('input').addEventListener('change',function(){demoRegionFilter='';applyDemoFilters();});
+  rAll.querySelector('input').addEventListener('change',function(){demoRegionFilter='';applyDemoFilters();syncDemoRegChips();});
   rRow.appendChild(rAll);
   regions.forEach(function(reg){
     var lbl=document.createElement('label');lbl.className='fchip';
@@ -1424,6 +1435,12 @@ function init() {
     .then(function(r){if(!r.ok)throw new Error('load failed');return r.json();})
     .then(function(data){
       allData=data;var seen={};
+      // Normalise characteristic labels so summary counts and filters aren't split
+      // across near-duplicate names (e.g. "Reported disability" -> "Disability").
+      data.forEach(function(r){
+        var c=(r.characteristic||'').trim();
+        if(c==='Reported disability')r.characteristic='Disability';
+      });
       data.forEach(function(r){
         var name=r.used_name||r.legal_name;
         if(name&&!seen[name]){seen[name]=true;institutions.push(name);}
