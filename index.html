@@ -43,7 +43,9 @@
     .hero-search{width:100%;max-width:500px}
 
     /* Hero mode split */
-    .hero-mode-split{display:flex;gap:16px;width:100%;max-width:640px;margin-bottom:24px}
+    .hero-mode-split{display:flex;gap:16px;width:100%;max-width:820px;margin-bottom:24px}
+    .hero-back{display:inline-block;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:14px}
+    .hero-back:hover{color:var(--text)}
     @media(max-width:520px){.hero-mode-split{flex-direction:column}}
     .hero-mode-card{flex:1;background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:18px 16px;cursor:pointer;transition:border-color .15s,background .15s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
     .hero-mode-card:hover{border-color:var(--accent);background:var(--accent2)}
@@ -323,21 +325,27 @@
   <div class="hero-title">Open APP Explorer</div>
   <div class="hero-sub">Compare Access &amp; Participation Plans across UK universities</div>
 
-  <div class="hero-mode-split">
-    <div class="hero-mode-card active" id="mode-card-inst" onclick="setHeroMode('inst')">
+  <div class="hero-mode-split" id="hero-cards">
+    <div class="hero-mode-card" id="mode-card-inst" onclick="openHeroPanel('inst')">
       <div class="hero-mode-icon">&#127979;</div>
       <div class="hero-mode-title">Filter by institution</div>
       <div class="hero-mode-desc">Search for a university and browse all its APP targets</div>
     </div>
-    <div class="hero-mode-card" id="mode-card-demo" onclick="setHeroMode('demo')">
+    <div class="hero-mode-card" id="mode-card-demo" onclick="openHeroPanel('demo')">
       <div class="hero-mode-icon">&#128202;</div>
       <div class="hero-mode-title">Filter by demographic targets</div>
       <div class="hero-mode-desc">Pick a lifecycle stage and demographic to see all institutions with matching targets</div>
     </div>
+    <div class="hero-mode-card" id="mode-card-summary" onclick="openSummary()">
+      <div class="hero-mode-icon">&#128506;</div>
+      <div class="hero-mode-title">APP summary data</div>
+      <div class="hero-mode-desc">See visual summaries of APPs and targets across the UK</div>
+    </div>
   </div>
 
   <!-- Institution search panel -->
-  <div class="hero-panel active" id="panel-inst">
+  <div class="hero-panel" id="panel-inst">
+    <a class="hero-back" onclick="backToHomeCards()">&#8592; Back</a>
     <div class="step-guide">
       <div class="step-guide-num">Step 1</div>
       <div class="step-guide-text">Search for your institution below to see all its APP targets, grouped by Access, Success and Progression.</div>
@@ -356,6 +364,7 @@
 
   <!-- Demographic search panel -->
   <div class="hero-panel" id="panel-demo">
+    <a class="hero-back" onclick="backToHomeCards()">&#8592; Back</a>
     <div class="step-guide">
       <div class="step-guide-num">Step 1</div>
       <div class="step-guide-text">Choose a student lifecycle stage and demographic area to see all institutions with APP targets addressing that gap.</div>
@@ -380,7 +389,7 @@
     <a onclick="openFeedback()">Leave feedback</a> &nbsp;|&nbsp;
     <a onclick="openAbout()">About &amp; methodology</a> &nbsp;|&nbsp;
     <a onclick="openSummary()">See visual summaries of APPs and targets across the UK</a>
-    <div style="margin-top:10px">Already used Open APP Explorer in your work? <a onclick="openFeedback()">Tell us how</a> – it helps us show the tool's value and shape what comes next.</div>
+    <div style="margin-top:10px">Already using the Open APP Explorer in your work? Got ideas or questions? <a onclick="openFeedback()">Provide feedback</a> – it helps us show the tool's value and shape what comes next.</div>
   </div>
 </div>
 
@@ -650,9 +659,10 @@
       <h2>Feedback</h2>
       <p>Provide feedback on the site, report an incorrect target, or flag any other issues - we'd love to hear from you.</p>
       <label>Type of feedback</label>
-      <select id="fb-type">
+      <select id="fb-type" onchange="onFbTypeChange()">
         <option value="">Select...</option>
         <option value="general">General feedback on the site</option>
+        <option value="impact">Evidence of impact</option>
         <option value="wrong-target">Target data incorrect for my institution</option>
         <option value="missing-target">Target missing from my institution</option>
         <option value="wrong-demographic">Demographic / institutional data incorrect</option>
@@ -840,10 +850,20 @@ function getSizeBandLabel(band){return {vs:'Very small (<1k)',sm:'Small (1k-5k)'
 // ── Hero mode ─────────────────────────────────────────────────────────────
 function setHeroMode(mode) {
   currentHeroMode=mode;
-  document.getElementById('mode-card-inst').classList.toggle('active',mode==='inst');
-  document.getElementById('mode-card-demo').classList.toggle('active',mode==='demo');
   document.getElementById('panel-inst').classList.toggle('active',mode==='inst');
   document.getElementById('panel-demo').classList.toggle('active',mode==='demo');
+}
+// Home shows the three choice cards; picking one reveals that panel (its "Step 1")
+// and hides the cards, with a Back link to return.
+function openHeroPanel(mode){
+  document.getElementById('hero-cards').style.display='none';
+  setHeroMode(mode);
+  if(mode==='inst'){var si=document.getElementById('search-input');if(si)si.focus();}
+}
+function backToHomeCards(){
+  document.getElementById('panel-inst').classList.remove('active');
+  document.getElementById('panel-demo').classList.remove('active');
+  document.getElementById('hero-cards').style.display='';
 }
 
 // ── All views helper ──────────────────────────────────────────────────────
@@ -908,6 +928,7 @@ function searchInstitution(){
 
 function clearInstitution(){
   document.body.classList.remove('searched');
+  backToHomeCards();
   inp.value='';currentInst=null;currentInstUrl='';currentInstData=null;currentInstTargets=[];
   hideAllViews();
   document.getElementById('view-all').style.display='block';
@@ -1042,7 +1063,18 @@ function applyFilters(){
   var shownInsts=countInsts(filtered);
   var anyActiveIncludingPlan=anyActive||(simPlanFilter!=='all');
   document.getElementById('similar-count').textContent=anyActiveIncludingPlan?'Showing '+shownInsts+' of '+totalInsts+' institutions after filters ('+filtered.length+' of '+total+' targets)':totalInsts+' institutions - '+total+' matching targets';
-  if(!filtered.length){document.getElementById('similar-list').innerHTML='<div class="empty">No universities match the current filters. Try loosening your criteria or switching to Loose matching.</div>';return;}
+  if(!filtered.length){
+    var emptySet=new Set();if(currentInstData&&currentInstData.ukprn)emptySet.add((currentInstData.ukprn||'').toString().trim());
+    window._overlayUkprns=emptySet;
+    if(_ofsOverlay['ofs-gap-panel']&&_ofsLastRender['ofs-gap-panel']){var _pe=_ofsLastRender['ofs-gap-panel'];_ofsRenderInto('ofs-gap-panel',_pe.t,_pe.rows,_pe.charKey,_pe.lifecycle,_pe.allData);}
+    document.getElementById('similar-list').innerHTML='<div class="empty">No universities match the current filters. Try loosening your criteria or switching to Loose matching.</div>';return;}
+  // Track which institutions are currently visible, so the "Compare on one
+  // chart" overlay on the focused institution's chart mirrors the list below.
+  var visSet=new Set();
+  filtered.forEach(function(r){var u=(r.ukprn||'').toString().trim();if(u)visSet.add(u);});
+  if(currentInstData&&currentInstData.ukprn)visSet.add((currentInstData.ukprn||'').toString().trim());
+  window._overlayUkprns=visSet;
+  if(_ofsOverlay['ofs-gap-panel']&&_ofsLastRender['ofs-gap-panel']){var _p=_ofsLastRender['ofs-gap-panel'];_ofsRenderInto('ofs-gap-panel',_p.t,_p.rows,_p.charKey,_p.lifecycle,_p.allData);}
   var grouped={};
   filtered.forEach(function(r){var n=r.used_name||r.legal_name;if(!grouped[n])grouped[n]=[];grouped[n].push(r);});
   document.getElementById('similar-list').innerHTML=Object.keys(grouped).sort().map(function(name){
@@ -1121,6 +1153,7 @@ function searchByDemo() {
 
 function clearDemoSearch() {
   document.body.classList.remove('searched');
+  backToHomeCards();
   currentDemoResults=[];
   hideAllViews();
   document.getElementById('view-all').style.display='block';
@@ -1277,6 +1310,10 @@ function applyDemoFilters(){
     return true;
   });
 
+  // Visible institutions drive the "Compare on one chart" overlay in this view.
+  var demoVisSet=new Set();filtered.forEach(function(r){var u=(r.ukprn||'').toString().trim();if(u)demoVisSet.add(u);});
+  window._overlayUkprns=demoVisSet;
+
   var planFiltered=currentDemoResults.filter(function(r){return isPlanMatch(r,demoPlanFilter);});
   var totalInsts=countInsts(planFiltered),shownInsts=countInsts(filtered);
   var anyActiveIncludingPlan=anyActive||(demoPlanFilter!=='current');
@@ -1342,6 +1379,7 @@ function closeSummary(){
     document.getElementById('view-all').style.display='block';
   } else {
     document.body.classList.remove('searched');
+    backToHomeCards();
   }
 }
 
@@ -1409,10 +1447,18 @@ function buildSummary(){
 // ── Modals ────────────────────────────────────────────────────────────────
 function openFeedback(){
   document.getElementById('fb-type').value='';document.getElementById('fb-detail').value='';
+  document.getElementById('fb-detail').placeholder=FB_DETAIL_DEFAULT;
   document.getElementById('fb-email').value='';document.getElementById('fb-inst').value=currentInst||'';
   document.getElementById('modal-form-content').style.display='block';
   document.getElementById('modal-thanks').style.display='none';
   document.getElementById('feedback-modal').classList.add('open');
+}
+var FB_DETAIL_DEFAULT="Please share your thoughts, or describe what's wrong and what the correct information should be...";
+function onFbTypeChange(){
+  var ta=document.getElementById('fb-detail');
+  ta.placeholder=document.getElementById('fb-type').value==='impact'
+    ?'How have you used the Open APP Explorer in your work?'
+    :FB_DETAIL_DEFAULT;
 }
 function closeFeedback(){document.getElementById('feedback-modal').classList.remove('open');}
 function submitFeedback(){
@@ -1756,17 +1802,19 @@ function buildOfsSvgChart(rows) {
 // Overlay chart: the selected institution's gap line prominent, with every other
 // institution (same characteristic pair + lifecycle) drawn faint behind it.
 // Aligned on academic_year (YEAR1..6 codes are per-institution relative).
-function buildOfsOverlayChart(primaryRows, allData) {
+function buildOfsOverlayChart(primaryRows, allData, allowSet) {
   if(!primaryRows||!primaryRows.length)return null;
   var i1=primaryRows[0].split_ind1,i2=primaryRows[0].split_ind2,pUk=(primaryRows[0].ukprn||'').toString().trim();
-  // Group matching gap rows by institution
+  // Group matching gap rows by institution, restricted to the institutions
+  // currently visible on the page (allowSet) plus the focused institution.
   var byInst={};
   allData.forEach(function(r){
     if(r.split_ind1!==i1||r.split_ind2!==i2)return;
     if(r.split_ind2==='[N/A]')return;
+    var uk=(r.ukprn||'').toString().trim();
+    if(allowSet&&uk!==pUk&&!allowSet.has(uk))return;
     var g=parseFloat(r.gap),ay=r.academic_year;
     if(isNaN(g)||!ay)return;
-    var uk=(r.ukprn||'').toString().trim();
     if(!byInst[uk])byInst[uk]={name:r.provider_name||uk,byAy:{}};
     byInst[uk].byAy[ay]=g;
   });
@@ -1953,12 +2001,12 @@ function _ofsRenderInto(containerId, t, rows, charKey, lifecycle, allData) {
   var pairLabel=OFS_PAIR_LABELS[usedInd1+','+usedInd2]||(usedInd1+' vs '+usedInd2+' gap (pp)');
   if(charKey==='imd'){var p=getImfPair(t);pairLabel=p==='IMDQ3_5_vs_IMDQ1_2'?'IMD Q3-5 vs Q1+2 gap (percentage points)':'IMD Q5 vs Q1 gap (percentage points)';}
   var ovOn=!!_ofsOverlay[containerId];
-  var ovBtn=allData?('<button class="ofs-ov-btn'+(ovOn?' active':'')+'" onclick="toggleOfsOverlay(\''+containerId+'\')">'+(ovOn?'Hide sector overlay':'Compare all institutions')+'</button>'):'';
+  var ovBtn=allData?('<button class="ofs-ov-btn'+(ovOn?' active':'')+'" onclick="toggleOfsOverlay(\''+containerId+'\')">'+(ovOn?'Hide overlay':'Compare on one chart')+'</button>'):'';
   var header=_ofsToggleHtml(containerId,ovBtn);
   if(ovOn&&allData){
-    var ov=buildOfsOverlayChart(rows,allData);
+    var ov=buildOfsOverlayChart(rows,allData,window._overlayUkprns||null);
     if(ov){
-      container.innerHTML='<div class="ofs-panel">'+header+'<div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-pair-label">'+pairLabel+' – this institution vs all others'+'</div>'+ov.svg+'<div class="ofs-note">This institution is the bold '+(ov.trend==='narrowing'?'green':ov.trend==='widening'?'red':'blue')+' line; each faint line is another institution ('+ov.others+' shown). Hover a line to see its name. Source: OfS access and participation data (full-time undergraduates, '+note+'), '+lifecycle.toLowerCase()+'. A target sits with an institution, not where its students live.</div></div>';
+      container.innerHTML='<div class="ofs-panel">'+header+'<div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-pair-label">'+pairLabel+' – this institution vs the matching institutions below'+'</div>'+ov.svg+'<div class="ofs-note">This institution is the bold '+(ov.trend==='narrowing'?'green':ov.trend==='widening'?'red':'blue')+' line; each faint line is another institution with the same target shown below ('+ov.others+' shown, following your filters). Hover a line to see its name. Source: OfS access and participation data (full-time undergraduates, '+note+'), '+lifecycle.toLowerCase()+'.</div></div>';
       return;
     }
   }
