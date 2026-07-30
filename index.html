@@ -189,6 +189,10 @@
     .ofs-pair-label{font-size:11px;color:#9ac0e0;margin-bottom:8px}
     .ofs-note{font-size:10px;color:var(--muted);line-height:1.5;margin-top:6px}
     .ofs-no-data{font-size:12px;color:var(--muted);font-style:italic}
+    .ofs-toggle{display:inline-flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:6px}
+    .ofs-toggle-btn{background:transparent;border:none;color:var(--muted);font-size:11px;font-weight:600;padding:3px 10px;cursor:pointer;transition:background .15s,color .15s}
+    .ofs-toggle-btn.active{background:rgba(255,255,255,.1);color:var(--text)}
+    .ofs-toggle-btn:hover:not(.active){background:rgba(255,255,255,.05);color:var(--text)}
     .ofs-chart-svg{width:100%;overflow:visible;display:block}
     .ofs-sparkline{display:block;width:120px;height:36px;flex-shrink:0}
     .ofs-trend-badge{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600;white-space:nowrap;margin-left:6px;vertical-align:middle}
@@ -1544,6 +1548,32 @@ var OFS_CHAR_SOURCE_NOTES = {
   'imd':'IMD 2019','ethnicity':'ethnicity','disability':'disability status',
   'fsm':'FSM eligibility','tundra':'TUNDRA quintile','age':'age on commencement',
 };
+var ofsViewMode='gaps'; // 'gaps' | 'indicators'
+var _ofsLastRender={}; // containerId -> {t, rows, charKey, lifecycle, allData}
+var OFS_IND_GROUPS={
+  'imd':       ['IMDQ5','IMDQ4','IMDQ3','IMDQ2','IMDQ1'],
+  'ethnicity': ['White','ABMO','Black','Asian','Mixed','Other'],
+  'disability':['NoKnownDisability','Disabled'],
+  'fsm':       ['NotEligibleForFSM','EligibleForFSM'],
+  'tundra':    ['TUNDRAQ5','TUNDRAQ4','TUNDRAQ3','TUNDRAQ2','TUNDRAQ1'],
+  'age':       ['Young_Under21','Mature_Age21andOver'],
+};
+var OFS_IND_LABELS={
+  'IMDQ5':'IMD Q5 (least deprived)','IMDQ4':'IMD Q4','IMDQ3':'IMD Q3','IMDQ2':'IMD Q2','IMDQ1':'IMD Q1 (most deprived)',
+  'White':'White','ABMO':'Asian/Black/Mixed/Other','Black':'Black','Asian':'Asian','Mixed':'Mixed','Other':'Other',
+  'NoKnownDisability':'No known disability','Disabled':'Disabled',
+  'NotEligibleForFSM':'Not eligible for FSM','EligibleForFSM':'Eligible for FSM',
+  'TUNDRAQ5':'TUNDRA Q5 (high)','TUNDRAQ4':'TUNDRA Q4','TUNDRAQ3':'TUNDRA Q3','TUNDRAQ2':'TUNDRA Q2','TUNDRAQ1':'TUNDRA Q1 (low)',
+  'Young_Under21':'Young (under 21)','Mature_Age21andOver':'Mature (21+)',
+};
+var OFS_IND_COLORS={
+  'IMDQ5':'#7eb8f7','IMDQ4':'#9abdd4','IMDQ3':'#9a9fac','IMDQ2':'#cc9e8e','IMDQ1':'#f0907a',
+  'White':'#7eb8f7','ABMO':'#f0907a','Black':'#e07840','Asian':'#5dcaa5','Mixed':'#f7c47e','Other':'#c47ef7',
+  'NoKnownDisability':'#7eb8f7','Disabled':'#f0907a',
+  'NotEligibleForFSM':'#7eb8f7','EligibleForFSM':'#f0907a',
+  'TUNDRAQ5':'#7eb8f7','TUNDRAQ4':'#9abdd4','TUNDRAQ3':'#9a9fac','TUNDRAQ2':'#cc9e8e','TUNDRAQ1':'#f0907a',
+  'Young_Under21':'#7eb8f7','Mature_Age21andOver':'#f0907a',
+};
 
 function getOfsLifecycle(stage) {
   if (!stage) return null;
@@ -1592,6 +1622,26 @@ function getOfsRowsForCharInst(ofsData, ukprn, charKey, t) {
     if(rs.length)return rs;
   }
   return [];
+}
+
+function getOfsIndRowsForChar(data, ukprn, charKey) {
+  var groups=OFS_IND_GROUPS[charKey]||[];
+  var result=[];
+  if(charKey==='imd'){
+    // Derive two lines from gap rows: ind1 value = indicator, ind2 value = indicator - gap
+    var gapRows=data.filter(function(r){return r.ukprn===ukprn&&r.split_ind2&&r.split_ind2!=='[N/A]';});
+    if(!gapRows.length)return [];
+    var g1=gapRows[0].split_ind1,g2=gapRows[0].split_ind2;
+    result.push({group:g1,rows:gapRows.map(function(r){return Object.assign({},r,{split_ind1:g1,split_ind2:'[N/A]',indicator:r.indicator});})});
+    var dr=gapRows.filter(function(r){return !isNaN(parseFloat(r.indicator))&&!isNaN(parseFloat(r.gap));}).map(function(r){return Object.assign({},r,{split_ind1:g2,split_ind2:'[N/A]',indicator:(parseFloat(r.indicator)-parseFloat(r.gap)).toFixed(1)});});
+    if(dr.length)result.push({group:g2,rows:dr});
+    return result;
+  }
+  groups.forEach(function(g){
+    var rows=data.filter(function(r){return r.ukprn===ukprn&&r.split_ind1===g&&r.split_ind2==='[N/A]';});
+    if(rows.length)result.push({group:g,rows:rows});
+  });
+  return result;
 }
 
 function getTrendFromRows(rows) {
@@ -1680,6 +1730,80 @@ function buildOfsSvgChart(rows) {
   return {svg:'<svg class="ofs-chart-svg" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'+sp.join('')+'</svg>',trend:trend};
 }
 
+function buildOfsIndicatorChart(indGroupData) {
+  var yo=['YEAR1','YEAR2','YEAR3','YEAR4','YEAR5','YEAR6'];
+  // Build per-group year maps, filter to groups with at least one valid point
+  var groupMaps=indGroupData.map(function(gd){
+    var by={};gd.rows.forEach(function(r){by[r.year]=r;});
+    var vy=yo.filter(function(y){var r=by[y];return r&&!isNaN(parseFloat(r.indicator));});
+    return{group:gd.group,by:by,vy:vy};
+  }).filter(function(gm){return gm.vy.length>0;});
+  if(!groupMaps.length)return null;
+  // All unique years in order
+  var yearSet={};groupMaps.forEach(function(gm){gm.vy.forEach(function(y){yearSet[y]=true;});});
+  var allYears=yo.filter(function(y){return yearSet[y];});
+  // Y-axis range from all values
+  var allVals=[];
+  groupMaps.forEach(function(gm){allYears.forEach(function(y){var r=gm.by[y];if(r){var v=parseFloat(r.indicator);if(!isNaN(v))allVals.push(v);}});});
+  if(!allVals.length)return null;
+  var minV=Math.min.apply(null,allVals),maxV=Math.max.apply(null,allVals),range=maxV-minV;
+  if(range<4){minV=Math.max(0,minV-2);maxV=Math.min(100,maxV+2);}
+  range=maxV-minV;if(range<1)range=1;
+  // Dimensions — extra bottom padding for legend rows
+  var nGroups=groupMaps.length,legendRows=Math.ceil(nGroups/3);
+  var W=400,pL=42,pR=8,pT=18,pB=32+legendRows*14,cH=90,H=pT+cH+pB,cW=W-pL-pR,n=allYears.length;
+  function xPos(i){return pL+(n===1?cW/2:i/(n-1)*cW);}
+  function yPos(v){return pT+cH-((v-minV)/range*cH);}
+  var sp=[];
+  // Y-axis
+  sp.push('<text x="10" y="'+(pT+cH/2)+'" text-anchor="middle" font-size="8" fill="#9a9fac" transform="rotate(-90,10,'+(pT+cH/2)+')">% students</text>');
+  [minV,(minV+maxV)/2,maxV].forEach(function(v){sp.push('<text x="'+(pL-4)+'" y="'+(yPos(v)+3)+'" text-anchor="end" font-size="9" fill="#9a9fac">'+Math.round(v)+'%</text>');});
+  // X-axis
+  allYears.forEach(function(y,i){
+    var lbl='';
+    for(var gi=0;gi<groupMaps.length;gi++){var r=groupMaps[gi].by[y];if(r&&r.academic_year){lbl=r.academic_year;break;}}
+    lbl=(lbl||y).replace('20','').replace('-','/');
+    sp.push('<text x="'+xPos(i)+'" y="'+(pT+cH+12)+'" text-anchor="middle" font-size="9" fill="#9a9fac">'+lbl+'</text>');
+  });
+  sp.push('<text x="'+(pL+cW/2)+'" y="'+(pT+cH+24)+'" text-anchor="middle" font-size="8" fill="#9a9fac">Academic year</text>');
+  // Lines per group
+  groupMaps.forEach(function(gm){
+    var col=OFS_IND_COLORS[gm.group]||'#9a9fac';
+    var pts=[];
+    allYears.forEach(function(y,i){var r=gm.by[y];if(r){var v=parseFloat(r.indicator);if(!isNaN(v))pts.push(xPos(i)+','+yPos(v));}});
+    if(pts.length>=2)sp.push('<polyline points="'+pts.join(' ')+'" fill="none" stroke="'+col+'" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>');
+    allYears.forEach(function(y,i){var r=gm.by[y];if(r){var v=parseFloat(r.indicator);if(!isNaN(v))sp.push('<circle cx="'+xPos(i)+'" cy="'+yPos(v)+'" r="2.5" fill="'+col+'" stroke="#16171a" stroke-width="1"/>');}});
+  });
+  // Legend
+  var lItemW=Math.floor((W-pL-pR)/3);
+  groupMaps.forEach(function(gm,i){
+    var col=OFS_IND_COLORS[gm.group]||'#9a9fac';
+    var lbl=(OFS_IND_LABELS[gm.group]||gm.group);
+    var ri=Math.floor(i/3),ci=i%3;
+    var lx=pL+ci*lItemW,ly=pT+cH+32+ri*14;
+    sp.push('<rect x="'+lx+'" y="'+(ly-7)+'" width="8" height="8" rx="2" fill="'+col+'"/>');
+    sp.push('<text x="'+(lx+11)+'" y="'+ly+'" font-size="8" fill="#9a9fac">'+lbl+'</text>');
+  });
+  return '<svg class="ofs-chart-svg" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'+sp.join('')+'</svg>';
+}
+
+function _ofsToggleHtml(containerId){
+  return '<div style="display:flex;justify-content:flex-end"><div class="ofs-toggle">'+
+    '<button class="ofs-toggle-btn'+(ofsViewMode==='gaps'?' active':'')+'" onclick="switchOfsMode(\'gaps\',\''+containerId+'\')">Gaps</button>'+
+    '<button class="ofs-toggle-btn'+(ofsViewMode==='indicators'?' active':'')+'" onclick="switchOfsMode(\'indicators\',\''+containerId+'\')">Indicators</button>'+
+    '</div></div>';
+}
+
+function switchOfsMode(mode,containerId){
+  ofsViewMode=mode;
+  var p=_ofsLastRender[containerId];
+  if(p)_ofsRenderInto(containerId,p.t,p.rows,p.charKey,p.lifecycle,p.allData);
+  // Update toggle buttons in all other open OFS panels
+  document.querySelectorAll('.ofs-toggle-btn').forEach(function(btn){
+    btn.classList.toggle('active',btn.textContent.toLowerCase()===mode);
+  });
+}
+
 function _ofsLoadAndRun(charKey, lifecycle, onData, onCached) {
   if(charKey==='imd'){
     if(ofsCache[lifecycle]){onData(ofsCache[lifecycle]);}
@@ -1692,24 +1816,48 @@ function _ofsLoadAndRun(charKey, lifecycle, onData, onCached) {
   }
 }
 
-function _ofsRenderInto(containerId, t, rows, charKey, lifecycle) {
+function _ofsRenderInto(containerId, t, rows, charKey, lifecycle, allData) {
   var container=document.getElementById(containerId);
   if(!container)return;
+  _ofsLastRender[containerId]={t:t,rows:rows,charKey:charKey,lifecycle:lifecycle,allData:allData};
+  var note=OFS_CHAR_SOURCE_NOTES[charKey]||charKey;
+  var toggle=_ofsToggleHtml(containerId);
+
+  if(ofsViewMode==='indicators'){
+    var panelTitle='OfS indicator data - '+(OFS_CHAR_LABELS[charKey]||'group trends').replace(' gap trend',' indicators');
+    var ukprn=(t.ukprn||'').toString().trim();
+    var indData=allData?getOfsIndRowsForChar(allData,ukprn,charKey):[];
+    if(!indData.length){
+      container.innerHTML='<div class="ofs-panel">'+toggle+'<div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-no-data">Indicator data not yet available – please re-run the extraction script, or switch to Gaps view.</div></div>';
+      return;
+    }
+    var indSvg=buildOfsIndicatorChart(indData);
+    if(!indSvg){
+      container.innerHTML='<div class="ofs-panel">'+toggle+'<div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-no-data">Indicator data suppressed for this institution (small numbers).</div></div>';
+      return;
+    }
+    container.innerHTML='<div class="ofs-panel">'+toggle+'<div class="ofs-panel-title">'+panelTitle+'</div>'+indSvg+'<div class="ofs-note">Source: OfS access and participation data (full-time undergraduates, '+note+'). Each line shows the percentage of students in that group. Data shown for '+lifecycle.toLowerCase()+'.</div></div>';
+    return;
+  }
+
+  // Gaps mode
   var panelTitle='OfS equity data - '+(OFS_CHAR_LABELS[charKey]||'gap trend');
   if(!rows||!rows.length){
-    container.innerHTML='<div class="ofs-panel"><div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-no-data">No OfS data available for this institution and lifecycle stage.</div></div>';
+    var noDataMsg=charKey!=='imd'&&charKey!=='tundra'&&lifecycle==='Access'
+      ?'OfS does not publish access equity gap data for '+(note)+'. Switch to Indicators view to see entrant rates by group.'
+      :'No OfS equity gap data available for this institution.';
+    container.innerHTML='<div class="ofs-panel">'+toggle+'<div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-no-data">'+noDataMsg+'</div></div>';
     return;
   }
   var chart=buildOfsSvgChart(rows);
   if(!chart){
-    container.innerHTML='<div class="ofs-panel"><div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-no-data">Gap data suppressed for this institution (small numbers).</div></div>';
+    container.innerHTML='<div class="ofs-panel">'+toggle+'<div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-no-data">Gap data suppressed for this institution (small numbers).</div></div>';
     return;
   }
   var usedInd1=rows[0].split_ind1,usedInd2=rows[0].split_ind2;
   var pairLabel=OFS_PAIR_LABELS[usedInd1+','+usedInd2]||(usedInd1+' vs '+usedInd2+' gap (pp)');
   if(charKey==='imd'){var p=getImfPair(t);pairLabel=p==='IMDQ3_5_vs_IMDQ1_2'?'IMD Q3-5 vs Q1+2 gap (percentage points)':'IMD Q5 vs Q1 gap (percentage points)';}
-  var note=OFS_CHAR_SOURCE_NOTES[charKey]||charKey;
-  container.innerHTML='<div class="ofs-panel"><div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-pair-label">'+pairLabel+chart.trend+'</div>'+chart.svg+'<div class="ofs-note">Source: OfS access and participation data (full-time undergraduates, '+note+'). Positive gap = disadvantaged group has lower rate. Data shown for '+lifecycle.toLowerCase()+'.</div></div>';
+  container.innerHTML='<div class="ofs-panel">'+toggle+'<div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-pair-label">'+pairLabel+chart.trend+'</div>'+chart.svg+'<div class="ofs-note">Source: OfS access and participation data (full-time undergraduates, '+note+'). Positive gap = disadvantaged group has lower rate. Data shown for '+lifecycle.toLowerCase()+'.</div></div>';
 }
 
 function loadOfsAndRender(t, containerId) {
@@ -1724,7 +1872,7 @@ function loadOfsAndRender(t, containerId) {
   container.innerHTML='<div class="ofs-panel"><div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-note">Loading...</div></div>';
   _ofsLoadAndRun(charKey,lifecycle,function(data){
     if(!data){container.innerHTML='<div class="ofs-panel"><div class="ofs-no-data">OfS data file not available.</div></div>';return;}
-    _ofsRenderInto(containerId,t,getOfsRowsForCharInst(data,ukprn,charKey,t),charKey,lifecycle);
+    _ofsRenderInto(containerId,t,getOfsRowsForCharInst(data,ukprn,charKey,t),charKey,lifecycle,data);
   },function(){applyFilters();});
 }
 
@@ -1740,7 +1888,7 @@ function loadOfsForSimilarInst(r, containerId) {
   container.innerHTML='<div class="ofs-panel"><div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-note">Loading...</div></div>';
   _ofsLoadAndRun(charKey,lifecycle,function(data){
     if(!data){container.innerHTML='';return;}
-    _ofsRenderInto(containerId,r,getOfsRowsForCharInst(data,ukprn,charKey,r),charKey,lifecycle);
+    _ofsRenderInto(containerId,r,getOfsRowsForCharInst(data,ukprn,charKey,r),charKey,lifecycle,data);
   });
 }
 
