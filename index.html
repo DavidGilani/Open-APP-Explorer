@@ -261,6 +261,8 @@
 
     /* Summary view */
     #view-summary{display:none}
+    .home-link{cursor:pointer}
+    .home-link:hover{text-decoration:underline;text-underline-offset:3px}
     .summary-back{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--accent);background:none;border:none;cursor:pointer;padding:0 0 16px;font-family:Arial,sans-serif}
     .summary-title{font-size:18px;font-weight:700;color:#f2f3f6;margin-bottom:4px}
     .summary-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
@@ -351,7 +353,7 @@
 
 <!-- Hero -->
 <div class="hero-screen">
-  <div class="hero-title">Open APP Explorer</div>
+  <div class="hero-title home-link" onclick="goHome()" title="Back to homepage">Open APP Explorer</div>
   <div class="hero-sub">Compare Access &amp; Participation Plans across English universities</div>
 
   <div class="hero-mode-split" id="hero-cards">
@@ -422,7 +424,7 @@
 <div class="post-search">
   <div class="slim-header">
     <div>
-      <div class="slim-title">Open APP Explorer</div>
+      <div class="slim-title home-link" onclick="goHome()" title="Back to homepage">Open APP Explorer</div>
       <div class="slim-sub">Compare Access &amp; Participation Plans across English universities</div>
     </div>
   </div>
@@ -1435,6 +1437,17 @@ function openSummary(){
   hideAllViews();
   document.getElementById('view-summary').style.display='block';
   if(dataLoaded)buildSummary();
+}
+
+function goHome(){
+  if(typeof inp!=='undefined'&&inp)inp.value='';
+  currentInst=null;currentInstUrl='';currentInstData=null;currentInstTargets=[];
+  hideAllViews();
+  document.getElementById('view-all').style.display='block';
+  var ih=document.getElementById('inst-header-block');if(ih)ih.style.display='none';
+  document.body.classList.remove('searched');
+  backToHomeCards();
+  window.scrollTo(0,0);
 }
 
 function closeSummary(){
