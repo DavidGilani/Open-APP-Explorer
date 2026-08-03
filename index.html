@@ -86,6 +86,11 @@
     .post-search{display:none;padding:20px 16px 80px;max-width:780px;margin:0 auto}
     body.searched .post-search{display:block}
     .slim-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+    .share-btn{flex-shrink:0;display:inline-flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;color:#f2f3f6;font-size:13px;font-family:Arial,sans-serif;padding:8px 14px;cursor:pointer;transition:background .12s,border-color .12s}
+    .share-btn:hover{background:var(--bg3);border-color:var(--accent)}
+    .share-btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .share-toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(10px);background:#1e1f23;border:1px solid var(--border2);color:#f2f3f6;font-size:13px;padding:10px 16px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:200}
+    .share-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
     .slim-title{font-size:16px;font-weight:700;color:#f2f3f6}
     .slim-sub{font-size:12px;color:#f2f3f6}
 
@@ -456,6 +461,10 @@
       <div class="slim-title home-link" onclick="goHome()" title="Back to homepage">Open APP Explorer</div>
       <div class="slim-sub">Compare Access &amp; Participation Plans across English universities</div>
     </div>
+    <button class="share-btn" onclick="shareCurrentView()" title="Copy a link to this exact view and filters">
+      <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg>
+      Share
+    </button>
   </div>
 
   <div id="back-to-map" style="display:none"><button class="back-map-btn" onclick="backToMap()">&#8592; Back to the map</button></div>
@@ -779,6 +788,7 @@
 
 
 <div id="hovertip"></div>
+<div class="share-toast" id="share-toast"></div>
 
 <!-- Feedback modal -->
 <div class="modal-overlay" id="feedback-modal">
@@ -1070,6 +1080,7 @@ function _applyInstitution(name){
   renderInstTargets();
   document.getElementById('cols-block').style.display='grid';
   document.getElementById('inst-header-block').scrollIntoView({block:'start'});
+  syncURL();
 }
 
 function clearInstitution(){
@@ -1081,10 +1092,12 @@ function clearInstitution(){
   document.getElementById('inst-header-block').style.display='none';
   document.getElementById('cols-block').style.display='none';
   document.getElementById('no-results').style.display='none';
+  syncURL();
 }
 
 function findSimilar(idx){
   var t=currentInstTargets[idx]; if(!t)return;
+  _focusTargetRef=(t.reference_number||'').trim();
   var stage=t.lifecycle_stage||'',chr=t.characteristic||'',sc=stageClass(stage),label=buildLabel(t),ds=buildDataStr(t),hd=hasDetail(t);
   document.getElementById('selected-inst-label').textContent=currentInst+' - selected target';
   var selLink=document.getElementById('selected-app-link');
@@ -1110,9 +1123,10 @@ function findSimilar(idx){
   hideAllViews();
   document.getElementById('view-focus').style.display='block';
   window.scrollTo(0,0);
+  syncURL();
 }
 
-function showAllTargets(){hideAllViews();document.getElementById('view-all').style.display='block';}
+function showAllTargets(){hideAllViews();document.getElementById('view-all').style.display='block';syncURL();}
 
 // ── Institution filters ───────────────────────────────────────────────────
 function toggleFilterPanel(){filterPanelOpen=!filterPanelOpen;document.getElementById('filter-body').classList.toggle('open',filterPanelOpen);document.getElementById('filter-arrow').classList.toggle('open',filterPanelOpen);}
@@ -1224,7 +1238,7 @@ function applyFilters(){
     var emptySet=new Set();if(currentInstData&&currentInstData.ukprn)emptySet.add((currentInstData.ukprn||'').toString().trim());
     window._overlayUkprns=emptySet;
     if(_ofsOverlay['ofs-gap-panel']&&_ofsLastRender['ofs-gap-panel']){var _pe=_ofsLastRender['ofs-gap-panel'];_ofsRenderInto('ofs-gap-panel',_pe.t,_pe.rows,_pe.charKey,_pe.lifecycle,_pe.allData);}
-    document.getElementById('similar-list').innerHTML='<div class="empty">No universities match the current filters. Try loosening your criteria or switching to Loose matching.</div>';return;}
+    document.getElementById('similar-list').innerHTML='<div class="empty">No universities match the current filters. Try loosening your criteria or switching to Loose matching.</div>';syncURL();return;}
   // Track which institutions are currently visible, so the "Compare on one
   // chart" overlay on the focused institution's chart mirrors the list below.
   var visSet=new Set();
@@ -1258,6 +1272,7 @@ function applyFilters(){
       return '<div class="rrow"><div class="rrow-top"><div style="flex:1;min-width:0"><div class="rname">'+name+studentCount+trendBadge+'</div><div class="rdata">'+rLabel+'</div>'+(rd?'<div class="rdata-sub">'+rd+'</div>':'')+dataTags+'</div>'+(sparkHtml?'<div style="flex-shrink:0;margin-left:8px">'+sparkHtml+'</div>':'')+(rUrl?'<a href="'+rUrl+'" target="_blank" class="app-link" style="flex-shrink:0;margin-left:8px">&#128196; APP</a>':'')+'</div>'+moreBlock+'</div>';
     }).join('');
   }).join('');
+  syncURL();
 }
 
 // ── Demographic search ────────────────────────────────────────────────────
@@ -1309,6 +1324,7 @@ function searchByDemo() {
   if(ofsLifecycle&&demoCharKey){
     _ofsLoadAndRun(demoCharKey,ofsLifecycle,function(data){if(data)applyDemoFilters();});
   }
+  syncURL();
 }
 
 function clearDemoSearch() {
@@ -1479,7 +1495,7 @@ function applyDemoFilters(){
   var anyActiveIncludingPlan=anyActive||(demoPlanFilter!=='current');
   document.getElementById('demo-result-count').textContent=anyActiveIncludingPlan?'Showing '+shownInsts+' of '+totalInsts+' institutions after filters ('+filtered.length+' of '+planFiltered.length+' targets)':totalInsts+' institutions - '+planFiltered.length+' matching targets';
 
-  if(!filtered.length){document.getElementById('demo-results-list').innerHTML='<div class="empty">No institutions match the current filters.</div>';return;}
+  if(!filtered.length){document.getElementById('demo-results-list').innerHTML='<div class="empty">No institutions match the current filters.</div>';syncURL();return;}
 
   var grouped={};
   filtered.forEach(function(r){var n=r.used_name||r.legal_name;if(!grouped[n])grouped[n]=[];grouped[n].push(r);});
@@ -1511,6 +1527,7 @@ function applyDemoFilters(){
     }).join('');
     return hd+targetRows+'</div></div>';
   }).join('');
+  syncURL();
 }
 
 // ── Summary view ──────────────────────────────────────────────────────────
@@ -1640,6 +1657,7 @@ function openSummary(){
   hideAllViews();
   document.getElementById('view-summary').style.display='block';
   if(dataLoaded)buildSummary();
+  syncURL();
 }
 
 function goHome(){
@@ -1651,6 +1669,7 @@ function goHome(){
   document.body.classList.remove('searched');
   backToHomeCards();
   window.scrollTo(0,0);
+  syncURL();
 }
 
 function closeSummary(){
@@ -1661,6 +1680,7 @@ function closeSummary(){
     document.body.classList.remove('searched');
     backToHomeCards();
   }
+  syncURL();
 }
 
 function buildSummary(){
@@ -1721,6 +1741,7 @@ function buildSummary(){
   // Trend chart when exactly one stage + one characteristic selected
   if(oneStage&&oneChar){renderSummaryTrendChart();}
   // Not cached: every filter change triggers a full rebuild.
+  syncURL();
 }
 
 var _summaryTargets=[];
@@ -2102,6 +2123,170 @@ function closeAbout(){document.getElementById('about-modal').classList.remove('o
 document.getElementById('about-modal').addEventListener('click',function(e){if(e.target===this)closeAbout();});
 
 // ── Init ──────────────────────────────────────────────────────────────────
+// ── Shareable URL state ────────────────────────────────────────────────────
+// The address bar mirrors the current view + filters via history.replaceState
+// (no reload, no network). The Share button copies that URL. On load the URL is
+// replayed so a shared link lands on the exact same page and filters.
+var _restoringURL=false;
+var _focusTargetRef='';
+
+function _isShown(id){var el=document.getElementById(id);return el&&getComputedStyle(el).display!=='none';}
+function currentViewState(){
+  if(_isShown('view-summary'))return 'summary';
+  if(_isShown('view-demo'))return 'demo';
+  if(_isShown('view-focus'))return 'focus';
+  if(currentInst)return 'inst';
+  return 'home';
+}
+
+function buildStateParams(){
+  var p=new URLSearchParams();
+  var v=currentViewState();
+  if(v==='summary'){
+    p.set('v','sum');
+    if(SF.plan!=='current')p.set('plan',SF.plan);
+    SF.stages.forEach(function(s){p.append('stg',s);});
+    SF.chars.forEach(function(c){p.append('chr',c);});
+    SF.regions.forEach(function(r){p.append('rgn',r);});
+    SF.missions.forEach(function(m){p.append('msn',m);});
+    SF.comparator.forEach(function(u){p.append('cmp',u);});
+  } else if(v==='demo'){
+    p.set('v','demo');
+    p.set('stage',(document.getElementById('demo-stage')||{}).value||'');
+    p.set('char',(document.getElementById('demo-char')||{}).value||'');
+    if(demoPlanFilter!=='current')p.set('dplan',demoPlanFilter);
+    if(demoMissionFilter)p.set('dmsn',demoMissionFilter);
+    if(demoRegionFilter)p.set('drgn',demoRegionFilter);
+    var dszEl=document.querySelector('input[name="demo-inst-size"]:checked');
+    if(dszEl&&dszEl.value!=='all')p.set('dsz',dszEl.value);
+    if(demoProgressFilter!=='all')p.set('dprog',demoProgressFilter);
+    Object.keys(demoBandFilters).forEach(function(k){var s=demoBandFilters[k];if(s&&s.size)Array.from(s).forEach(function(bi){p.append('dband',k+'.'+bi);});});
+  } else if(v==='focus'||v==='inst'){
+    p.set('v','inst');
+    p.set('u',currentInst||'');
+    if(instPlanFilter!=='current')p.set('iplan',instPlanFilter);
+    if(v==='focus'){
+      p.set('t',_focusTargetRef);
+      if(simPlanFilter!=='current')p.set('splan',simPlanFilter);
+      if(document.getElementById('filter-mission').checked)p.set('smsn','1');
+      if(document.getElementById('filter-region').checked)p.set('srgn','1');
+      var sszEl=document.querySelector('input[name="inst-size"]:checked');
+      if(sszEl&&sszEl.value!=='all')p.set('ssz',sszEl.value);
+      if(globalPrecision!==10)p.set('sprec',globalPrecision);
+      if(simProgressFilter!=='all')p.set('sprog',simProgressFilter);
+      activeNumericKeys.forEach(function(key){p.append('snum',key);});
+    }
+  }
+  return p;
+}
+
+function syncURL(){
+  if(_restoringURL||!dataLoaded)return;
+  var qs=buildStateParams().toString();
+  try{history.replaceState(null,'',window.location.pathname+(qs?'?'+qs:''));}catch(e){}
+}
+
+function showShareToast(msg){
+  var t=document.getElementById('share-toast');if(!t)return;
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._h);t._h=setTimeout(function(){t.classList.remove('show');},2200);
+}
+function _fallbackCopy(text){
+  try{var ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);}catch(e){}
+}
+function shareCurrentView(){
+  syncURL();
+  var url=window.location.href;
+  var ok=function(){showShareToast('Link copied - anyone with it lands on this exact view.');};
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(ok,function(){_fallbackCopy(url);ok();});
+  }else{_fallbackCopy(url);ok();}
+}
+
+// Reflect activeNumericKeys back onto the profile checkboxes/chips after a restore
+function _syncNumericChips(){
+  document.querySelectorAll('.fchip input[type=checkbox]').forEach(function(cb){if(cb.id!=='filter-mission'&&cb.id!=='filter-region')cb.checked=false;});
+  document.querySelectorAll('.filter-section .fchip').forEach(function(c){if(c.id&&c.id.indexOf('chip-')===0&&c.id!=='chip-mission'&&c.id!=='chip-region')c.classList.remove('active');});
+  activeNumericKeys.forEach(function(key){
+    ['filter-'+key,'filter-sug-'+key].forEach(function(id){var cb=document.getElementById(id);if(cb)cb.checked=true;});
+    ['chip-'+key,'chip-sug-'+key].forEach(function(id){var ch=document.getElementById(id);if(ch)ch.classList.add('active');});
+    for(var grpId in CHIP_GROUPS){if((CHIP_GROUPS[grpId]||[]).some(function(c){return c.key===key;})){var b=document.getElementById(grpId),a=document.getElementById('arr-'+grpId);if(b)b.classList.add('open');if(a)a.classList.add('open');}}
+  });
+  if(typeof updateGroupCounters==='function')updateGroupCounters();
+}
+
+function restoreFromURL(){
+  var p=new URLSearchParams(window.location.search);
+  var v=p.get('v');
+  if(!v)return;
+  _restoringURL=true;
+  try{
+    if(v==='sum'){
+      SF.plan=p.get('plan')||'current';
+      SF.stages=p.getAll('stg');SF.chars=p.getAll('chr');
+      SF.regions=p.getAll('rgn');SF.missions=p.getAll('msn');SF.comparator=p.getAll('cmp');
+      openSummary();
+    } else if(v==='demo'){
+      var stage=p.get('stage'),chr=p.get('char');
+      if(stage&&chr){
+        openHeroPanel('demo');
+        var stEl=document.getElementById('demo-stage');if(stEl){stEl.value=stage;populateDemoCharacteristics();}
+        var chEl=document.getElementById('demo-char');if(chEl)chEl.value=chr;
+        demoPlanFilter=p.get('dplan')||'current';
+        searchByDemo();
+        demoMissionFilter=p.get('dmsn')||'';
+        demoRegionFilter=p.get('drgn')||'';
+        demoProgressFilter=p.get('dprog')||'all';
+        var dsz=p.get('dsz')||'all';var dszEl=document.querySelector('input[name="demo-inst-size"][value="'+dsz+'"]');if(dszEl)dszEl.checked=true;
+        var mgEl=document.querySelector('input[name="demo-mg"][value="'+(demoMissionFilter||'')+'"]');if(mgEl)mgEl.checked=true;
+        var rgEl=document.querySelector('input[name="demo-reg"][value="'+(demoRegionFilter||'')+'"]');if(rgEl)rgEl.checked=true;
+        if(typeof syncDemoMGChips==='function')syncDemoMGChips();
+        if(typeof syncDemoRegChips==='function')syncDemoRegChips();
+        ['current','all','past'].forEach(function(x){var el=document.getElementById('demo-plan-'+x);if(el)el.classList.toggle('active',x===demoPlanFilter);});
+        ['all','narrowing','stable','widening','nodata'].forEach(function(x){var el=document.getElementById('demo-prog-'+x);if(el)el.classList.toggle('active',x===demoProgressFilter);});
+        demoBandFilters={};
+        p.getAll('dband').forEach(function(tok){var i=tok.lastIndexOf('.');if(i<0)return;var k=tok.slice(0,i),bi=parseInt(tok.slice(i+1),10);if(isNaN(bi))return;if(!demoBandFilters[k])demoBandFilters[k]=new Set();demoBandFilters[k].add(bi);});
+        if(typeof syncAllBandChipsToState==='function')syncAllBandChipsToState();
+        applyDemoFilters();
+      }
+    } else if(v==='inst'){
+      var u=p.get('u');
+      if(u){
+        openHeroPanel('inst');
+        _applyInstitution(u);
+        instPlanFilter=p.get('iplan')||'current';
+        ['current','all','past'].forEach(function(x){var el=document.getElementById('inst-plan-'+x);if(el)el.classList.toggle('active',x===instPlanFilter);});
+        renderInstTargets();
+        var tref=p.get('t');
+        if(tref){
+          var idx=currentInstTargets.findIndex(function(r){return (r.reference_number||'').trim()===tref;});
+          if(idx>=0){
+            findSimilar(idx);
+            simPlanFilter=p.get('splan')||'current';
+            ['current','all','past'].forEach(function(x){var el=document.getElementById('sim-plan-'+x);if(el)el.classList.toggle('active',x===simPlanFilter);});
+            var smis=p.get('smsn')==='1',sreg=p.get('srgn')==='1';
+            var fm=document.getElementById('filter-mission');if(fm&&!fm.disabled)fm.checked=smis;
+            var fr=document.getElementById('filter-region');if(fr&&!fr.disabled)fr.checked=sreg;
+            document.getElementById('chip-mission').classList.toggle('active',smis);
+            document.getElementById('chip-region').classList.toggle('active',sreg);
+            var ssz=p.get('ssz')||'all';var sszEl=document.querySelector('input[name="inst-size"][value="'+ssz+'"]');if(sszEl)sszEl.checked=true;
+            globalPrecision=parseInt(p.get('sprec'),10)||10;
+            document.getElementById('prec-5').classList.toggle('active',globalPrecision===5);
+            document.getElementById('prec-10').classList.toggle('active',globalPrecision===10);
+            simProgressFilter=p.get('sprog')||'all';
+            ['all','narrowing','stable','widening','nodata'].forEach(function(x){var el=document.getElementById('sim-prog-'+x);if(el)el.classList.toggle('active',x===simProgressFilter);});
+            activeNumericKeys=new Set(p.getAll('snum'));
+            _syncNumericChips();
+            applyFilters();
+          }
+        }
+      }
+    }
+  }catch(e){console.log('URL restore error:',e);}
+  _restoringURL=false;
+  syncURL();
+}
+
 function init() {
   document.getElementById('loading-msg').classList.add('visible');
   fetch('./data.json')
@@ -2126,6 +2311,7 @@ function init() {
       document.getElementById('loading-msg').classList.remove('visible');
       document.getElementById('search-input').disabled=false;
       document.getElementById('search-input').placeholder='Type your institution name...';
+      restoreFromURL();
     })
     .catch(function(e){
       console.log('Error loading data:',e);
@@ -2162,6 +2348,7 @@ function setInstPlanFilter(val) {
     if (el) el.classList.toggle('active', v === val);
   });
   renderInstTargets();
+  syncURL();
 }
 
 function setDemoPlanFilter(val) {
