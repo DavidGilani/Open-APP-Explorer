@@ -716,11 +716,6 @@
 
     <div class="summary-section" id="map-section">
       <div class="summary-section-title">Where targets are across England</div>
-      <div class="map-controls">
-        <select id="map-stage" onchange="setMapFilter('stage',this.value)"><option value="">All lifecycle stages</option></select>
-        <select id="map-char" onchange="setMapFilter('char',this.value)"><option value="">All demographic areas</option></select>
-        <select id="map-region" onchange="setMapFilter('region',this.value)"><option value="">All regions</option></select>
-      </div>
       <div class="map-wrap">
         <div class="map-svg-box" style="position:relative">
           <svg id="uk-map" viewBox="0 0 320 460" xmlns="http://www.w3.org/2000/svg"></svg>
@@ -745,12 +740,6 @@
 
     <div class="summary-section" id="sum-demo-section">
       <div class="summary-section-title" id="sum-demo-title">Targets by demographic area</div>
-      <div class="plan-filter-row" style="margin-bottom:14px">
-        <span class="plan-chip active" id="sds-all" onclick="setSummaryDemoStage('all')">All targets</span>
-        <span class="plan-chip" id="sds-access" onclick="setSummaryDemoStage('access')">Access</span>
-        <span class="plan-chip" id="sds-success" onclick="setSummaryDemoStage('success')">Success</span>
-        <span class="plan-chip" id="sds-progression" onclick="setSummaryDemoStage('progression')">Progression</span>
-      </div>
       <div class="bar-chart" id="sum-demo-bars"></div>
     </div>
 
@@ -1492,13 +1481,40 @@ function applyDemoFilters(){
 
 // ── Summary view ──────────────────────────────────────────────────────────
 var summaryBuilt=false;
-var summaryPlanFilter='current';
-
-function setSummaryPlanFilter(val){
-  summaryPlanFilter=val;
-  ['current','all','past'].forEach(function(v){
-    var el=document.getElementById('sum-plan-'+v);
-    if(el)el.classList.toggle('active',v===val);
+// ── Unified summary filters ────────────────────────────────────────────────
+// One filter state drives every visual on the summary page (stats, map, donut,
+// demographic bars). Empty array = "all" for that dimension.
+var SF={plan:'current',stages:[],chars:[],regions:[],missions:[],comparator:[]};
+var STAGE_DEFS=[['access','Access'],['continuation','Continuation'],['attainment','Attainment'],['completion','Completion'],['progression','Progression']];
+var STAGE_COLORS={access:'#b8aeff',continuation:'#5dcaa5',attainment:'#7ecf9e',completion:'#49b391',progression:'#f0907a',other:'#9a9fac'};
+var STAGE_LABELS={access:'Access',continuation:'Continuation',attainment:'Attainment',completion:'Completion',progression:'Progression',other:'Other'};
+var MISSION_GROUPS=['Russell Group','University Alliance','MillionPlus','GuildHE','Cathedrals Group','ResearchPlus'];
+// Map a raw lifecycle_stage string to one fine-grained stage key
+function stageKey(s){if(!s)return 'other';var l=s.toLowerCase();
+  if(l.indexOf('access')>=0)return 'access';
+  if(l.indexOf('progression')>=0)return 'progression';
+  if(l.indexOf('continuation')>=0)return 'continuation';
+  if(l.indexOf('completion')>=0)return 'completion';
+  if(l.indexOf('attainment')>=0)return 'attainment';
+  return 'other';}
+function sfCompActive(){return SF.comparator.length>0;}
+// The single source of truth for "which targets are showing"
+function summaryFilteredTargets(){
+  var comp={};if(sfCompActive())SF.comparator.forEach(function(u){comp[u.toString().trim()]=true;});
+  var compActive=sfCompActive();
+  return allData.filter(function(r){
+    if(!r.reference_number||!r.reference_number.trim())return false;
+    if(!isPlanMatch(r,SF.plan))return false;
+    if(SF.stages.length&&SF.stages.indexOf(stageKey(r.lifecycle_stage))<0)return false;
+    if(SF.chars.length&&SF.chars.indexOf((r.characteristic||'').trim())<0)return false;
+    if(compActive){
+      if(!comp[(r.ukprn||'').toString().trim()])return false;
+    }else{
+      if(SF.regions.length&&SF.regions.indexOf((r.region||'').trim())<0)return false;
+      if(SF.missions.length){var mg=(r.mission_group||'').trim(),mg2=(r.mission_group2||'').trim();
+        if(SF.missions.indexOf(mg)<0&&SF.missions.indexOf(mg2)<0)return false;}
+    }
+    return true;
   });
 }
 var _sfFiltersOpen=false;
@@ -1610,38 +1626,41 @@ function closeSummary(){
 }
 
 function buildSummary(){
-  var targets=allData.filter(function(r){
-    if(!r.reference_number||!r.reference_number.trim())return false;
-    return isPlanMatch(r,summaryPlanFilter);
-  });
+  sfInitChips();
+  var targets=summaryFilteredTargets();
+  _summaryTargets=targets;
   var instSet={},charSet={};
   targets.forEach(function(r){var n=r.used_name||r.legal_name;if(n)instSet[n]=true;var c=(r.characteristic||'').trim();if(c)charSet[c]=true;});
   document.getElementById('sum-insts').textContent=Object.keys(instSet).length.toLocaleString();
   document.getElementById('sum-targets').textContent=targets.length.toLocaleString();
   document.getElementById('sum-chars').textContent=Object.keys(charSet).length.toLocaleString();
 
-  // Lifecycle donut
-  var lifecycle={access:0,success:0,progression:0,other:0};
-  targets.forEach(function(r){lifecycle[getGroup(r.lifecycle_stage)]++;});
-  var lcGroups=['access','success','progression','other'].filter(function(g){return lifecycle[g]>0;});
+  // Lifecycle donut - split across the five fine-grained stages
+  var lifecycle={access:0,continuation:0,attainment:0,completion:0,progression:0,other:0};
+  targets.forEach(function(r){lifecycle[stageKey(r.lifecycle_stage)]++;});
+  var order=['access','continuation','attainment','completion','progression','other'];
+  var lcGroups=order.filter(function(g){return lifecycle[g]>0;});
   var total=targets.length;
   var svg=document.getElementById('sum-donut');
-  var cx=80,cy=80,ro=60,ri=38,startAngle=-Math.PI/2,paths='';
-  lcGroups.forEach(function(g){
-    var angle=(lifecycle[g]/total)*2*Math.PI,endAngle=startAngle+angle;
-    var x1=cx+ro*Math.cos(startAngle),y1=cy+ro*Math.sin(startAngle);
-    var x2=cx+ro*Math.cos(endAngle),y2=cy+ro*Math.sin(endAngle);
-    var ix1=cx+ri*Math.cos(startAngle),iy1=cy+ri*Math.sin(startAngle);
-    var ix2=cx+ri*Math.cos(endAngle),iy2=cy+ri*Math.sin(endAngle);
-    var la=angle>Math.PI?1:0;
-    paths+='<path d="M '+x1+' '+y1+' A '+ro+' '+ro+' 0 '+la+' 1 '+x2+' '+y2+' L '+ix2+' '+iy2+' A '+ri+' '+ri+' 0 '+la+' 0 '+ix1+' '+iy1+' Z" fill="'+LIFECYCLE_COLORS[g]+'" opacity="0.9"/>';
-    startAngle=endAngle;
-  });
-  svg.innerHTML=paths+'<text x="80" y="76" text-anchor="middle" font-size="11" fill="#9a9fac" font-family="Arial">targets</text><text x="80" y="91" text-anchor="middle" font-size="11" fill="#9a9fac" font-family="Arial">by stage</text>';
-  document.getElementById('sum-legend').innerHTML=lcGroups.map(function(g){
-    var pct=Math.round(lifecycle[g]/total*100);
-    return '<div class="legend-row"><div class="legend-swatch" style="background:'+LIFECYCLE_COLORS[g]+'"></div><div class="legend-label">'+getGroupLabel(g)+'</div><div class="legend-count">'+lifecycle[g].toLocaleString()+'<span class="legend-pct">'+pct+'%</span></div></div>';
-  }).join('');
+  if(!total){svg.innerHTML='';document.getElementById('sum-legend').innerHTML='<div class="empty">No targets match these filters.</div>';}
+  else{
+    var cx=80,cy=80,ro=60,ri=38,startAngle=-Math.PI/2,paths='';
+    lcGroups.forEach(function(g){
+      var angle=(lifecycle[g]/total)*2*Math.PI,endAngle=startAngle+angle;
+      var x1=cx+ro*Math.cos(startAngle),y1=cy+ro*Math.sin(startAngle);
+      var x2=cx+ro*Math.cos(endAngle),y2=cy+ro*Math.sin(endAngle);
+      var ix1=cx+ri*Math.cos(startAngle),iy1=cy+ri*Math.sin(startAngle);
+      var ix2=cx+ri*Math.cos(endAngle),iy2=cy+ri*Math.sin(endAngle);
+      var la=angle>Math.PI?1:0;
+      paths+='<path d="M '+x1+' '+y1+' A '+ro+' '+ro+' 0 '+la+' 1 '+x2+' '+y2+' L '+ix2+' '+iy2+' A '+ri+' '+ri+' 0 '+la+' 0 '+ix1+' '+iy1+' Z" fill="'+STAGE_COLORS[g]+'" opacity="0.9"/>';
+      startAngle=endAngle;
+    });
+    svg.innerHTML=paths+'<text x="80" y="76" text-anchor="middle" font-size="11" fill="#9a9fac" font-family="Arial">targets</text><text x="80" y="91" text-anchor="middle" font-size="11" fill="#9a9fac" font-family="Arial">by stage</text>';
+    document.getElementById('sum-legend').innerHTML=lcGroups.map(function(g){
+      var pct=Math.round(lifecycle[g]/total*100);
+      return '<div class="legend-row"><div class="legend-swatch" style="background:'+STAGE_COLORS[g]+'"></div><div class="legend-label">'+STAGE_LABELS[g]+'</div><div class="legend-count">'+lifecycle[g].toLocaleString()+'<span class="legend-pct">'+pct+'%</span></div></div>';
+    }).join('');
+  }
 
   // Conditional section visibility
   var oneStage=(SF.stages.length===1);
@@ -1659,29 +1678,19 @@ function buildSummary(){
 
   // Trend chart when exactly one stage + one characteristic selected
   if(oneStage&&oneChar){renderSummaryTrendChart();}
+  // Not cached: every filter change triggers a full rebuild.
 }
 
 var _summaryTargets=[];
-var summaryDemoStage='all';
-function setSummaryDemoStage(stage){
-  summaryDemoStage=stage;
-  ['all','access','success','progression'].forEach(function(s){
-    var el=document.getElementById('sds-'+s);if(el)el.classList.toggle('active',s===stage);
-  });
-  renderSummaryDemoBars();
-}
 function renderSummaryDemoBars(){
-  var stage=summaryDemoStage;
-  var rows=stage==='all'?_summaryTargets:_summaryTargets.filter(function(r){return getGroup(r.lifecycle_stage)===stage;});
-  var titleEl=document.getElementById('sum-demo-title');
-  if(titleEl)titleEl.textContent=stage==='all'?'Targets by demographic area':'Targets by demographic area – '+getGroupLabel(stage);
+  var rows=_summaryTargets;
   var charCounts={};
   rows.forEach(function(r){var c=(r.characteristic||'').trim();if(c)charCounts[c]=(charCounts[c]||0)+1;});
   var charsSorted=Object.keys(charCounts).sort(function(a,b){return charCounts[b]-charCounts[a];});
   var box=document.getElementById('sum-demo-bars');
-  if(!charsSorted.length){box.innerHTML='<div class="empty">No targets for this stage.</div>';return;}
+  if(!charsSorted.length){box.innerHTML='<div class="empty">No targets match these filters.</div>';return;}
   var maxChar=charCounts[charsSorted[0]]||1;
-  var color=stage==='all'?'var(--accent)':LIFECYCLE_COLORS[stage];
+  var color='var(--accent)';
   box.innerHTML=charsSorted.map(function(c){
     var n=charCounts[c],w=Math.round(n/maxChar*100);
     return '<div class="bar-row"><div class="bar-label">'+c+'</div><div class="bar-track"><div class="bar-fill" style="width:'+w+'%;background:'+color+'"><span class="bar-val">'+n.toLocaleString()+'</span></div></div></div>';
@@ -1690,11 +1699,10 @@ function renderSummaryDemoBars(){
 
 // ── Summary trend chart (1 stage + 1 characteristic) ─────────────────────
 function renderSummaryTrendChart(){
-  var charStr=SF.chars[0],stageKey=SF.stages[0];
+  var charStr=SF.chars[0],stageK=SF.stages[0];
   var fakeTarget={characteristic:charStr};
   var charKey=getOfsCharacteristic(fakeTarget);
-  var lifecycle=stageKey.charAt(0).toUpperCase()+stageKey.slice(1);
-  var trendSec=document.getElementById('sum-trend-section');
+  var lifecycle=stageK.charAt(0).toUpperCase()+stageK.slice(1);
   var trendDiv=document.getElementById('sum-trend-chart');
   var trendTitle=document.getElementById('sum-trend-title');
   if(!trendDiv)return;
@@ -1709,14 +1717,11 @@ function renderSummaryTrendChart(){
   _summaryTargets.forEach(function(r){var uk=(r.ukprn||'').toString().trim();if(uk)ukprnSet.add(uk);});
   _ofsLoadAndRun(charKey,lifecycle,function(data){
     if(!data){trendDiv.innerHTML='<div class="empty" style="padding:12px 0">OfS equity data could not be loaded.</div>';return;}
-    // Build per-institution gap series from the OfS data, restricted to filtered institutions
     var pairs=charKey==='imd'?null:OFS_CHAR_PAIRS[charKey];
-    // Determine primary ind1/ind2 pair
     var i1=null,i2=null;
     if(charKey==='imd'){i1='IMDQ5';i2='IMDQ1';}
     else if(pairs&&pairs.length){i1=pairs[0][0];i2=pairs[0][1];}
     if(!i1){trendDiv.innerHTML='<div class="empty" style="padding:12px 0">No gap data available for this characteristic.</div>';return;}
-    // Group rows by institution
     var byInst={};
     data.forEach(function(r){
       if(r.split_ind1!==i1||r.split_ind2!==i2)return;
@@ -1729,12 +1734,10 @@ function renderSummaryTrendChart(){
     });
     var instKeys=Object.keys(byInst);
     if(!instKeys.length){trendDiv.innerHTML='<div class="empty" style="padding:12px 0">No gap data available for these filters.</div>';return;}
-    // All academic years across all institutions
     var aySet={};instKeys.forEach(function(uk){Object.keys(byInst[uk].byAy).forEach(function(ay){aySet[ay]=true;});});
     var allAy=Object.keys(aySet).sort();
     if(!allAy.length){trendDiv.innerHTML='<div class="empty" style="padding:12px 0">No gap data available.</div>';return;}
     var ayIdx={};allAy.forEach(function(ay,i){ayIdx[ay]=i;});
-    // Y range
     var vals=[0];instKeys.forEach(function(uk){Object.keys(byInst[uk].byAy).forEach(function(ay){vals.push(byInst[uk].byAy[ay]);});});
     var minG=Math.min.apply(null,vals),maxG=Math.max.apply(null,vals),range=maxG-minG;
     if(range<4){minG-=2;maxG+=2;range=maxG-minG;}
@@ -1751,7 +1754,6 @@ function renderSummaryTrendChart(){
       sp.push('<text x="'+xPos(i)+'" y="'+(H-pB+12)+'" text-anchor="middle" font-size="8" fill="#9a9fac">'+lbl+'</text>');
     });
     sp.push('<text x="'+(pL+cW/2)+'" y="'+(H-16)+'" text-anchor="middle" font-size="8" fill="#9a9fac">Academic year</text>');
-    // Grey lines for all non-selected institutions
     var selUk=(_mapSelectedUkprn||'').toString().trim();
     instKeys.forEach(function(uk){
       if(uk===selUk)return;
@@ -1760,7 +1762,6 @@ function renderSummaryTrendChart(){
       if(pts.length<2)return;
       sp.push('<polyline class="ofs-ov-line" points="'+pts.join(' ')+'" data-name="'+escAttr(inst.name||'uk')+'" onmouseover="hoverTipShow(event,this)" onmousemove="hoverTipMove(event)" onmouseout="hoverTipHide()"></polyline>');
     });
-    // Highlighted line for selected institution (if in filtered set)
     if(selUk&&byInst[selUk]){
       var si=byInst[selUk],sAy=allAy.filter(function(ay){return si.byAy[ay]!==undefined;});
       if(sAy.length>=1){
@@ -1794,48 +1795,13 @@ function _mapProjection(W,H){
   return _mapProj;
 }
 
-function setMapFilter(kind,val){
-  if(kind==='stage')mapStageFilter=val;
-  else if(kind==='char')mapCharFilter=val;
-  else if(kind==='region')mapRegionFilter=val;
-  buildMap();
-}
 
-// Populate the stage/char/region dropdowns once from the data
-function _initMapControls(targets){
-  var charSet={},regSet={};
-  targets.forEach(function(r){
-    var c=(r.characteristic||'').trim();if(c)charSet[c]=true;
-    var rg=(r.region||'').trim();if(rg)regSet[rg]=true;
-  });
-  var stageSel=document.getElementById('map-stage');
-  if(stageSel.options.length<=1){
-    [['access','Access'],['success','Success (continuation, completion, attainment)'],['progression','Progression']].forEach(function(s){
-      var o=document.createElement('option');o.value=s[0];o.textContent=s[1];stageSel.appendChild(o);
-    });
-  }
-  var charSel=document.getElementById('map-char');
-  if(charSel.options.length<=1){
-    Object.keys(charSet).sort().forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;charSel.appendChild(o);});
-  }
-  var regSel=document.getElementById('map-region');
-  if(regSel.options.length<=1){
-    Object.keys(regSet).sort().forEach(function(rg){var o=document.createElement('option');o.value=rg;o.textContent=rg;regSel.appendChild(o);});
-  }
-}
-
-function buildMap(){
+function buildMap(targets){
   var svg=document.getElementById('uk-map');if(!svg)return;
   var W=320,H=460,proj=_mapProjection(W,H);
-  // Base targets: same plan filter as the rest of the summary
-  var baseTargets=allData.filter(function(r){return r.reference_number&&r.reference_number.trim()&&isPlanMatch(r,summaryPlanFilter);});
-  _initMapControls(baseTargets);
-  // Apply the map's own type filters
-  var targets=baseTargets.filter(function(r){
-    if(mapStageFilter&&getGroup(r.lifecycle_stage)!==mapStageFilter)return false;
-    if(mapCharFilter&&(r.characteristic||'').trim()!==mapCharFilter)return false;
-    return true;
-  });
+  if(!targets)targets=summaryFilteredTargets();
+  // The map highlights/summarises a single region only when exactly one is chosen
+  mapRegionFilter=(SF.regions.length===1)?SF.regions[0]:'';
   // Group into institutions with coordinates
   var insts={};_mapInstById={};
   var anyCoords=false;
@@ -1918,9 +1884,9 @@ function _mapRender(){
 
 // Click a region on the map: toggle it as the active region filter
 function mapPickRegion(name){
-  mapRegionFilter=(mapRegionFilter===name)?'':name;
-  var sel=document.getElementById('map-region');if(sel)sel.value=mapRegionFilter;
-  buildMap();
+  if(sfCompActive())return; // region filter is overridden while a comparator set is active
+  sfToggleArr(SF.regions,name);
+  buildSummary();
 }
 
 // ── Map zoom / pan ──────────────────────────────────────────────────────────
