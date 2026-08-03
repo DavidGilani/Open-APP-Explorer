@@ -273,6 +273,25 @@
     .stat-label{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.4}
     .summary-section{margin-bottom:24px}
     .summary-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:12px}
+    .sum-filter-bar{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:16px;margin-bottom:22px}
+    .sum-filter-bar .plan-filter-row{margin-bottom:10px}
+    .sum-filter-bar .plan-filter-row:last-child{margin-bottom:0}
+    .sum-filter-bar .plan-filter-label{width:104px;flex-shrink:0}
+    .sf-reset{margin-left:auto;font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid var(--border2);background:none;color:var(--muted);cursor:pointer;font-family:Arial,sans-serif}
+    .sf-reset:hover{color:#f2f3f6;background:var(--bg3)}
+    .sf-dd{position:relative;display:inline-block}
+    .sf-dd-panel{position:absolute;top:calc(100% + 4px);left:0;z-index:30;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px;width:300px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+    .sf-dd-panel-wide{width:360px}
+    .sf-dd-search{width:100%;box-sizing:border-box;background:var(--bg2);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:13px;padding:6px 8px;font-family:Arial,sans-serif;margin-bottom:8px}
+    .sf-dd-list{max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:1px}
+    .sf-dd-item{display:flex;align-items:center;gap:8px;font-size:13px;color:#f2f3f6;padding:5px 6px;border-radius:6px;cursor:pointer}
+    .sf-dd-item:hover{background:var(--bg2)}
+    .sf-dd-item input{cursor:pointer;flex-shrink:0}
+    .sf-dd-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .sf-comp-actions{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:12px}
+    .sf-comp-actions a{color:var(--accent);cursor:pointer}
+    .sf-comp-note{font-size:12px;color:var(--muted)}
+    .sf-row-disabled{opacity:.38;pointer-events:none}
     .map-controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
     .map-controls select{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:7px 10px;font-family:Arial,sans-serif;cursor:pointer}
     .map-wrap{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start}
@@ -635,11 +654,48 @@
     <button class="summary-back" onclick="closeSummary()">&#8592; Back</button>
     <div class="summary-title">APP targets at a glance</div>
     <div class="summary-sub">A snapshot of Access and Participation Plan targets across English universities in this dataset.</div>
-    <div class="plan-filter-row" style="margin-bottom:20px">
-      <span class="plan-filter-label">Showing:</span>
-      <span class="plan-chip active" id="sum-plan-current" onclick="setSummaryPlanFilter('current')">Current APPs only</span>
-      <span class="plan-chip" id="sum-plan-all" onclick="setSummaryPlanFilter('all')">All APPs</span>
-      <span class="plan-chip" id="sum-plan-past" title="Targets from an institution's previously-submitted APP (superseded by their current plan)." onclick="setSummaryPlanFilter('past')">Past APPs only</span>
+    <div class="sum-filter-bar" id="sum-filter-bar">
+      <div class="plan-filter-row">
+        <span class="plan-filter-label">Plan</span>
+        <span class="plan-chip active" id="sum-plan-current" onclick="sfSetPlan('current')">Current APPs only</span>
+        <span class="plan-chip" id="sum-plan-all" onclick="sfSetPlan('all')">All APPs</span>
+        <span class="plan-chip" id="sum-plan-past" title="Targets from an institution's previously-submitted APP (superseded by their current plan)." onclick="sfSetPlan('past')">Past APPs only</span>
+        <button class="sf-reset" onclick="sfReset()">&#8634; Reset all filters</button>
+      </div>
+      <div class="plan-filter-row">
+        <span class="plan-filter-label">Lifecycle stage</span>
+        <span id="sf-stage-chips" style="display:flex;gap:6px;flex-wrap:wrap"></span>
+      </div>
+      <div class="plan-filter-row" id="sf-region-wrap">
+        <span class="plan-filter-label">Region</span>
+        <span id="sf-region-chips" style="display:flex;gap:6px;flex-wrap:wrap"></span>
+      </div>
+      <div class="plan-filter-row" id="sf-mission-wrap">
+        <span class="plan-filter-label">Mission group</span>
+        <span id="sf-mission-chips" style="display:flex;gap:6px;flex-wrap:wrap"></span>
+      </div>
+      <div class="plan-filter-row">
+        <span class="plan-filter-label">Demographic</span>
+        <div class="sf-dd">
+          <button class="plan-chip" id="sf-char-btn" onclick="sfToggleDD('char')">All demographic areas &#9662;</button>
+          <div class="sf-dd-panel" id="sf-char-panel" style="display:none">
+            <input type="text" class="sf-dd-search" id="sf-char-search" placeholder="Search demographic areas..." oninput="sfRenderCharList()"/>
+            <div class="sf-dd-list" id="sf-char-list"></div>
+          </div>
+        </div>
+      </div>
+      <div class="plan-filter-row">
+        <span class="plan-filter-label">Comparator set</span>
+        <div class="sf-dd">
+          <button class="plan-chip" id="sf-comp-btn" onclick="sfToggleDD('comp')">Build your own comparator set &#9662;</button>
+          <div class="sf-dd-panel sf-dd-panel-wide" id="sf-comp-panel" style="display:none">
+            <div class="sf-comp-actions"><span id="sf-comp-count">0 selected</span><a onclick="sfClearComp()">Clear set</a></div>
+            <input type="text" class="sf-dd-search" id="sf-comp-search" placeholder="Search institutions..." oninput="sfRenderCompList()"/>
+            <div class="sf-dd-list" id="sf-comp-list"></div>
+          </div>
+        </div>
+        <span class="sf-comp-note" id="sf-comp-note"></span>
+      </div>
     </div>
 
     <div class="stat-row">
@@ -650,11 +706,6 @@
 
     <div class="summary-section" id="map-section">
       <div class="summary-section-title">Where targets are across England</div>
-      <div class="map-controls">
-        <select id="map-stage" onchange="setMapFilter('stage',this.value)"><option value="">All lifecycle stages</option></select>
-        <select id="map-char" onchange="setMapFilter('char',this.value)"><option value="">All demographic areas</option></select>
-        <select id="map-region" onchange="setMapFilter('region',this.value)"><option value="">All regions</option></select>
-      </div>
       <div class="map-wrap">
         <div class="map-svg-box" style="position:relative">
           <svg id="uk-map" viewBox="0 0 320 460" xmlns="http://www.w3.org/2000/svg"></svg>
@@ -679,12 +730,6 @@
 
     <div class="summary-section">
       <div class="summary-section-title" id="sum-demo-title">Targets by demographic area</div>
-      <div class="plan-filter-row" style="margin-bottom:14px">
-        <span class="plan-chip active" id="sds-all" onclick="setSummaryDemoStage('all')">All targets</span>
-        <span class="plan-chip" id="sds-access" onclick="setSummaryDemoStage('access')">Access</span>
-        <span class="plan-chip" id="sds-success" onclick="setSummaryDemoStage('success')">Success</span>
-        <span class="plan-chip" id="sds-progression" onclick="setSummaryDemoStage('progression')">Progression</span>
-      </div>
       <div class="bar-chart" id="sum-demo-bars"></div>
     </div>
   </div>
@@ -1421,15 +1466,113 @@ function applyDemoFilters(){
 
 // ── Summary view ──────────────────────────────────────────────────────────
 var summaryBuilt=false;
-var summaryPlanFilter='current';
-
-function setSummaryPlanFilter(val){
-  summaryPlanFilter=val;
-  ['current','all','past'].forEach(function(v){
-    var el=document.getElementById('sum-plan-'+v);
-    if(el)el.classList.toggle('active',v===val);
+// ── Unified summary filters ────────────────────────────────────────────────
+// One filter state drives every visual on the summary page (stats, map, donut,
+// demographic bars). Empty array = "all" for that dimension.
+var SF={plan:'current',stages:[],chars:[],regions:[],missions:[],comparator:[]};
+var STAGE_DEFS=[['access','Access'],['continuation','Continuation'],['attainment','Attainment'],['completion','Completion'],['progression','Progression']];
+var STAGE_COLORS={access:'#b8aeff',continuation:'#5dcaa5',attainment:'#7ecf9e',completion:'#49b391',progression:'#f0907a',other:'#9a9fac'};
+var STAGE_LABELS={access:'Access',continuation:'Continuation',attainment:'Attainment',completion:'Completion',progression:'Progression',other:'Other'};
+var MISSION_GROUPS=['Russell Group','University Alliance','MillionPlus','GuildHE','Cathedrals Group','ResearchPlus'];
+// Map a raw lifecycle_stage string to one fine-grained stage key
+function stageKey(s){if(!s)return 'other';var l=s.toLowerCase();
+  if(l.indexOf('access')>=0)return 'access';
+  if(l.indexOf('progression')>=0)return 'progression';
+  if(l.indexOf('continuation')>=0)return 'continuation';
+  if(l.indexOf('completion')>=0)return 'completion';
+  if(l.indexOf('attainment')>=0)return 'attainment';
+  return 'other';}
+function sfCompActive(){return SF.comparator.length>0;}
+// The single source of truth for "which targets are showing"
+function summaryFilteredTargets(){
+  var comp={};if(sfCompActive())SF.comparator.forEach(function(u){comp[u.toString().trim()]=true;});
+  var compActive=sfCompActive();
+  return allData.filter(function(r){
+    if(!r.reference_number||!r.reference_number.trim())return false;
+    if(!isPlanMatch(r,SF.plan))return false;
+    if(SF.stages.length&&SF.stages.indexOf(stageKey(r.lifecycle_stage))<0)return false;
+    if(SF.chars.length&&SF.chars.indexOf((r.characteristic||'').trim())<0)return false;
+    if(compActive){
+      if(!comp[(r.ukprn||'').toString().trim()])return false;
+    }else{
+      if(SF.regions.length&&SF.regions.indexOf((r.region||'').trim())<0)return false;
+      if(SF.missions.length){var mg=(r.mission_group||'').trim(),mg2=(r.mission_group2||'').trim();
+        if(SF.missions.indexOf(mg)<0&&SF.missions.indexOf(mg2)<0)return false;}
+    }
+    return true;
   });
-  buildSummary();
+}
+function sfSetPlan(val){SF.plan=val;['current','all','past'].forEach(function(v){var el=document.getElementById('sum-plan-'+v);if(el)el.classList.toggle('active',v===val);});buildSummary();}
+function sfToggleArr(arr,val){var i=arr.indexOf(val);if(i<0)arr.push(val);else arr.splice(i,1);}
+function sfReset(){SF={plan:'current',stages:[],chars:[],regions:[],missions:[],comparator:[]};
+  ['current','all','past'].forEach(function(v){var el=document.getElementById('sum-plan-'+v);if(el)el.classList.toggle('active',v==='current');});
+  var cs=document.getElementById('sf-char-search');if(cs)cs.value='';var ps=document.getElementById('sf-comp-search');if(ps)ps.value='';
+  buildSummary();}
+
+// Build the chip rows and dropdown lists once (idempotent)
+var _sfChipsBuilt=false;
+function sfInitChips(){
+  if(_sfChipsBuilt)return;_sfChipsBuilt=true;
+  document.getElementById('sf-stage-chips').innerHTML=STAGE_DEFS.map(function(s){
+    return '<span class="plan-chip" data-stage="'+s[0]+'" onclick="sfToggleStage(\''+s[0]+'\')">'+s[1]+'</span>';}).join('');
+  var regSet={};allData.forEach(function(r){var rg=(r.region||'').trim();if(rg)regSet[rg]=true;});
+  document.getElementById('sf-region-chips').innerHTML=Object.keys(regSet).sort().map(function(rg){
+    return '<span class="plan-chip" data-region="'+escAttr(rg)+'" onclick="sfToggleRegion(this)">'+rg+'</span>';}).join('');
+  document.getElementById('sf-mission-chips').innerHTML=MISSION_GROUPS.map(function(mg){
+    return '<span class="plan-chip" data-mission="'+escAttr(mg)+'" onclick="sfToggleMission(this)">'+mg+'</span>';}).join('');
+}
+function sfToggleStage(k){sfToggleArr(SF.stages,k);buildSummary();}
+function sfToggleRegion(el){sfToggleArr(SF.regions,el.getAttribute('data-region'));buildSummary();}
+function sfToggleMission(el){sfToggleArr(SF.missions,el.getAttribute('data-mission'));buildSummary();}
+
+// Dropdown open/close
+function sfToggleDD(which){
+  var pC=document.getElementById('sf-char-panel'),pP=document.getElementById('sf-comp-panel');
+  if(which==='char'){var open=pC.style.display==='none';pC.style.display=open?'block':'none';pP.style.display='none';if(open){sfRenderCharList();var s=document.getElementById('sf-char-search');if(s)s.focus();}}
+  else{var open2=pP.style.display==='none';pP.style.display=open2?'block':'none';pC.style.display='none';if(open2){sfRenderCompList();var s2=document.getElementById('sf-comp-search');if(s2)s2.focus();}}
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.sf-dd')){var a=document.getElementById('sf-char-panel'),b=document.getElementById('sf-comp-panel');if(a)a.style.display='none';if(b)b.style.display='none';}
+});
+function sfRenderCharList(){
+  var q=(document.getElementById('sf-char-search').value||'').toLowerCase();
+  var set={};allData.forEach(function(r){if(!r.reference_number)return;var c=(r.characteristic||'').trim();if(c)set[c]=true;});
+  var list=Object.keys(set).sort().filter(function(c){return c.toLowerCase().indexOf(q)>=0;});
+  document.getElementById('sf-char-list').innerHTML=list.map(function(c){
+    var on=SF.chars.indexOf(c)>=0;
+    return '<label class="sf-dd-item"><input type="checkbox" '+(on?'checked':'')+' onchange="sfToggleChar('+JSON.stringify(c).replace(/"/g,'&quot;')+')"><span>'+c+'</span></label>';
+  }).join('')||'<div class="empty" style="padding:6px">No matches.</div>';
+}
+function sfToggleChar(c){sfToggleArr(SF.chars,c);buildSummary();sfRenderCharList();}
+function sfRenderCompList(){
+  var q=(document.getElementById('sf-comp-search').value||'').toLowerCase();
+  var insts={};allData.forEach(function(r){if(!r.reference_number)return;var uk=(r.ukprn||'').toString().trim();if(!uk)return;if(!insts[uk])insts[uk]=r.used_name||r.legal_name||uk;});
+  var rows=Object.keys(insts).map(function(uk){return {uk:uk,name:insts[uk]};}).sort(function(a,b){return a.name.localeCompare(b.name);});
+  var filt=rows.filter(function(r){return r.name.toLowerCase().indexOf(q)>=0;});
+  document.getElementById('sf-comp-list').innerHTML=filt.map(function(r){
+    var on=SF.comparator.indexOf(r.uk)>=0;
+    return '<label class="sf-dd-item"><input type="checkbox" '+(on?'checked':'')+' onchange="sfToggleComp(\''+r.uk+'\')"><span>'+r.name+'</span></label>';
+  }).join('')||'<div class="empty" style="padding:6px">No matches.</div>';
+  document.getElementById('sf-comp-count').textContent=SF.comparator.length+' selected';
+}
+function sfToggleComp(uk){sfToggleArr(SF.comparator,uk);buildSummary();sfRenderCompList();}
+function sfClearComp(){SF.comparator=[];buildSummary();sfRenderCompList();}
+
+// Reflect current state in chip highlights, comparator note, and disabled rows
+function sfSyncChrome(){
+  document.querySelectorAll('#sf-stage-chips .plan-chip').forEach(function(c){c.classList.toggle('active',SF.stages.indexOf(c.getAttribute('data-stage'))>=0);});
+  document.querySelectorAll('#sf-region-chips .plan-chip').forEach(function(c){c.classList.toggle('active',SF.regions.indexOf(c.getAttribute('data-region'))>=0);});
+  document.querySelectorAll('#sf-mission-chips .plan-chip').forEach(function(c){c.classList.toggle('active',SF.missions.indexOf(c.getAttribute('data-mission'))>=0);});
+  var cbtn=document.getElementById('sf-char-btn');
+  cbtn.innerHTML=(SF.chars.length?SF.chars.length+' demographic area'+(SF.chars.length>1?'s':''):'All demographic areas')+' &#9662;';
+  var comp=sfCompActive();
+  var pbtn=document.getElementById('sf-comp-btn');
+  pbtn.innerHTML=(comp?SF.comparator.length+' institution'+(SF.comparator.length>1?'s':'')+' selected':'Build your own comparator set')+' &#9662;';
+  pbtn.classList.toggle('active',comp);
+  document.getElementById('sf-comp-note').textContent=comp?'Showing only your comparator set - region and mission filters are ignored.':'';
+  // When a comparator set is active it overrides region + mission
+  document.getElementById('sf-region-wrap').classList.toggle('sf-row-disabled',comp);
+  document.getElementById('sf-mission-wrap').classList.toggle('sf-row-disabled',comp);
 }
 
 function openSummary(){
@@ -1461,67 +1604,58 @@ function closeSummary(){
 }
 
 function buildSummary(){
-  var targets=allData.filter(function(r){
-    if(!r.reference_number||!r.reference_number.trim())return false;
-    return isPlanMatch(r,summaryPlanFilter);
-  });
+  sfInitChips();
+  var targets=summaryFilteredTargets();
+  _summaryTargets=targets;
   var instSet={},charSet={};
   targets.forEach(function(r){var n=r.used_name||r.legal_name;if(n)instSet[n]=true;var c=(r.characteristic||'').trim();if(c)charSet[c]=true;});
   document.getElementById('sum-insts').textContent=Object.keys(instSet).length.toLocaleString();
   document.getElementById('sum-targets').textContent=targets.length.toLocaleString();
   document.getElementById('sum-chars').textContent=Object.keys(charSet).length.toLocaleString();
 
-  // Lifecycle donut
-  var lifecycle={access:0,success:0,progression:0,other:0};
-  targets.forEach(function(r){lifecycle[getGroup(r.lifecycle_stage)]++;});
-  var lcGroups=['access','success','progression','other'].filter(function(g){return lifecycle[g]>0;});
+  // Lifecycle donut - split across the five fine-grained stages
+  var lifecycle={access:0,continuation:0,attainment:0,completion:0,progression:0,other:0};
+  targets.forEach(function(r){lifecycle[stageKey(r.lifecycle_stage)]++;});
+  var order=['access','continuation','attainment','completion','progression','other'];
+  var lcGroups=order.filter(function(g){return lifecycle[g]>0;});
   var total=targets.length;
   var svg=document.getElementById('sum-donut');
-  var cx=80,cy=80,ro=60,ri=38,startAngle=-Math.PI/2,paths='';
-  lcGroups.forEach(function(g){
-    var angle=(lifecycle[g]/total)*2*Math.PI,endAngle=startAngle+angle;
-    var x1=cx+ro*Math.cos(startAngle),y1=cy+ro*Math.sin(startAngle);
-    var x2=cx+ro*Math.cos(endAngle),y2=cy+ro*Math.sin(endAngle);
-    var ix1=cx+ri*Math.cos(startAngle),iy1=cy+ri*Math.sin(startAngle);
-    var ix2=cx+ri*Math.cos(endAngle),iy2=cy+ri*Math.sin(endAngle);
-    var la=angle>Math.PI?1:0;
-    paths+='<path d="M '+x1+' '+y1+' A '+ro+' '+ro+' 0 '+la+' 1 '+x2+' '+y2+' L '+ix2+' '+iy2+' A '+ri+' '+ri+' 0 '+la+' 0 '+ix1+' '+iy1+' Z" fill="'+LIFECYCLE_COLORS[g]+'" opacity="0.9"/>';
-    startAngle=endAngle;
-  });
-  svg.innerHTML=paths+'<text x="80" y="76" text-anchor="middle" font-size="11" fill="#9a9fac" font-family="Arial">targets</text><text x="80" y="91" text-anchor="middle" font-size="11" fill="#9a9fac" font-family="Arial">by stage</text>';
-  document.getElementById('sum-legend').innerHTML=lcGroups.map(function(g){
-    var pct=Math.round(lifecycle[g]/total*100);
-    return '<div class="legend-row"><div class="legend-swatch" style="background:'+LIFECYCLE_COLORS[g]+'"></div><div class="legend-label">'+getGroupLabel(g)+'</div><div class="legend-count">'+lifecycle[g].toLocaleString()+'<span class="legend-pct">'+pct+'%</span></div></div>';
-  }).join('');
+  if(!total){svg.innerHTML='';document.getElementById('sum-legend').innerHTML='<div class="empty">No targets match these filters.</div>';}
+  else{
+    var cx=80,cy=80,ro=60,ri=38,startAngle=-Math.PI/2,paths='';
+    lcGroups.forEach(function(g){
+      var angle=(lifecycle[g]/total)*2*Math.PI,endAngle=startAngle+angle;
+      var x1=cx+ro*Math.cos(startAngle),y1=cy+ro*Math.sin(startAngle);
+      var x2=cx+ro*Math.cos(endAngle),y2=cy+ro*Math.sin(endAngle);
+      var ix1=cx+ri*Math.cos(startAngle),iy1=cy+ri*Math.sin(startAngle);
+      var ix2=cx+ri*Math.cos(endAngle),iy2=cy+ri*Math.sin(endAngle);
+      var la=angle>Math.PI?1:0;
+      paths+='<path d="M '+x1+' '+y1+' A '+ro+' '+ro+' 0 '+la+' 1 '+x2+' '+y2+' L '+ix2+' '+iy2+' A '+ri+' '+ri+' 0 '+la+' 0 '+ix1+' '+iy1+' Z" fill="'+STAGE_COLORS[g]+'" opacity="0.9"/>';
+      startAngle=endAngle;
+    });
+    svg.innerHTML=paths+'<text x="80" y="76" text-anchor="middle" font-size="11" fill="#9a9fac" font-family="Arial">targets</text><text x="80" y="91" text-anchor="middle" font-size="11" fill="#9a9fac" font-family="Arial">by stage</text>';
+    document.getElementById('sum-legend').innerHTML=lcGroups.map(function(g){
+      var pct=Math.round(lifecycle[g]/total*100);
+      return '<div class="legend-row"><div class="legend-swatch" style="background:'+STAGE_COLORS[g]+'"></div><div class="legend-label">'+STAGE_LABELS[g]+'</div><div class="legend-count">'+lifecycle[g].toLocaleString()+'<span class="legend-pct">'+pct+'%</span></div></div>';
+    }).join('');
+  }
 
-  // Demographic bar chart (filterable by lifecycle stage - see setSummaryDemoStage)
-  _summaryTargets=targets;
   renderSummaryDemoBars();
-  buildMap();
-  // summaryBuilt intentionally not cached so filter changes trigger a rebuild
+  buildMap(targets);
+  sfSyncChrome();
+  // Not cached: every filter change triggers a full rebuild.
 }
 
 var _summaryTargets=[];
-var summaryDemoStage='all';
-function setSummaryDemoStage(stage){
-  summaryDemoStage=stage;
-  ['all','access','success','progression'].forEach(function(s){
-    var el=document.getElementById('sds-'+s);if(el)el.classList.toggle('active',s===stage);
-  });
-  renderSummaryDemoBars();
-}
 function renderSummaryDemoBars(){
-  var stage=summaryDemoStage;
-  var rows=stage==='all'?_summaryTargets:_summaryTargets.filter(function(r){return getGroup(r.lifecycle_stage)===stage;});
-  var titleEl=document.getElementById('sum-demo-title');
-  if(titleEl)titleEl.textContent=stage==='all'?'Targets by demographic area':'Targets by demographic area – '+getGroupLabel(stage);
+  var rows=_summaryTargets;
   var charCounts={};
   rows.forEach(function(r){var c=(r.characteristic||'').trim();if(c)charCounts[c]=(charCounts[c]||0)+1;});
   var charsSorted=Object.keys(charCounts).sort(function(a,b){return charCounts[b]-charCounts[a];});
   var box=document.getElementById('sum-demo-bars');
-  if(!charsSorted.length){box.innerHTML='<div class="empty">No targets for this stage.</div>';return;}
+  if(!charsSorted.length){box.innerHTML='<div class="empty">No targets match these filters.</div>';return;}
   var maxChar=charCounts[charsSorted[0]]||1;
-  var color=stage==='all'?'var(--accent)':LIFECYCLE_COLORS[stage];
+  var color='var(--accent)';
   box.innerHTML=charsSorted.map(function(c){
     var n=charCounts[c],w=Math.round(n/maxChar*100);
     return '<div class="bar-row"><div class="bar-label">'+c+'</div><div class="bar-track"><div class="bar-fill" style="width:'+w+'%;background:'+color+'"><span class="bar-val">'+n.toLocaleString()+'</span></div></div></div>';
@@ -1547,48 +1681,13 @@ function _mapProjection(W,H){
   return _mapProj;
 }
 
-function setMapFilter(kind,val){
-  if(kind==='stage')mapStageFilter=val;
-  else if(kind==='char')mapCharFilter=val;
-  else if(kind==='region')mapRegionFilter=val;
-  buildMap();
-}
 
-// Populate the stage/char/region dropdowns once from the data
-function _initMapControls(targets){
-  var charSet={},regSet={};
-  targets.forEach(function(r){
-    var c=(r.characteristic||'').trim();if(c)charSet[c]=true;
-    var rg=(r.region||'').trim();if(rg)regSet[rg]=true;
-  });
-  var stageSel=document.getElementById('map-stage');
-  if(stageSel.options.length<=1){
-    [['access','Access'],['success','Success (continuation, completion, attainment)'],['progression','Progression']].forEach(function(s){
-      var o=document.createElement('option');o.value=s[0];o.textContent=s[1];stageSel.appendChild(o);
-    });
-  }
-  var charSel=document.getElementById('map-char');
-  if(charSel.options.length<=1){
-    Object.keys(charSet).sort().forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;charSel.appendChild(o);});
-  }
-  var regSel=document.getElementById('map-region');
-  if(regSel.options.length<=1){
-    Object.keys(regSet).sort().forEach(function(rg){var o=document.createElement('option');o.value=rg;o.textContent=rg;regSel.appendChild(o);});
-  }
-}
-
-function buildMap(){
+function buildMap(targets){
   var svg=document.getElementById('uk-map');if(!svg)return;
   var W=320,H=460,proj=_mapProjection(W,H);
-  // Base targets: same plan filter as the rest of the summary
-  var baseTargets=allData.filter(function(r){return r.reference_number&&r.reference_number.trim()&&isPlanMatch(r,summaryPlanFilter);});
-  _initMapControls(baseTargets);
-  // Apply the map's own type filters
-  var targets=baseTargets.filter(function(r){
-    if(mapStageFilter&&getGroup(r.lifecycle_stage)!==mapStageFilter)return false;
-    if(mapCharFilter&&(r.characteristic||'').trim()!==mapCharFilter)return false;
-    return true;
-  });
+  if(!targets)targets=summaryFilteredTargets();
+  // The map highlights/summarises a single region only when exactly one is chosen
+  mapRegionFilter=(SF.regions.length===1)?SF.regions[0]:'';
   // Group into institutions with coordinates
   var insts={};_mapInstById={};
   var anyCoords=false;
@@ -1671,9 +1770,9 @@ function _mapRender(){
 
 // Click a region on the map: toggle it as the active region filter
 function mapPickRegion(name){
-  mapRegionFilter=(mapRegionFilter===name)?'':name;
-  var sel=document.getElementById('map-region');if(sel)sel.value=mapRegionFilter;
-  buildMap();
+  if(sfCompActive())return; // region filter is overridden while a comparator set is active
+  sfToggleArr(SF.regions,name);
+  buildSummary();
 }
 
 // ── Map zoom / pan ──────────────────────────────────────────────────────────
