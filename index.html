@@ -553,6 +553,16 @@
                 <span class="plan-chip" id="sim-plan-past" title="Targets from an institution's previously-submitted APP (superseded by their current plan)." onclick="setSimPlanFilter('past')">Past targets only</span>
               </div>
             </div>
+            <div class="filter-section" id="sim-progress-section" style="display:none">
+              <div class="filter-section-title">Gap trajectory</div>
+              <div class="progress-filter-row">
+                <span class="plan-chip active" id="sim-prog-all" onclick="setSimProgressFilter('all')">All</span>
+                <span class="plan-chip" id="sim-prog-narrowing" onclick="setSimProgressFilter('narrowing')">&#9660; Narrowing</span>
+                <span class="plan-chip" id="sim-prog-stable" onclick="setSimProgressFilter('stable')">&#8212; Broadly stable</span>
+                <span class="plan-chip" id="sim-prog-widening" onclick="setSimProgressFilter('widening')">&#9650; Widening</span>
+                <span class="plan-chip" id="sim-prog-nodata" onclick="setSimProgressFilter('nodata')">No trend data</span>
+              </div>
+            </div>
             <div class="filter-section">
               <div class="filter-section-title">Institution</div>
               <div class="filter-chips-row" style="margin-bottom:8px">
@@ -623,8 +633,8 @@
           <span class="filter-arrow" id="demo-filter-arrow">&#9660;</span>
         </div>
         <div class="filter-body" id="demo-filter-body">
-          <div class="filter-section">
-            <div class="filter-section-title">IMD gap progress</div>
+          <div class="filter-section" id="demo-progress-section">
+            <div class="filter-section-title">Gap trajectory</div>
             <div class="progress-filter-row">
               <span class="plan-chip active" id="demo-prog-all" onclick="setDemoProgressFilter('all')">All</span>
               <span class="plan-chip" id="demo-prog-narrowing" onclick="setDemoProgressFilter('narrowing')">&#9660; Narrowing</span>
@@ -1092,6 +1102,10 @@ function findSimilar(idx){
   simPlanFilter='current';
   ['current','all','past'].forEach(function(v){var el=document.getElementById('sim-plan-'+v);if(el)el.classList.toggle('active',v==='current');});
   buildFilterUI(chr,t.aim||'',t.description_and_commentary||'');
+  // Gap-trajectory filter only makes sense where a gap trend exists
+  var _sc=getOfsCharacteristic(t),_sl=getOfsLifecycle(stage);
+  var _showProg=!!(_sc&&_sl&&ofsDefaultMode(_sc,_sl)==='gaps');
+  var _ps=document.getElementById('sim-progress-section');if(_ps)_ps.style.display=_showProg?'block':'none';
   resetFilters();applyFilters();
   hideAllViews();
   document.getElementById('view-focus').style.display='block';
@@ -1171,6 +1185,8 @@ function resetFilters(){
   document.querySelectorAll('.fchip').forEach(function(c){c.classList.remove('active');});
   document.querySelector('input[name="inst-size"][value="all"]').checked=true;
   ['all','mine','vs','sm','md','lg'].forEach(function(v){var el=document.getElementById('size-'+v);if(el)el.classList.toggle('active',v==='all');});
+  simProgressFilter='all';
+  ['all','narrowing','stable','widening','nodata'].forEach(function(v){var el=document.getElementById('sim-prog-'+v);if(el)el.classList.toggle('active',v==='all');});
   updateGroupCounters();document.getElementById('filter-dot').classList.remove('on');
 }
 function applyFilters(){
@@ -1181,7 +1197,7 @@ function applyFilters(){
   var effectiveSizeVal=sizeVal;
   if(sizeVal==='mine'&&currentInstData&&currentInstData.total_ug_students){effectiveSizeVal=getSizeBand(currentInstData.total_ug_students);}
   ['all','mine','vs','sm','md','lg'].forEach(function(v){var el=document.getElementById('size-'+v);if(el)el.classList.toggle('active',sizeVal===v);});
-  var anyActive=filterMission||filterRegion||activeNumericKeys.size>0||sizeVal!=='all';
+  var anyActive=filterMission||filterRegion||activeNumericKeys.size>0||sizeVal!=='all'||simProgressFilter!=='all';
   document.getElementById('filter-dot').classList.toggle('on',anyActive);
   var instMG=currentInstData?(currentInstData.mission_group||'').trim():'';
   var instMG2=currentInstData?(currentInstData.mission_group2||'').trim():'';
@@ -1192,6 +1208,11 @@ function applyFilters(){
     if(filterRegion&&instReg&&(r.region||'').trim()!==instReg)return false;
     if(effectiveSizeVal!=='all'){var n=parseInt(r.total_ug_students)||0;if(effectiveSizeVal==='vs'&&n>=1000)return false;if(effectiveSizeVal==='sm'&&(n<1000||n>=5000))return false;if(effectiveSizeVal==='md'&&(n<5000||n>=15000))return false;if(effectiveSizeVal==='lg'&&n<15000)return false;}
     for(var key of activeNumericKeys){if(!withinBand(currentInstData?parsePct(currentInstData[key]):null,parsePct(r[key]),globalPrecision))return false;}
+    if(simProgressFilter!=='all'){
+      var spRows=getSparklineRows(r);
+      var spTrend=spRows.length?getTrendFromRows(spRows):'nodata';
+      if(spTrend!==simProgressFilter)return false;
+    }
     return true;
   });
   var total=currentSimilarResults.filter(function(r){return isPlanMatch(r,simPlanFilter);}).length;
@@ -1282,6 +1303,9 @@ function searchByDemo() {
   // Preload OfS data so sparklines render immediately
   var ofsLifecycle=getOfsLifecycle(stage);
   var demoCharKey=currentDemoResults.length?getOfsCharacteristic(currentDemoResults[0]):null;
+  // Gap-trajectory filter only makes sense where a gap trend exists (not access indicators)
+  var _demoShowProg=!!(demoCharKey&&ofsLifecycle&&ofsDefaultMode(demoCharKey,ofsLifecycle)==='gaps');
+  var _dps=document.getElementById('demo-progress-section');if(_dps)_dps.style.display=_demoShowProg?'block':'none';
   if(ofsLifecycle&&demoCharKey){
     _ofsLoadAndRun(demoCharKey,ofsLifecycle,function(data){if(data)applyDemoFilters();});
   }
@@ -2115,6 +2139,12 @@ function init() {
 var instPlanFilter = 'current';
 var demoPlanFilter = 'current';
 var simPlanFilter  = 'current';
+var simProgressFilter = 'all';
+function setSimProgressFilter(val){
+  simProgressFilter=val;
+  ['all','narrowing','stable','widening','nodata'].forEach(function(v){var el=document.getElementById('sim-prog-'+v);if(el)el.classList.toggle('active',v===val);});
+  applyFilters();
+}
 
 function setSimPlanFilter(val) {
   simPlanFilter = val;
