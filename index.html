@@ -274,20 +274,24 @@
     .summary-section{margin-bottom:24px}
     .summary-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:12px}
     .sum-filter-bar{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:16px;margin-bottom:22px}
+    .sf-toggle-row{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;margin-bottom:0}
+    .sf-toggle-label{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.03em}
+    .sf-toggle-arrow{font-size:11px;color:var(--muted)}
+    #sf-filter-body{margin-top:12px}
     .sum-filter-bar .plan-filter-row{margin-bottom:10px}
     .sum-filter-bar .plan-filter-row:last-child{margin-bottom:0}
     .sum-filter-bar .plan-filter-label{width:104px;flex-shrink:0}
     .sf-reset{margin-left:auto;font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid var(--border2);background:none;color:var(--muted);cursor:pointer;font-family:Arial,sans-serif}
     .sf-reset:hover{color:#f2f3f6;background:var(--bg3)}
     .sf-dd{position:relative;display:inline-block}
-    .sf-dd-panel{position:absolute;top:calc(100% + 4px);left:0;z-index:30;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px;width:300px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+    .sf-dd-panel{position:absolute;top:calc(100% + 4px);left:0;z-index:30;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px;width:340px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
     .sf-dd-panel-wide{width:360px}
     .sf-dd-search{width:100%;box-sizing:border-box;background:var(--bg2);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:13px;padding:6px 8px;font-family:Arial,sans-serif;margin-bottom:8px}
     .sf-dd-list{max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:1px}
     .sf-dd-item{display:flex;align-items:center;gap:8px;font-size:13px;color:#f2f3f6;padding:5px 6px;border-radius:6px;cursor:pointer}
     .sf-dd-item:hover{background:var(--bg2)}
     .sf-dd-item input{cursor:pointer;flex-shrink:0}
-    .sf-dd-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .sf-dd-item span{white-space:normal;word-break:break-word;line-height:1.35}
     .sf-comp-actions{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:12px}
     .sf-comp-actions a{color:var(--accent);cursor:pointer}
     .sf-comp-note{font-size:12px;color:var(--muted)}
@@ -655,6 +659,11 @@
     <div class="summary-title">APP targets at a glance</div>
     <div class="summary-sub">A snapshot of Access and Participation Plan targets across English universities in this dataset.</div>
     <div class="sum-filter-bar" id="sum-filter-bar">
+      <div class="sf-toggle-row" onclick="sfToggleFilters()" id="sf-toggle-row">
+        <span class="sf-toggle-label">Filter results</span>
+        <span class="sf-toggle-arrow" id="sf-toggle-arrow">&#9660;</span>
+      </div>
+      <div id="sf-filter-body" style="display:none">
       <div class="plan-filter-row">
         <span class="plan-filter-label">Plan</span>
         <span class="plan-chip active" id="sum-plan-current" onclick="sfSetPlan('current')">Current APPs only</span>
@@ -696,6 +705,7 @@
         </div>
         <span class="sf-comp-note" id="sf-comp-note"></span>
       </div>
+      </div><!-- /sf-filter-body -->
     </div>
 
     <div class="stat-row">
@@ -706,6 +716,11 @@
 
     <div class="summary-section" id="map-section">
       <div class="summary-section-title">Where targets are across England</div>
+      <div class="map-controls">
+        <select id="map-stage" onchange="setMapFilter('stage',this.value)"><option value="">All lifecycle stages</option></select>
+        <select id="map-char" onchange="setMapFilter('char',this.value)"><option value="">All demographic areas</option></select>
+        <select id="map-region" onchange="setMapFilter('region',this.value)"><option value="">All regions</option></select>
+      </div>
       <div class="map-wrap">
         <div class="map-svg-box" style="position:relative">
           <svg id="uk-map" viewBox="0 0 320 460" xmlns="http://www.w3.org/2000/svg"></svg>
@@ -720,7 +735,7 @@
       <div class="ofs-note" style="margin-top:10px">Each circle is an institution, placed at its registered address and sized by how many matching targets it has. A target sits with an institution, not necessarily where its students live. Hover for the name, click for its targets, or choose a region to summarise it.</div>
     </div>
 
-    <div class="summary-section">
+    <div class="summary-section" id="sum-stage-section">
       <div class="summary-section-title">Targets by student lifecycle stage</div>
       <div class="lifecycle-wrap">
         <svg id="sum-donut" width="160" height="160" viewBox="0 0 160 160" style="flex-shrink:0"></svg>
@@ -728,9 +743,20 @@
       </div>
     </div>
 
-    <div class="summary-section">
+    <div class="summary-section" id="sum-demo-section">
       <div class="summary-section-title" id="sum-demo-title">Targets by demographic area</div>
+      <div class="plan-filter-row" style="margin-bottom:14px">
+        <span class="plan-chip active" id="sds-all" onclick="setSummaryDemoStage('all')">All targets</span>
+        <span class="plan-chip" id="sds-access" onclick="setSummaryDemoStage('access')">Access</span>
+        <span class="plan-chip" id="sds-success" onclick="setSummaryDemoStage('success')">Success</span>
+        <span class="plan-chip" id="sds-progression" onclick="setSummaryDemoStage('progression')">Progression</span>
+      </div>
       <div class="bar-chart" id="sum-demo-bars"></div>
+    </div>
+
+    <div class="summary-section" id="sum-trend-section" style="display:none">
+      <div class="summary-section-title" id="sum-trend-title">Gap trend</div>
+      <div id="sum-trend-chart"><div class="empty" style="padding:12px 0">Loading OfS equity data...</div></div>
     </div>
   </div>
 
@@ -1466,41 +1492,21 @@ function applyDemoFilters(){
 
 // ── Summary view ──────────────────────────────────────────────────────────
 var summaryBuilt=false;
-// ── Unified summary filters ────────────────────────────────────────────────
-// One filter state drives every visual on the summary page (stats, map, donut,
-// demographic bars). Empty array = "all" for that dimension.
-var SF={plan:'current',stages:[],chars:[],regions:[],missions:[],comparator:[]};
-var STAGE_DEFS=[['access','Access'],['continuation','Continuation'],['attainment','Attainment'],['completion','Completion'],['progression','Progression']];
-var STAGE_COLORS={access:'#b8aeff',continuation:'#5dcaa5',attainment:'#7ecf9e',completion:'#49b391',progression:'#f0907a',other:'#9a9fac'};
-var STAGE_LABELS={access:'Access',continuation:'Continuation',attainment:'Attainment',completion:'Completion',progression:'Progression',other:'Other'};
-var MISSION_GROUPS=['Russell Group','University Alliance','MillionPlus','GuildHE','Cathedrals Group','ResearchPlus'];
-// Map a raw lifecycle_stage string to one fine-grained stage key
-function stageKey(s){if(!s)return 'other';var l=s.toLowerCase();
-  if(l.indexOf('access')>=0)return 'access';
-  if(l.indexOf('progression')>=0)return 'progression';
-  if(l.indexOf('continuation')>=0)return 'continuation';
-  if(l.indexOf('completion')>=0)return 'completion';
-  if(l.indexOf('attainment')>=0)return 'attainment';
-  return 'other';}
-function sfCompActive(){return SF.comparator.length>0;}
-// The single source of truth for "which targets are showing"
-function summaryFilteredTargets(){
-  var comp={};if(sfCompActive())SF.comparator.forEach(function(u){comp[u.toString().trim()]=true;});
-  var compActive=sfCompActive();
-  return allData.filter(function(r){
-    if(!r.reference_number||!r.reference_number.trim())return false;
-    if(!isPlanMatch(r,SF.plan))return false;
-    if(SF.stages.length&&SF.stages.indexOf(stageKey(r.lifecycle_stage))<0)return false;
-    if(SF.chars.length&&SF.chars.indexOf((r.characteristic||'').trim())<0)return false;
-    if(compActive){
-      if(!comp[(r.ukprn||'').toString().trim()])return false;
-    }else{
-      if(SF.regions.length&&SF.regions.indexOf((r.region||'').trim())<0)return false;
-      if(SF.missions.length){var mg=(r.mission_group||'').trim(),mg2=(r.mission_group2||'').trim();
-        if(SF.missions.indexOf(mg)<0&&SF.missions.indexOf(mg2)<0)return false;}
-    }
-    return true;
+var summaryPlanFilter='current';
+
+function setSummaryPlanFilter(val){
+  summaryPlanFilter=val;
+  ['current','all','past'].forEach(function(v){
+    var el=document.getElementById('sum-plan-'+v);
+    if(el)el.classList.toggle('active',v===val);
   });
+}
+var _sfFiltersOpen=false;
+function sfToggleFilters(){
+  _sfFiltersOpen=!_sfFiltersOpen;
+  var body=document.getElementById('sf-filter-body'),arrow=document.getElementById('sf-toggle-arrow');
+  if(body)body.style.display=_sfFiltersOpen?'block':'none';
+  if(arrow)arrow.innerHTML=_sfFiltersOpen?'&#9650;':'&#9660;';
 }
 function sfSetPlan(val){SF.plan=val;['current','all','past'].forEach(function(v){var el=document.getElementById('sum-plan-'+v);if(el)el.classList.toggle('active',v===val);});buildSummary();}
 function sfToggleArr(arr,val){var i=arr.indexOf(val);if(i<0)arr.push(val);else arr.splice(i,1);}
@@ -1604,62 +1610,169 @@ function closeSummary(){
 }
 
 function buildSummary(){
-  sfInitChips();
-  var targets=summaryFilteredTargets();
-  _summaryTargets=targets;
+  var targets=allData.filter(function(r){
+    if(!r.reference_number||!r.reference_number.trim())return false;
+    return isPlanMatch(r,summaryPlanFilter);
+  });
   var instSet={},charSet={};
   targets.forEach(function(r){var n=r.used_name||r.legal_name;if(n)instSet[n]=true;var c=(r.characteristic||'').trim();if(c)charSet[c]=true;});
   document.getElementById('sum-insts').textContent=Object.keys(instSet).length.toLocaleString();
   document.getElementById('sum-targets').textContent=targets.length.toLocaleString();
   document.getElementById('sum-chars').textContent=Object.keys(charSet).length.toLocaleString();
 
-  // Lifecycle donut - split across the five fine-grained stages
-  var lifecycle={access:0,continuation:0,attainment:0,completion:0,progression:0,other:0};
-  targets.forEach(function(r){lifecycle[stageKey(r.lifecycle_stage)]++;});
-  var order=['access','continuation','attainment','completion','progression','other'];
-  var lcGroups=order.filter(function(g){return lifecycle[g]>0;});
+  // Lifecycle donut
+  var lifecycle={access:0,success:0,progression:0,other:0};
+  targets.forEach(function(r){lifecycle[getGroup(r.lifecycle_stage)]++;});
+  var lcGroups=['access','success','progression','other'].filter(function(g){return lifecycle[g]>0;});
   var total=targets.length;
   var svg=document.getElementById('sum-donut');
-  if(!total){svg.innerHTML='';document.getElementById('sum-legend').innerHTML='<div class="empty">No targets match these filters.</div>';}
-  else{
-    var cx=80,cy=80,ro=60,ri=38,startAngle=-Math.PI/2,paths='';
-    lcGroups.forEach(function(g){
-      var angle=(lifecycle[g]/total)*2*Math.PI,endAngle=startAngle+angle;
-      var x1=cx+ro*Math.cos(startAngle),y1=cy+ro*Math.sin(startAngle);
-      var x2=cx+ro*Math.cos(endAngle),y2=cy+ro*Math.sin(endAngle);
-      var ix1=cx+ri*Math.cos(startAngle),iy1=cy+ri*Math.sin(startAngle);
-      var ix2=cx+ri*Math.cos(endAngle),iy2=cy+ri*Math.sin(endAngle);
-      var la=angle>Math.PI?1:0;
-      paths+='<path d="M '+x1+' '+y1+' A '+ro+' '+ro+' 0 '+la+' 1 '+x2+' '+y2+' L '+ix2+' '+iy2+' A '+ri+' '+ri+' 0 '+la+' 0 '+ix1+' '+iy1+' Z" fill="'+STAGE_COLORS[g]+'" opacity="0.9"/>';
-      startAngle=endAngle;
-    });
-    svg.innerHTML=paths+'<text x="80" y="76" text-anchor="middle" font-size="11" fill="#9a9fac" font-family="Arial">targets</text><text x="80" y="91" text-anchor="middle" font-size="11" fill="#9a9fac" font-family="Arial">by stage</text>';
-    document.getElementById('sum-legend').innerHTML=lcGroups.map(function(g){
-      var pct=Math.round(lifecycle[g]/total*100);
-      return '<div class="legend-row"><div class="legend-swatch" style="background:'+STAGE_COLORS[g]+'"></div><div class="legend-label">'+STAGE_LABELS[g]+'</div><div class="legend-count">'+lifecycle[g].toLocaleString()+'<span class="legend-pct">'+pct+'%</span></div></div>';
-    }).join('');
-  }
+  var cx=80,cy=80,ro=60,ri=38,startAngle=-Math.PI/2,paths='';
+  lcGroups.forEach(function(g){
+    var angle=(lifecycle[g]/total)*2*Math.PI,endAngle=startAngle+angle;
+    var x1=cx+ro*Math.cos(startAngle),y1=cy+ro*Math.sin(startAngle);
+    var x2=cx+ro*Math.cos(endAngle),y2=cy+ro*Math.sin(endAngle);
+    var ix1=cx+ri*Math.cos(startAngle),iy1=cy+ri*Math.sin(startAngle);
+    var ix2=cx+ri*Math.cos(endAngle),iy2=cy+ri*Math.sin(endAngle);
+    var la=angle>Math.PI?1:0;
+    paths+='<path d="M '+x1+' '+y1+' A '+ro+' '+ro+' 0 '+la+' 1 '+x2+' '+y2+' L '+ix2+' '+iy2+' A '+ri+' '+ri+' 0 '+la+' 0 '+ix1+' '+iy1+' Z" fill="'+LIFECYCLE_COLORS[g]+'" opacity="0.9"/>';
+    startAngle=endAngle;
+  });
+  svg.innerHTML=paths+'<text x="80" y="76" text-anchor="middle" font-size="11" fill="#9a9fac" font-family="Arial">targets</text><text x="80" y="91" text-anchor="middle" font-size="11" fill="#9a9fac" font-family="Arial">by stage</text>';
+  document.getElementById('sum-legend').innerHTML=lcGroups.map(function(g){
+    var pct=Math.round(lifecycle[g]/total*100);
+    return '<div class="legend-row"><div class="legend-swatch" style="background:'+LIFECYCLE_COLORS[g]+'"></div><div class="legend-label">'+getGroupLabel(g)+'</div><div class="legend-count">'+lifecycle[g].toLocaleString()+'<span class="legend-pct">'+pct+'%</span></div></div>';
+  }).join('');
+
+  // Conditional section visibility
+  var oneStage=(SF.stages.length===1);
+  var oneChar=(SF.chars.length===1);
+  var stageSec=document.getElementById('sum-stage-section');
+  var demoSec=document.getElementById('sum-demo-section');
+  var trendSec=document.getElementById('sum-trend-section');
+  if(stageSec)stageSec.style.display=oneStage?'none':'block';
+  if(demoSec)demoSec.style.display=oneChar?'none':'block';
+  if(trendSec)trendSec.style.display=(oneStage&&oneChar)?'block':'none';
 
   renderSummaryDemoBars();
   buildMap(targets);
   sfSyncChrome();
-  // Not cached: every filter change triggers a full rebuild.
+
+  // Trend chart when exactly one stage + one characteristic selected
+  if(oneStage&&oneChar){renderSummaryTrendChart();}
 }
 
 var _summaryTargets=[];
+var summaryDemoStage='all';
+function setSummaryDemoStage(stage){
+  summaryDemoStage=stage;
+  ['all','access','success','progression'].forEach(function(s){
+    var el=document.getElementById('sds-'+s);if(el)el.classList.toggle('active',s===stage);
+  });
+  renderSummaryDemoBars();
+}
 function renderSummaryDemoBars(){
-  var rows=_summaryTargets;
+  var stage=summaryDemoStage;
+  var rows=stage==='all'?_summaryTargets:_summaryTargets.filter(function(r){return getGroup(r.lifecycle_stage)===stage;});
+  var titleEl=document.getElementById('sum-demo-title');
+  if(titleEl)titleEl.textContent=stage==='all'?'Targets by demographic area':'Targets by demographic area – '+getGroupLabel(stage);
   var charCounts={};
   rows.forEach(function(r){var c=(r.characteristic||'').trim();if(c)charCounts[c]=(charCounts[c]||0)+1;});
   var charsSorted=Object.keys(charCounts).sort(function(a,b){return charCounts[b]-charCounts[a];});
   var box=document.getElementById('sum-demo-bars');
-  if(!charsSorted.length){box.innerHTML='<div class="empty">No targets match these filters.</div>';return;}
+  if(!charsSorted.length){box.innerHTML='<div class="empty">No targets for this stage.</div>';return;}
   var maxChar=charCounts[charsSorted[0]]||1;
-  var color='var(--accent)';
+  var color=stage==='all'?'var(--accent)':LIFECYCLE_COLORS[stage];
   box.innerHTML=charsSorted.map(function(c){
     var n=charCounts[c],w=Math.round(n/maxChar*100);
     return '<div class="bar-row"><div class="bar-label">'+c+'</div><div class="bar-track"><div class="bar-fill" style="width:'+w+'%;background:'+color+'"><span class="bar-val">'+n.toLocaleString()+'</span></div></div></div>';
   }).join('');
+}
+
+// ── Summary trend chart (1 stage + 1 characteristic) ─────────────────────
+function renderSummaryTrendChart(){
+  var charStr=SF.chars[0],stageKey=SF.stages[0];
+  var fakeTarget={characteristic:charStr};
+  var charKey=getOfsCharacteristic(fakeTarget);
+  var lifecycle=stageKey.charAt(0).toUpperCase()+stageKey.slice(1);
+  var trendSec=document.getElementById('sum-trend-section');
+  var trendDiv=document.getElementById('sum-trend-chart');
+  var trendTitle=document.getElementById('sum-trend-title');
+  if(!trendDiv)return;
+  if(!charKey){
+    trendDiv.innerHTML='<div class="empty" style="padding:12px 0">No OfS equity data available for this demographic area.</div>';
+    return;
+  }
+  if(trendTitle)trendTitle.textContent='Gap trend: '+charStr+' - '+lifecycle;
+  trendDiv.innerHTML='<div class="empty" style="padding:12px 0">Loading OfS equity data...</div>';
+  // Collect the set of UKPRNs currently in the filtered targets
+  var ukprnSet=new Set();
+  _summaryTargets.forEach(function(r){var uk=(r.ukprn||'').toString().trim();if(uk)ukprnSet.add(uk);});
+  _ofsLoadAndRun(charKey,lifecycle,function(data){
+    if(!data){trendDiv.innerHTML='<div class="empty" style="padding:12px 0">OfS equity data could not be loaded.</div>';return;}
+    // Build per-institution gap series from the OfS data, restricted to filtered institutions
+    var pairs=charKey==='imd'?null:OFS_CHAR_PAIRS[charKey];
+    // Determine primary ind1/ind2 pair
+    var i1=null,i2=null;
+    if(charKey==='imd'){i1='IMDQ5';i2='IMDQ1';}
+    else if(pairs&&pairs.length){i1=pairs[0][0];i2=pairs[0][1];}
+    if(!i1){trendDiv.innerHTML='<div class="empty" style="padding:12px 0">No gap data available for this characteristic.</div>';return;}
+    // Group rows by institution
+    var byInst={};
+    data.forEach(function(r){
+      if(r.split_ind1!==i1||r.split_ind2!==i2)return;
+      var uk=(r.ukprn||'').toString().trim();
+      if(!ukprnSet.has(uk))return;
+      var g=parseFloat(r.gap),ay=r.academic_year;
+      if(isNaN(g)||!ay)return;
+      if(!byInst[uk])byInst[uk]={name:r.provider_name||uk,byAy:{}};
+      byInst[uk].byAy[ay]=g;
+    });
+    var instKeys=Object.keys(byInst);
+    if(!instKeys.length){trendDiv.innerHTML='<div class="empty" style="padding:12px 0">No gap data available for these filters.</div>';return;}
+    // All academic years across all institutions
+    var aySet={};instKeys.forEach(function(uk){Object.keys(byInst[uk].byAy).forEach(function(ay){aySet[ay]=true;});});
+    var allAy=Object.keys(aySet).sort();
+    if(!allAy.length){trendDiv.innerHTML='<div class="empty" style="padding:12px 0">No gap data available.</div>';return;}
+    var ayIdx={};allAy.forEach(function(ay,i){ayIdx[ay]=i;});
+    // Y range
+    var vals=[0];instKeys.forEach(function(uk){Object.keys(byInst[uk].byAy).forEach(function(ay){vals.push(byInst[uk].byAy[ay]);});});
+    var minG=Math.min.apply(null,vals),maxG=Math.max.apply(null,vals),range=maxG-minG;
+    if(range<4){minG-=2;maxG+=2;range=maxG-minG;}
+    var W=400,H=160,pL=42,pR=8,pT=18,pB=44,cW=W-pL-pR,cH=H-pT-pB,n=allAy.length;
+    function xPos(i){return pL+(n===1?cW/2:i/(n-1)*cW);}
+    function yPos(g){return pT+cH-((g-minG)/range*cH);}
+    var zy=yPos(0),sp=[];
+    sp.push('<line x1="'+pL+'" y1="'+zy+'" x2="'+(W-pR)+'" y2="'+zy+'" stroke="rgba(255,255,255,.15)" stroke-width="1" stroke-dasharray="3,3"/>');
+    sp.push('<text x="10" y="'+(pT+cH/2)+'" text-anchor="middle" font-size="8" fill="#9a9fac" transform="rotate(-90,10,'+(pT+cH/2)+')">pp gap</text>');
+    [minG,(minG+maxG)/2,maxG].forEach(function(v){sp.push('<text x="'+(pL-4)+'" y="'+(yPos(v)+3)+'" text-anchor="end" font-size="9" fill="#9a9fac">'+Math.round(v)+'</text>');});
+    allAy.forEach(function(ay,i){
+      if(n>7&&i%2!==0&&i!==n-1)return;
+      var lbl=(ay||'').replace('20','').replace('-','/');
+      sp.push('<text x="'+xPos(i)+'" y="'+(H-pB+12)+'" text-anchor="middle" font-size="8" fill="#9a9fac">'+lbl+'</text>');
+    });
+    sp.push('<text x="'+(pL+cW/2)+'" y="'+(H-16)+'" text-anchor="middle" font-size="8" fill="#9a9fac">Academic year</text>');
+    // Grey lines for all non-selected institutions
+    var selUk=(_mapSelectedUkprn||'').toString().trim();
+    instKeys.forEach(function(uk){
+      if(uk===selUk)return;
+      var inst=byInst[uk],pts=[];
+      allAy.forEach(function(ay){if(inst.byAy[ay]!==undefined)pts.push(xPos(ayIdx[ay])+','+yPos(inst.byAy[ay]));});
+      if(pts.length<2)return;
+      sp.push('<polyline class="ofs-ov-line" points="'+pts.join(' ')+'" data-name="'+escAttr(inst.name||'uk')+'" onmouseover="hoverTipShow(event,this)" onmousemove="hoverTipMove(event)" onmouseout="hoverTipHide()"></polyline>');
+    });
+    // Highlighted line for selected institution (if in filtered set)
+    if(selUk&&byInst[selUk]){
+      var si=byInst[selUk],sAy=allAy.filter(function(ay){return si.byAy[ay]!==undefined;});
+      if(sAy.length>=1){
+        var sPts=sAy.map(function(ay){return xPos(ayIdx[ay])+','+yPos(si.byAy[ay]);});
+        if(sPts.length>=2)sp.push('<polyline points="'+sPts.join(' ')+'" fill="none" stroke="#7eb8f7" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>');
+        sAy.forEach(function(ay){sp.push('<circle cx="'+xPos(ayIdx[ay])+'" cy="'+yPos(si.byAy[ay])+'" r="3" fill="#7eb8f7" stroke="#16171a" stroke-width="1.5"/>');});
+      }
+    }
+    var instCountNote=instKeys.length+' institution'+(instKeys.length!==1?'s':'')+' with data'+(selUk&&byInst[selUk]?' – highlighted: '+escAttr(byInst[selUk].name):'');
+    trendDiv.innerHTML='<div style="overflow-x:auto"><svg class="ofs-chart-svg" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" style="min-width:280px">'+sp.join('')+'</svg></div>'+
+      '<div style="font-size:11px;color:#9a9fac;margin-top:6px">'+instCountNote+'. Hover lines to identify. Click a dot on the map above to highlight an institution.</div>';
+  });
 }
 
 // ── UK map (summary view) ──────────────────────────────────────────────────
@@ -1681,13 +1794,48 @@ function _mapProjection(W,H){
   return _mapProj;
 }
 
+function setMapFilter(kind,val){
+  if(kind==='stage')mapStageFilter=val;
+  else if(kind==='char')mapCharFilter=val;
+  else if(kind==='region')mapRegionFilter=val;
+  buildMap();
+}
 
-function buildMap(targets){
+// Populate the stage/char/region dropdowns once from the data
+function _initMapControls(targets){
+  var charSet={},regSet={};
+  targets.forEach(function(r){
+    var c=(r.characteristic||'').trim();if(c)charSet[c]=true;
+    var rg=(r.region||'').trim();if(rg)regSet[rg]=true;
+  });
+  var stageSel=document.getElementById('map-stage');
+  if(stageSel.options.length<=1){
+    [['access','Access'],['success','Success (continuation, completion, attainment)'],['progression','Progression']].forEach(function(s){
+      var o=document.createElement('option');o.value=s[0];o.textContent=s[1];stageSel.appendChild(o);
+    });
+  }
+  var charSel=document.getElementById('map-char');
+  if(charSel.options.length<=1){
+    Object.keys(charSet).sort().forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;charSel.appendChild(o);});
+  }
+  var regSel=document.getElementById('map-region');
+  if(regSel.options.length<=1){
+    Object.keys(regSet).sort().forEach(function(rg){var o=document.createElement('option');o.value=rg;o.textContent=rg;regSel.appendChild(o);});
+  }
+}
+
+function buildMap(){
   var svg=document.getElementById('uk-map');if(!svg)return;
   var W=320,H=460,proj=_mapProjection(W,H);
-  if(!targets)targets=summaryFilteredTargets();
-  // The map highlights/summarises a single region only when exactly one is chosen
-  mapRegionFilter=(SF.regions.length===1)?SF.regions[0]:'';
+  // Base targets: same plan filter as the rest of the summary
+  var baseTargets=allData.filter(function(r){return r.reference_number&&r.reference_number.trim()&&isPlanMatch(r,summaryPlanFilter);});
+  _initMapControls(baseTargets);
+  // Apply the map's own type filters
+  var targets=baseTargets.filter(function(r){
+    if(mapStageFilter&&getGroup(r.lifecycle_stage)!==mapStageFilter)return false;
+    if(mapCharFilter&&(r.characteristic||'').trim()!==mapCharFilter)return false;
+    return true;
+  });
   // Group into institutions with coordinates
   var insts={};_mapInstById={};
   var anyCoords=false;
@@ -1770,9 +1918,9 @@ function _mapRender(){
 
 // Click a region on the map: toggle it as the active region filter
 function mapPickRegion(name){
-  if(sfCompActive())return; // region filter is overridden while a comparator set is active
-  sfToggleArr(SF.regions,name);
-  buildSummary();
+  mapRegionFilter=(mapRegionFilter===name)?'':name;
+  var sel=document.getElementById('map-region');if(sel)sel.value=mapRegionFilter;
+  buildMap();
 }
 
 // ── Map zoom / pan ──────────────────────────────────────────────────────────
@@ -1837,7 +1985,9 @@ function renderMapRegion(regionInsts){
     '<div style="font-size:11px;color:#9a9fac;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 2px">Top demographic areas</div>'+charRows;
 }
 
+var _mapSelectedUkprn=null;
 function showMapInst(ukprn){
+  _mapSelectedUkprn=ukprn;
   var it=_mapInstById[ukprn];if(!it)return;
   var rows=it.targets.map(function(r,i){
     var stage=r.lifecycle_stage||'',chr=(r.characteristic||'').trim(),sc=stageClass(stage),label=buildLabel(r);
