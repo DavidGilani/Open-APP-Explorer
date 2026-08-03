@@ -1740,6 +1740,9 @@ function renderSummaryTrendChart(){
     if(charKey==='imd'){i1='IMDQ5';i2='IMDQ1';}
     else if(pairs&&pairs.length){i1=pairs[0][0];i2=pairs[0][1];}
     if(!i1){trendDiv.innerHTML='<div class="empty" style="padding:12px 0">No gap data available for this characteristic.</div>';return;}
+    var pairLabel=(charKey==='imd')
+      ?(i1==='IMDQ3_5'?'IMD Q3-5 vs Q1+2 gap (percentage points)':'IMD Q5 vs Q1 gap (percentage points)')
+      :(OFS_PAIR_LABELS[i1+','+i2]||(i1+' vs '+i2+' gap (percentage points)'));
     var byInst={};
     data.forEach(function(r){
       if(r.split_ind1!==i1||r.split_ind2!==i2)return;
@@ -1757,19 +1760,23 @@ function renderSummaryTrendChart(){
     if(!allAy.length){trendDiv.innerHTML='<div class="empty" style="padding:12px 0">No gap data available.</div>';return;}
     var ayIdx={};allAy.forEach(function(ay,i){ayIdx[ay]=i;});
     var vals=[0];instKeys.forEach(function(uk){Object.keys(byInst[uk].byAy).forEach(function(ay){vals.push(byInst[uk].byAy[ay]);});});
-    var minG=Math.min.apply(null,vals),maxG=Math.max.apply(null,vals),range=maxG-minG;
-    if(range<4){minG-=2;maxG+=2;range=maxG-minG;}
-    var W=400,H=160,pL=42,pR=8,pT=18,pB=44,cW=W-pL-pR,cH=H-pT-pB,n=allAy.length;
+    var ax=niceAxis(Math.min.apply(null,vals),Math.max.apply(null,vals),4);
+    var minG=ax.min,maxG=ax.max,range=maxG-minG;
+    var W=400,H=168,pL=46,pR=26,pT=18,pB=44,cW=W-pL-pR,cH=H-pT-pB,n=allAy.length;
     function xPos(i){return pL+(n===1?cW/2:i/(n-1)*cW);}
     function yPos(g){return pT+cH-((g-minG)/range*cH);}
     var zy=yPos(0),sp=[];
+    // Round-number gridlines + y labels
+    ax.ticks.forEach(function(v){var y=yPos(v);
+      if(Math.abs(v)>1e-9)sp.push('<line x1="'+pL+'" y1="'+y+'" x2="'+(W-pR)+'" y2="'+y+'" stroke="rgba(255,255,255,.05)" stroke-width="1"/>');
+      sp.push('<text x="'+(pL-5)+'" y="'+(y+3)+'" text-anchor="end" font-size="8" fill="#9a9fac">'+fmtPp(v)+'</text>');
+    });
     sp.push('<line x1="'+pL+'" y1="'+zy+'" x2="'+(W-pR)+'" y2="'+zy+'" stroke="rgba(255,255,255,.15)" stroke-width="1" stroke-dasharray="3,3"/>');
-    sp.push('<text x="10" y="'+(pT+cH/2)+'" text-anchor="middle" font-size="8" fill="#9a9fac" transform="rotate(-90,10,'+(pT+cH/2)+')">pp gap</text>');
-    [minG,(minG+maxG)/2,maxG].forEach(function(v){sp.push('<text x="'+(pL-4)+'" y="'+(yPos(v)+3)+'" text-anchor="end" font-size="9" fill="#9a9fac">'+Math.round(v)+'</text>');});
     allAy.forEach(function(ay,i){
       if(n>7&&i%2!==0&&i!==n-1)return;
       var lbl=(ay||'').replace('20','').replace('-','/');
-      sp.push('<text x="'+xPos(i)+'" y="'+(H-pB+12)+'" text-anchor="middle" font-size="8" fill="#9a9fac">'+lbl+'</text>');
+      var anchor=i===0?'start':(i===n-1?'end':'middle');
+      sp.push('<text x="'+xPos(i)+'" y="'+(H-pB+12)+'" text-anchor="'+anchor+'" font-size="8" fill="#9a9fac">'+lbl+'</text>');
     });
     sp.push('<text x="'+(pL+cW/2)+'" y="'+(H-16)+'" text-anchor="middle" font-size="8" fill="#9a9fac">Academic year</text>');
     var selUk=(_mapSelectedUkprn||'').toString().trim();
@@ -1804,7 +1811,13 @@ function renderSummaryTrendChart(){
         selCol=selTrend==='narrowing'?'#5dcaa5':selTrend==='widening'?'#f0907a':'#7eb8f7';
         var sPts=sAy.map(function(ay){return xPos(ayIdx[ay])+','+yPos(si.byAy[ay]);});
         if(sPts.length>=2)sp.push('<polyline points="'+sPts.join(' ')+'" fill="none" stroke="'+selCol+'" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>');
-        sAy.forEach(function(ay){sp.push('<circle cx="'+xPos(ayIdx[ay])+'" cy="'+yPos(si.byAy[ay])+'" r="3.5" fill="'+selCol+'" stroke="#16171a" stroke-width="1.5"/>');});
+        sAy.forEach(function(ay){
+          var ai=ayIdx[ay],x=xPos(ai),g=si.byAy[ay],y=yPos(g);
+          sp.push('<circle cx="'+x+'" cy="'+y+'" r="3.5" fill="'+selCol+'" stroke="#16171a" stroke-width="1.5"/>');
+          var ly=y-9;if(ly<pT+8)ly=y+16;
+          var anchor=ai===0?'start':(ai===n-1?'end':'middle');
+          sp.push('<text x="'+x+'" y="'+ly+'" text-anchor="'+anchor+'" font-size="9" font-weight="700" fill="'+selCol+'">'+(g>0?'+':'')+g.toFixed(1)+'</text>');
+        });
       }
     }
     // Caption / key
@@ -1812,9 +1825,10 @@ function renderSummaryTrendChart(){
     if(instKeys.length>=2)keyBits.push('<span style="display:inline-flex;align-items:center;gap:5px"><svg width="20" height="4"><line x1="0" y1="2" x2="20" y2="2" stroke="#e6e9f0" stroke-width="2" stroke-dasharray="5,3"/></svg>average of those shown</span>');
     if(selUk&&byInst[selUk])keyBits.push('<span style="display:inline-flex;align-items:center;gap:5px"><svg width="20" height="4"><line x1="0" y1="2" x2="20" y2="2" stroke="'+selCol+'" stroke-width="3.5"/></svg>selected'+(selTrend?' ('+selTrend+')':'')+': '+escAttr(byInst[selUk].name)+'</span>');
     var instCountNote=instKeys.length+' institution'+(instKeys.length!==1?'s':'')+' with data.';
-    trendDiv.innerHTML='<div style="overflow-x:auto"><svg class="ofs-chart-svg" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" style="min-width:280px">'+sp.join('')+'</svg></div>'+
+    trendDiv.innerHTML='<div class="ofs-pair-label">'+pairLabel+'</div>'+
+      '<div style="overflow-x:auto"><svg class="ofs-chart-svg" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" style="min-width:280px">'+sp.join('')+'</svg></div>'+
       '<div style="font-size:11px;color:#9a9fac;margin-top:8px;display:flex;gap:16px;flex-wrap:wrap;align-items:center">'+keyBits.join('')+'</div>'+
-      '<div style="font-size:11px;color:#9a9fac;margin-top:6px">'+instCountNote+' Click a line here (or a dot on the map above) to highlight that institution and open it in the map panel. A green line is a narrowing gap, orange-red a widening one.</div>';
+      '<div style="font-size:11px;color:#9a9fac;margin-top:6px">'+instCountNote+' Click a line here (or a dot on the map above) to highlight that institution and open it in the map panel. A green line is a narrowing gap, orange-red a widening one. A positive gap means the disadvantaged group has the lower rate. Source: OfS access and participation data (full-time undergraduates, '+(OFS_CHAR_SOURCE_NOTES[charKey]||charKey)+'), '+lifecycle.toLowerCase()+'. Trend direction compares the earliest and latest year shown.</div>';
   });
 }
 
@@ -2252,6 +2266,13 @@ function getOfsCharacteristic(t) {
 }
 function isImdTarget(t) { return getOfsCharacteristic(t)==='imd'; }
 
+// OfS publishes access equity as gaps only for quintile measures (IMD, TUNDRA).
+// For ethnicity/disability/FSM/age at Access there is no gap - only entrant-rate
+// indicators - so those should default to the Indicators view.
+function ofsDefaultMode(charKey, lifecycle) {
+  return (lifecycle==='Access' && charKey!=='imd' && charKey!=='tundra') ? 'indicators' : 'gaps';
+}
+
 function getImfPair(t) {
   var tg = (t.target_group||'').toLowerCase();
   var cg = (t.comparator_group||'').toLowerCase();
@@ -2344,6 +2365,23 @@ function getSparklineRows(r) {
   return getOfsRowsForCharInst(d,uk,ck,r);
 }
 
+// Round "nice" axis: ticks at 1/2/2.5/5 x 10^n, always spanning zero, ~5 gridlines.
+// Returns {min,max,ticks,step} so charts show conventional round numbers.
+function niceAxis(minV,maxV,target){
+  target=target||5;
+  if(minV>0)minV=0;if(maxV<0)maxV=0;
+  if(minV===maxV){minV-=1;maxV+=1;}
+  var span=maxV-minV,raw=span/target;
+  var mag=Math.pow(10,Math.floor(Math.log(raw)/Math.LN10));
+  var norm=raw/mag,step;
+  if(norm<1.5)step=1;else if(norm<3)step=2;else if(norm<4)step=2.5;else if(norm<7.5)step=5;else step=10;
+  step*=mag;
+  var lo=Math.floor(minV/step)*step,hi=Math.ceil(maxV/step)*step;
+  var ticks=[];for(var v=lo,i=0;v<=hi+step*1e-6&&i<60;i++,v+=step)ticks.push(Math.round(v*1e6)/1e6);
+  return {min:lo,max:hi,ticks:ticks,step:step};
+}
+function fmtPp(v){var r=Math.round(v*10)/10;return (Math.abs(r-Math.round(r))<1e-9?Math.round(r):r)+'pp';}
+
 function buildOfsSvgChart(rows) {
   var yo=['YEAR1','YEAR2','YEAR3','YEAR4','YEAR5','YEAR6'],by={};
   rows.forEach(function(r){by[r.year]=r;});
@@ -2354,16 +2392,17 @@ function buildOfsSvgChart(rows) {
   var trend='';
   if(gaps.length>=2){var f=gaps[0],l=gaps[gaps.length-1];trend=l<f-0.5?' - narrowing':l>f+0.5?' - widening':' - broadly stable';}
   // Chart dimensions - extra bottom padding to separate x-tick labels from "Academic year" label
-  var W=400,H=120,pL=42,pR=8,pT=18,pB=36,cW=W-pL-pR,cH=H-pT-pB,n=vy.length;
-  var minG=Math.min.apply(null,gaps),maxG=Math.max.apply(null,gaps),range=maxG-minG;
-  if(range<4){minG-=2;maxG+=2;range=maxG-minG;}
-  if(minG>0)minG=0;if(maxG<0)maxG=0;range=maxG-minG;
+  var W=400,H=120,pL=46,pR=14,pT=18,pB=36,cW=W-pL-pR,cH=H-pT-pB,n=vy.length;
+  var ax=niceAxis(Math.min.apply(null,gaps),Math.max.apply(null,gaps),4);
+  var minG=ax.min,maxG=ax.max,range=maxG-minG;
   function xPos(i){return pL+(n===1?cW/2:i/(n-1)*cW);}
   function yPos(g){return pT+cH-((g-minG)/range*cH);}
   var zy=yPos(0),sp=[];
+  ax.ticks.forEach(function(v){var y=yPos(v);
+    if(Math.abs(v)>1e-9)sp.push('<line x1="'+pL+'" y1="'+y+'" x2="'+(W-pR)+'" y2="'+y+'" stroke="rgba(255,255,255,.05)" stroke-width="1"/>');
+    sp.push('<text x="'+(pL-5)+'" y="'+(y+3)+'" text-anchor="end" font-size="8" fill="#9a9fac">'+fmtPp(v)+'</text>');
+  });
   sp.push('<line x1="'+pL+'" y1="'+zy+'" x2="'+(W-pR)+'" y2="'+zy+'" stroke="rgba(255,255,255,.15)" stroke-width="1" stroke-dasharray="3,3"/>');
-  sp.push('<text x="10" y="'+(pT+cH/2)+'" text-anchor="middle" font-size="8" fill="#9a9fac" transform="rotate(-90,10,'+(pT+cH/2)+')">pp gap</text>');
-  [minG,(minG+maxG)/2,maxG].forEach(function(v){sp.push('<text x="'+(pL-4)+'" y="'+(yPos(v)+3)+'" text-anchor="end" font-size="9" fill="#9a9fac">'+Math.round(v)+'</text>');});
   // X-tick labels at H-pB+12 (mid of bottom padding), "Academic year" label at H-4
   vy.forEach(function(y,i){var lbl=(labels[i]||'').replace('20','').replace('-','/')||y;sp.push('<text x="'+xPos(i)+'" y="'+(H-pB+12)+'" text-anchor="middle" font-size="9" fill="#9a9fac">'+lbl+'</text>');});
   sp.push('<text x="'+(pL+cW/2)+'" y="'+(H-4)+'" text-anchor="middle" font-size="8" fill="#9a9fac">Academic year</text>');
@@ -2410,20 +2449,23 @@ function buildOfsOverlayChart(primaryRows, allData, allowSet) {
   // Y range across all values (include 0)
   var vals=[0];
   Object.keys(byInst).forEach(function(uk){Object.keys(byInst[uk].byAy).forEach(function(ay){vals.push(byInst[uk].byAy[ay]);});});
-  var minG=Math.min.apply(null,vals),maxG=Math.max.apply(null,vals),range=maxG-minG;
-  if(range<4){minG-=2;maxG+=2;range=maxG-minG;}
-  var W=400,H=150,pL=42,pR=8,pT=18,pB=42,cW=W-pL-pR,cH=H-pT-pB,n=allAy.length;
+  var ax=niceAxis(Math.min.apply(null,vals),Math.max.apply(null,vals),4);
+  var minG=ax.min,maxG=ax.max,range=maxG-minG;
+  var W=400,H=150,pL=46,pR=22,pT=18,pB=42,cW=W-pL-pR,cH=H-pT-pB,n=allAy.length;
   function xPos(i){return pL+(n===1?cW/2:i/(n-1)*cW);}
   function yPos(g){return pT+cH-((g-minG)/range*cH);}
   var zy=yPos(0),sp=[];
+  ax.ticks.forEach(function(v){var y=yPos(v);
+    if(Math.abs(v)>1e-9)sp.push('<line x1="'+pL+'" y1="'+y+'" x2="'+(W-pR)+'" y2="'+y+'" stroke="rgba(255,255,255,.05)" stroke-width="1"/>');
+    sp.push('<text x="'+(pL-5)+'" y="'+(y+3)+'" text-anchor="end" font-size="8" fill="#9a9fac">'+fmtPp(v)+'</text>');
+  });
   sp.push('<line x1="'+pL+'" y1="'+zy+'" x2="'+(W-pR)+'" y2="'+zy+'" stroke="rgba(255,255,255,.15)" stroke-width="1" stroke-dasharray="3,3"/>');
-  sp.push('<text x="10" y="'+(pT+cH/2)+'" text-anchor="middle" font-size="8" fill="#9a9fac" transform="rotate(-90,10,'+(pT+cH/2)+')">pp gap</text>');
-  [minG,(minG+maxG)/2,maxG].forEach(function(v){sp.push('<text x="'+(pL-4)+'" y="'+(yPos(v)+3)+'" text-anchor="end" font-size="9" fill="#9a9fac">'+Math.round(v)+'</text>');});
   allAy.forEach(function(ay,i){
     // Thin the labels if crowded
     if(n>7&&i%2!==0&&i!==n-1)return;
     var lbl=(ay||'').replace('20','').replace('-','/');
-    sp.push('<text x="'+xPos(i)+'" y="'+(H-pB+12)+'" text-anchor="middle" font-size="8" fill="#9a9fac">'+lbl+'</text>');
+    var anchor=i===0?'start':(i===n-1?'end':'middle');
+    sp.push('<text x="'+xPos(i)+'" y="'+(H-pB+12)+'" text-anchor="'+anchor+'" font-size="8" fill="#9a9fac">'+lbl+'</text>');
   });
   sp.push('<text x="'+(pL+cW/2)+'" y="'+(H-16)+'" text-anchor="middle" font-size="8" fill="#9a9fac">Academic year</text>');
   // Faint lines for every non-primary institution
@@ -2605,6 +2647,7 @@ function loadOfsAndRender(t, containerId) {
   if(!ukprn)return;
   var container=document.getElementById(containerId);
   if(!container)return;
+  ofsViewMode=ofsDefaultMode(charKey,lifecycle);
   var panelTitle='OfS equity data - '+(OFS_CHAR_LABELS[charKey]||'gap trend');
   container.innerHTML='<div class="ofs-panel"><div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-note">Loading...</div></div>';
   _ofsLoadAndRun(charKey,lifecycle,function(data){
@@ -2621,6 +2664,7 @@ function loadOfsForSimilarInst(r, containerId) {
   if(!ukprn)return;
   var container=document.getElementById(containerId);
   if(!container)return;
+  ofsViewMode=ofsDefaultMode(charKey,lifecycle);
   var panelTitle='OfS equity data - '+(OFS_CHAR_LABELS[charKey]||'gap trend');
   container.innerHTML='<div class="ofs-panel"><div class="ofs-panel-title">'+panelTitle+'</div><div class="ofs-note">Loading...</div></div>';
   _ofsLoadAndRun(charKey,lifecycle,function(data){
