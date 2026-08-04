@@ -1761,6 +1761,17 @@ function renderSummaryDemoBars(){
 }
 
 // ── Summary trend chart (1 stage + 1 characteristic) ─────────────────────
+// Reset only the lifecycle-stage + demographic filters (keep plan, region,
+// mission and comparator), restoring the donut and bar-chart sections.
+function sfResetStageChar(){
+  SF.stages=[];SF.chars=[];
+  var cs=document.getElementById('sf-char-search');if(cs)cs.value='';
+  buildSummary();
+  if(typeof sfRenderCharList==='function')sfRenderCharList();
+}
+function _trendNoData(msg){
+  return '<div class="empty" style="padding:12px 0">'+msg+' <a onclick="sfResetStageChar()" style="color:var(--accent);cursor:pointer">Click here to reset the current lifecycle stage and demographic filters.</a></div>';
+}
 function renderSummaryTrendChart(){
   var charStr=SF.chars[0],stageK=SF.stages[0];
   var fakeTarget={characteristic:charStr};
@@ -1770,7 +1781,7 @@ function renderSummaryTrendChart(){
   var trendTitle=document.getElementById('sum-trend-title');
   if(!trendDiv)return;
   if(!charKey){
-    trendDiv.innerHTML='<div class="empty" style="padding:12px 0">No OfS equity data available for this demographic area.</div>';
+    trendDiv.innerHTML=_trendNoData('No OfS equity data available for this demographic area.');
     return;
   }
   if(trendTitle)trendTitle.textContent='Gap trend: '+charStr+' - '+lifecycle;
@@ -1784,7 +1795,7 @@ function renderSummaryTrendChart(){
     var i1=null,i2=null;
     if(charKey==='imd'){i1='IMDQ5';i2='IMDQ1';}
     else if(pairs&&pairs.length){i1=pairs[0][0];i2=pairs[0][1];}
-    if(!i1){trendDiv.innerHTML='<div class="empty" style="padding:12px 0">No gap data available for this characteristic.</div>';return;}
+    if(!i1){trendDiv.innerHTML=_trendNoData('No gap data available for this characteristic.');return;}
     var pairLabel=(charKey==='imd')
       ?(i1==='IMDQ3_5'?'IMD Q3-5 vs Q1+2 gap (percentage points)':'IMD Q5 vs Q1 gap (percentage points)')
       :(OFS_PAIR_LABELS[i1+','+i2]||(i1+' vs '+i2+' gap (percentage points)'));
@@ -1799,10 +1810,10 @@ function renderSummaryTrendChart(){
       byInst[uk].byAy[ay]=g;
     });
     var instKeys=Object.keys(byInst);
-    if(!instKeys.length){trendDiv.innerHTML='<div class="empty" style="padding:12px 0">No gap data available for these filters.</div>';return;}
+    if(!instKeys.length){trendDiv.innerHTML=_trendNoData('No gap data available for these filters.');return;}
     var aySet={};instKeys.forEach(function(uk){Object.keys(byInst[uk].byAy).forEach(function(ay){aySet[ay]=true;});});
     var allAy=Object.keys(aySet).sort();
-    if(!allAy.length){trendDiv.innerHTML='<div class="empty" style="padding:12px 0">No gap data available.</div>';return;}
+    if(!allAy.length){trendDiv.innerHTML=_trendNoData('No gap data available.');return;}
     var ayIdx={};allAy.forEach(function(ay,i){ayIdx[ay]=i;});
     var vals=[0];instKeys.forEach(function(uk){Object.keys(byInst[uk].byAy).forEach(function(ay){vals.push(byInst[uk].byAy[ay]);});});
     var ax=niceAxis(Math.min.apply(null,vals),Math.max.apply(null,vals),4);
@@ -1831,7 +1842,7 @@ function renderSummaryTrendChart(){
       var inst=byInst[uk],pts=[];
       allAy.forEach(function(ay){if(inst.byAy[ay]!==undefined)pts.push(xPos(ayIdx[ay])+','+yPos(inst.byAy[ay]));});
       if(pts.length<2)return;
-      sp.push('<polyline class="ofs-ov-line" points="'+pts.join(' ')+'" data-name="'+escAttr(inst.name||'uk')+'" onmouseover="hoverTipShow(event,this)" onmousemove="hoverTipMove(event)" onmouseout="hoverTipHide()" onclick="showMapInst(\''+uk+'\')"></polyline>');
+      sp.push('<polyline class="ofs-ov-line" points="'+pts.join(' ')+'" data-name="'+escAttr(inst.name||'uk')+'" onmouseover="hoverTipShow(event,this)" onmousemove="hoverTipMove(event)" onmouseout="hoverTipHide()" onclick="toggleMapInst(\''+uk+'\')"></polyline>');
     });
     // Average line across the institutions currently shown (only meaningful with >=2)
     if(instKeys.length>=2){
@@ -1855,10 +1866,10 @@ function renderSummaryTrendChart(){
         selTrend=sAy.length>=2?(l<f-0.5?'narrowing':l>f+0.5?'widening':'stable'):'stable';
         selCol=selTrend==='narrowing'?'#5dcaa5':selTrend==='widening'?'#f0907a':'#7eb8f7';
         var sPts=sAy.map(function(ay){return xPos(ayIdx[ay])+','+yPos(si.byAy[ay]);});
-        if(sPts.length>=2)sp.push('<polyline points="'+sPts.join(' ')+'" fill="none" stroke="'+selCol+'" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>');
+        if(sPts.length>=2)sp.push('<polyline points="'+sPts.join(' ')+'" fill="none" stroke="'+selCol+'" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" style="cursor:pointer" data-name="'+escAttr(si.name||'')+' (click to deselect)" onmouseover="hoverTipShow(event,this)" onmousemove="hoverTipMove(event)" onmouseout="hoverTipHide()" onclick="toggleMapInst(\''+selUk+'\')"/>');
         sAy.forEach(function(ay){
           var ai=ayIdx[ay],x=xPos(ai),g=si.byAy[ay],y=yPos(g);
-          sp.push('<circle cx="'+x+'" cy="'+y+'" r="3.5" fill="'+selCol+'" stroke="#16171a" stroke-width="1.5"/>');
+          sp.push('<circle cx="'+x+'" cy="'+y+'" r="3.5" fill="'+selCol+'" stroke="#16171a" stroke-width="1.5" style="cursor:pointer" onclick="toggleMapInst(\''+selUk+'\')"/>');
           var ly=y-9;if(ly<pT+8)ly=y+16;
           var anchor=ai===0?'start':(ai===n-1?'end':'middle');
           sp.push('<text x="'+x+'" y="'+ly+'" text-anchor="'+anchor+'" font-size="9" font-weight="700" fill="'+selCol+'">'+(g>0?'+':'')+g.toFixed(1)+'</text>');
@@ -1873,7 +1884,7 @@ function renderSummaryTrendChart(){
     trendDiv.innerHTML='<div class="ofs-pair-label">'+pairLabel+'</div>'+
       '<div style="overflow-x:auto"><svg class="ofs-chart-svg" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" style="min-width:280px">'+sp.join('')+'</svg></div>'+
       '<div style="font-size:11px;color:#9a9fac;margin-top:8px;display:flex;gap:16px;flex-wrap:wrap;align-items:center">'+keyBits.join('')+'</div>'+
-      '<div style="font-size:11px;color:#9a9fac;margin-top:6px">'+instCountNote+' Click a line here (or a dot on the map above) to highlight that institution and open it in the map panel. A green line is a narrowing gap, orange-red a widening one. A positive gap means the disadvantaged group has the lower rate. Source: OfS access and participation data (full-time undergraduates, '+(OFS_CHAR_SOURCE_NOTES[charKey]||charKey)+'), '+lifecycle.toLowerCase()+'. Trend direction compares the earliest and latest year shown.</div>';
+      '<div style="font-size:11px;color:#9a9fac;margin-top:6px">'+instCountNote+' Click a line here (or a dot on the map above) to highlight that institution and open it in the map panel; click it again to deselect. A green line is a narrowing gap, orange-red a widening one. A positive gap means the disadvantaged group has the lower rate. Source: OfS access and participation data (full-time undergraduates, '+(OFS_CHAR_SOURCE_NOTES[charKey]||charKey)+'), '+lifecycle.toLowerCase()+'. Trend direction compares the earliest and latest year shown.</div>';
   });
 }
 
@@ -1967,18 +1978,23 @@ function _mapRender(){
       });
     });
   }
-  var dots='';
+  var dots='',selDot='';
   if(_mapDraw&&_mapDraw.anyCoords){
     var zfac=mapView.h/MAP_BASE_H; // keep dots ~constant screen size across zoom
+    var selUk=(_mapSelectedUkprn||'').toString().trim();
     _mapDraw.instList.forEach(function(it){
       var xy=proj.fn(it.lng,it.lat);
       var rad=(3+Math.sqrt(it.targets.length/_mapDraw.maxC)*7)*zfac;
       var inRegion=!mapRegionFilter||it.region===mapRegionFilter;
-      var fill=inRegion?'#7eb8f7':'#4a5568',op=inRegion?0.82:0.3;
+      var isSel=selUk&&it.ukprn.toString().trim()===selUk;
+      var fill=isSel?'#ffffff':(inRegion?'#7eb8f7':'#4a5568'),op=isSel?1:(inRegion?0.82:0.3);
+      var strokeAttr=isSel?'stroke="#7eb8f7" stroke-width="2"':'stroke="#16171a" stroke-width="0.5"';
       var nm=escAttr((it.name||'')+' – '+it.targets.length+' target'+(it.targets.length!==1?'s':''));
-      dots+='<circle class="map-dot" cx="'+xy[0].toFixed(1)+'" cy="'+xy[1].toFixed(1)+'" r="'+rad.toFixed(2)+'" fill="'+fill+'" fill-opacity="'+op+'" stroke="#16171a" stroke-width="0.5" vector-effect="non-scaling-stroke" data-name="'+nm+'" onmouseover="hoverTipShow(event,this)" onmousemove="hoverTipMove(event)" onmouseout="hoverTipHide()" onclick="showMapInst(\''+it.ukprn+'\')"></circle>';
+      var c='<circle class="map-dot" cx="'+xy[0].toFixed(1)+'" cy="'+xy[1].toFixed(1)+'" r="'+rad.toFixed(2)+'" fill="'+fill+'" fill-opacity="'+op+'" '+strokeAttr+' vector-effect="non-scaling-stroke" data-name="'+nm+'" onmouseover="hoverTipShow(event,this)" onmousemove="hoverTipMove(event)" onmouseout="hoverTipHide()" onclick="toggleMapInst(\''+it.ukprn+'\')"></circle>';
+      if(isSel)selDot=c;else dots+=c;
     });
   }
+  dots+=selDot; // draw the selected dot last so it sits on top
   svg.setAttribute('viewBox',mapView.x.toFixed(1)+' '+mapView.y.toFixed(1)+' '+mapView.w.toFixed(1)+' '+mapView.h.toFixed(1));
   svg.innerHTML=paths+regs+dots;
 }
@@ -2053,8 +2069,25 @@ function renderMapRegion(regionInsts){
 }
 
 var _mapSelectedUkprn=null;
+// Clicking an already-selected institution (dot or trend line) clears the selection.
+function toggleMapInst(ukprn){
+  if((_mapSelectedUkprn||'').toString().trim()===(ukprn||'').toString().trim())deselectMapInst();
+  else showMapInst(ukprn);
+}
+function deselectMapInst(){
+  _mapSelectedUkprn=null;
+  _mapRender(); // revert the white bubble
+  // Restore the default map panel (region summary or overview)
+  if(_mapDraw&&_mapDraw.anyCoords){
+    if(mapRegionFilter)renderMapRegion(_mapDraw.instList.filter(function(it){return it.region===mapRegionFilter;}));
+    else renderMapOverview(_mapDraw.instList);
+  }
+  var trendSec=document.getElementById('sum-trend-section');
+  if(trendSec&&trendSec.style.display!=='none')renderSummaryTrendChart();
+}
 function showMapInst(ukprn){
   _mapSelectedUkprn=ukprn;
+  _mapRender(); // recolour the selected bubble (white)
   // Keep the gap-trend chart in sync when it is on screen (clicking a dot or a line)
   var trendSec=document.getElementById('sum-trend-section');
   if(trendSec&&trendSec.style.display!=='none')renderSummaryTrendChart();
