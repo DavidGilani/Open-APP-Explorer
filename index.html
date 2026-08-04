@@ -2084,6 +2084,7 @@ function deselectMapInst(){
   }
   var trendSec=document.getElementById('sum-trend-section');
   if(trendSec&&trendSec.style.display!=='none')renderSummaryTrendChart();
+  syncURL();
 }
 function showMapInst(ukprn){
   _mapSelectedUkprn=ukprn;
@@ -2091,6 +2092,7 @@ function showMapInst(ukprn){
   // Keep the gap-trend chart in sync when it is on screen (clicking a dot or a line)
   var trendSec=document.getElementById('sum-trend-section');
   if(trendSec&&trendSec.style.display!=='none')renderSummaryTrendChart();
+  syncURL();
   var it=_mapInstById[ukprn];if(!it)return;
   var rows=it.targets.map(function(r,i){
     var stage=r.lifecycle_stage||'',chr=(r.characteristic||'').trim(),sc=stageClass(stage),label=buildLabel(r);
@@ -2183,6 +2185,7 @@ function buildStateParams(){
     SF.regions.forEach(function(r){p.append('rgn',r);});
     SF.missions.forEach(function(m){p.append('msn',m);});
     SF.comparator.forEach(function(u){p.append('cmp',u);});
+    if(_mapSelectedUkprn)p.set('sel',_mapSelectedUkprn);
   } else if(v==='demo'){
     p.set('v','demo');
     p.set('stage',(document.getElementById('demo-stage')||{}).value||'');
@@ -2259,6 +2262,7 @@ function restoreFromURL(){
       SF.stages=p.getAll('stg');SF.chars=p.getAll('chr');
       SF.regions=p.getAll('rgn');SF.missions=p.getAll('msn');SF.comparator=p.getAll('cmp');
       openSummary();
+      var selUk=p.get('sel');if(selUk)showMapInst(selUk);
     } else if(v==='demo'){
       var stage=p.get('stage'),chr=p.get('char');
       if(stage&&chr){
