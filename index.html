@@ -2219,7 +2219,10 @@ function buildStateParams(){
 function syncURL(){
   if(_restoringURL||!dataLoaded)return;
   var qs=buildStateParams().toString();
-  try{history.replaceState(null,'',window.location.pathname+(qs?'?'+qs:''));}catch(e){}
+  // State is kept in the URL fragment (after #), not a query string, so it is
+  // never sent to the server and is not inspected by institutional web filters
+  // (which were blocking the query-string form on this newly-registered domain).
+  try{history.replaceState(null,'',window.location.pathname+(qs?'#'+qs:''));}catch(e){}
 }
 
 function showShareToast(msg){
@@ -2251,8 +2254,17 @@ function _syncNumericChips(){
   if(typeof updateGroupCounters==='function')updateGroupCounters();
 }
 
+// Read shared state from the URL fragment (#...), falling back to the legacy
+// query string (?...) so links shared before this change keep working. Opening
+// an old ?-link silently migrates it to the #-form (syncURL runs at the end).
+function _stateParamsFromUrl(){
+  var h=window.location.hash||'';
+  if(h.charAt(0)==='#')h=h.slice(1);
+  if(h)return new URLSearchParams(h);
+  return new URLSearchParams(window.location.search);
+}
 function restoreFromURL(){
-  var p=new URLSearchParams(window.location.search);
+  var p=_stateParamsFromUrl();
   var v=p.get('v');
   if(!v)return;
   _restoringURL=true;
