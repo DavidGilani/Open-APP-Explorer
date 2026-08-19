@@ -288,6 +288,7 @@
     .sum-filter-bar .plan-filter-label{width:104px;flex-shrink:0}
     .sf-reset{margin-left:auto;font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid var(--border2);background:none;color:var(--muted);cursor:pointer;font-family:Arial,sans-serif}
     .sf-reset:hover{color:#f2f3f6;background:var(--bg3)}
+    .filter-reset-row{display:flex;justify-content:flex-end;margin-bottom:10px}
     .sf-dd{position:relative;display:inline-block}
     .sf-dd-panel{position:absolute;top:calc(100% + 4px);left:0;z-index:30;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px;width:340px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
     .sf-dd-panel-wide{width:360px}
@@ -548,6 +549,7 @@
             <span class="filter-arrow" id="filter-arrow">&#9660;</span>
           </div>
           <div class="filter-body" id="filter-body">
+            <div class="filter-reset-row"><button class="sf-reset" onclick="resetSimFilters()">&#8634; Reset all filters</button></div>
             <div class="precision-row">
               <span class="precision-label">Numeric matching:</span>
               <div class="precision-btns">
@@ -648,6 +650,7 @@
           <span class="filter-arrow" id="demo-filter-arrow">&#9660;</span>
         </div>
         <div class="filter-body" id="demo-filter-body">
+          <div class="filter-reset-row"><button class="sf-reset" onclick="resetAllDemoFilters()">&#8634; Reset all filters</button></div>
           <div class="filter-section" id="demo-progress-section">
             <div class="filter-section-title">Gap trajectory</div>
             <div class="progress-filter-row">
@@ -675,7 +678,6 @@
             <div class="filter-section-title">Student profile</div>
             <div id="demo-profile-filters"></div>
           </div>
-          <button class="try-again-btn" onclick="resetDemoFilters()" style="margin-top:4px">Reset filters</button>
         </div>
       </div>
     </div>
@@ -1218,6 +1220,15 @@ function resetFilters(){
   ['all','narrowing','stable','widening','nodata'].forEach(function(v){var el=document.getElementById('sim-prog-'+v);if(el)el.classList.toggle('active',v==='all');});
   updateGroupCounters();document.getElementById('filter-dot').classList.remove('on');
 }
+// "Reset all filters" for the institution (similar-institutions) view - restores
+// plan timeframe and numeric-matching precision to their defaults, then clears
+// every institution/profile filter via resetFilters() and re-applies.
+function resetSimFilters(){
+  setGlobalPrecision(10);
+  resetFilters();
+  setSimPlanFilter('current'); // re-applies filters with the cleared state
+  syncURL();
+}
 function applyFilters(){
   window._simInsts=[];
   var filterMission=document.getElementById('filter-mission').checked;
@@ -1469,6 +1480,16 @@ function resetDemoFilters(){
   ['all','narrowing','stable','widening','nodata'].forEach(function(v){var el=document.getElementById('demo-prog-'+v);if(el)el.classList.toggle('active',v==='all');});
   demoBandFilters={};syncAllBandChipsToState();
   applyDemoFilters();
+}
+
+// "Reset all filters" for the demographic view - also clears the plan-timeframe
+// chips (which sit outside the collapsible filter panel), then defers to
+// resetDemoFilters() for the rest.
+function resetAllDemoFilters(){
+  demoPlanFilter='current';
+  ['current','all','past'].forEach(function(v){var el=document.getElementById('demo-plan-'+v);if(el)el.classList.toggle('active',v==='current');});
+  resetDemoFilters();
+  syncURL();
 }
 
 function applyDemoFilters(){
